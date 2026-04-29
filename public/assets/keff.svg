@@ -1,0 +1,66 @@
+<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg" style="font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;">
+
+  <!-- Axes -->
+  <line x1="60" y1="230" x2="370" y2="230" stroke="#444" stroke-width="1"/>
+  <line x1="60" y1="230" x2="60" y2="30" stroke="#444" stroke-width="1"/>
+
+  <!-- X axis labels -->
+  <text x="60" y="250" text-anchor="middle" fill="#444" font-size="8">0</text>
+  <text x="122" y="250" text-anchor="middle" fill="#444" font-size="8">0.2</text>
+  <text x="184" y="250" text-anchor="middle" fill="#444" font-size="8">0.4</text>
+  <text x="246" y="250" text-anchor="middle" fill="#444" font-size="8">0.6</text>
+  <text x="308" y="250" text-anchor="middle" fill="#444" font-size="8">0.8</text>
+  <text x="370" y="250" text-anchor="middle" fill="#444" font-size="8">1.0</text>
+  <text x="215" y="270" text-anchor="middle" fill="#444" font-size="9">correlation (ρ)</text>
+
+  <!-- Y axis labels -->
+  <text x="50" y="233" text-anchor="end" fill="#444" font-size="8">0</text>
+  <text x="50" y="193" text-anchor="end" fill="#444" font-size="8">2</text>
+  <text x="50" y="153" text-anchor="end" fill="#444" font-size="8">4</text>
+  <text x="50" y="113" text-anchor="end" fill="#444" font-size="8">6</text>
+  <text x="50" y="73" text-anchor="end" fill="#444" font-size="8">8</text>
+  <text x="50" y="33" text-anchor="end" fill="#444" font-size="8">10</text>
+  <text x="20" y="130" text-anchor="middle" fill="#444" font-size="9" transform="rotate(-90,20,130)">K_eff</text>
+
+  <!-- Grid lines -->
+  <line x1="60" y1="193" x2="370" y2="193" stroke="#eee" stroke-width="0.5"/>
+  <line x1="60" y1="153" x2="370" y2="153" stroke="#eee" stroke-width="0.5"/>
+  <line x1="60" y1="113" x2="370" y2="113" stroke="#eee" stroke-width="0.5"/>
+  <line x1="60" y1="73" x2="370" y2="73" stroke="#eee" stroke-width="0.5"/>
+
+  <!-- K=10 curve -->
+  <path d="M60,30 C90,35 120,48 150,68 S210,118 240,148 S300,198 370,210" fill="none" stroke="#8b5cf6" stroke-width="1.8"/>
+  <text x="375" y="213" fill="#8b5cf6" font-size="8">K=10</text>
+
+  <!-- K=5 curve (our experiment) -->
+  <path d="M60,130 C90,133 120,142 150,155 S210,183 240,198 S300,218 370,224" fill="none" stroke="#3b82f6" stroke-width="2.2"/>
+  <text x="375" y="227" fill="#3b82f6" font-size="8" font-weight="bold">K=5</text>
+
+  <!-- K=3 curve -->
+  <path d="M60,170 C90,172 120,178 150,186 S210,202 240,212 S300,224 370,228" fill="none" stroke="#22c55e" stroke-width="1.8"/>
+  <text x="375" y="230" fill="#22c55e" font-size="8">K=3</text>
+
+  <!-- K=2 curve -->
+  <path d="M60,190 C90,192 120,196 150,201 S210,211 240,217 S300,226 370,229" fill="none" stroke="#888" stroke-width="1.5"/>
+  <text x="375" y="232" fill="#888" font-size="8">K=2</text>
+
+  <!-- ρ=0.3 vertical reference -->
+  <line x1="153" y1="30" x2="153" y2="230" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>
+  <text x="153" y="25" text-anchor="middle" fill="#ef4444" font-size="7">ρ=0.3</text>
+
+  <!-- ρ=0.6 vertical reference -->
+  <line x1="246" y1="30" x2="246" y2="230" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="4,3" opacity="0.5"/>
+  <text x="246" y="25" text-anchor="middle" fill="#ef4444" font-size="7">ρ=0.6</text>
+
+  <!-- Annotation: our experiment point at K=5, ρ=0.6 -->
+  <circle cx="246" cy="198" r="4" fill="#3b82f6" stroke="white" stroke-width="1.5"/>
+  <text x="255" y="192" fill="#222" font-size="7">K_eff ≈ 1.5</text>
+
+  <!-- K_eff = 1 line (single stream, no benefit) -->
+  <line x1="60" y1="210" x2="370" y2="210" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="2,3" opacity="0.4"/>
+  <text x="375" y="213" fill="#ef4444" font-size="7" opacity="0.5">K=1</text>
+
+  <!-- Title -->
+  <text x="215" y="18" text-anchor="middle" fill="#222" font-size="10">K_eff = K / (1 + ρ(K-1))</text>
+
+</svg>

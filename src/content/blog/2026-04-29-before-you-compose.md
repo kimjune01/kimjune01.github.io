@@ -46,6 +46,12 @@ Composition gains come from combining independent information. The effective num
 
 Averaging doesn't fix it, and decorrelation is unreliable if the shared factor is unknown. Shared noise erases the composition advantage.
 
+<div style="max-width: 500px; margin: 1em auto;">
+<img src="/assets/keff.svg" alt="K_eff vs correlation: more streams help at low correlation but converge to 1 as correlation approaches 1" />
+</div>
+
+The curve falls steeply. Adding streams helps a lot when correlation is low, barely at all past ρ = 0.3, and not at all past ρ = 0.6. At high correlation, five streams carry the same information as one. The formula comes from [Kish's design effect](https://en.wikipedia.org/wiki/Design_effect) in survey sampling (1965); the same math applies to composed e-value trajectories.
+
 *Check:* compute pairwise correlation across your streams under null conditions (no forcing). If mean ρ > 0.3, your composition is less than half as powerful as independent streams. If ρ > 0.6, use single-stream analysis instead.
 
 #### 3. Is your data at least 90% complete?
