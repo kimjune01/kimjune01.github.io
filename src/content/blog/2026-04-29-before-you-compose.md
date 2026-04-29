@@ -32,29 +32,29 @@ Clean input, correct classification. Corrupted input, no downstream fix recovers
 
 Before composing e-values across heterogeneous streams, check three things. If any fail, stop and fix the data, not the analysis.
 
-**1. Is your signal above the detection cliff?**
+#### 1. Is your signal above the detection cliff?
 
 Every forcing pattern has a minimum amplitude below which the classifier can't detect it. Below that amplitude, 0% detection; above it, 100%. In these experiments, detection behaved like a cliff.
 
 Cliffs vary 50x across patterns. Oscillation is detectable at amplitude 0.03 because spectral energy concentrates in one frequency bin; a linear trend needs 1.50 because the per-step slope is tiny relative to noise. If your signal falls short, more streams won't help. You need more observations or stronger perturbations.
 
-**Check:** compute your composed trajectory's spectral peak ratio and Theil-Sen slope against thresholds calibrated on your null. If both are below threshold, your signal is undetectable at this sample size.
+*Check:* compute your composed trajectory's spectral peak ratio and Theil-Sen slope against thresholds calibrated on your null. If both are below threshold, your signal is undetectable at this sample size.
 
-**2. Are your streams independent?**
+#### 2. Are your streams independent?
 
 Composition gains come from combining independent information. The effective number of independent streams is K_eff = K / (1 + ρ(K-1)), where ρ is the average pairwise correlation. At ρ = 0, K_eff = K. At ρ = 0.6 with K = 5, K_eff ≈ 1.5: five sensors worth only one and a half.
 
 Averaging doesn't fix it, and decorrelation is unreliable if the shared factor is unknown. Shared noise erases the composition advantage.
 
-**Check:** compute pairwise correlation across your streams under null conditions (no forcing). If mean ρ > 0.3, your composition is less than half as powerful as independent streams. If ρ > 0.6, use single-stream analysis instead.
+*Check:* compute pairwise correlation across your streams under null conditions (no forcing). If mean ρ > 0.3, your composition is less than half as powerful as independent streams. If ρ > 0.6, use single-stream analysis instead.
 
-**3. Is your data at least 90% complete?**
+#### 3. Is your data at least 90% complete?
 
 Missing observations contribute zero evidence. At 10% missing, 10% of the trajectory carries no signal. For patterns near their detection cliff (trends, aperiodic forcing), this pushes the signal below threshold. For patterns well above their cliff (oscillation), 10% missing is survivable.
 
 No imputation scheme fixes this because the missing observations aren't misweighted; they're absent. Interpolation introduces false structure. The only fix is better data collection.
 
-**Check:** count the fraction of missing observations per stream. If any stream exceeds 10%, the composed trajectory is unreliable for near-cliff signals.
+*Check:* count the fraction of missing observations per stream. If any stream exceeds 10%, the composed trajectory is unreliable for near-cliff signals.
 
 ### Composition is conditional
 
