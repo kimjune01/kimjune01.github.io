@@ -80,6 +80,10 @@ Created minds appear under three irreducible aspects: truth, action, and experie
 
 The pattern hasn't changed. The lens has.
 
+### Prior art
+
+[Robinson & Southgate (2010)](https://doi.org/10.1111/j.1467-9744.2010.01091.x) map Peirce's triadic semiotics onto Trinitarian theology: Firstness/Secondness/Thirdness as Father/Son/Spirit. Robinson's book [*God and the World of Signs*](https://brill.com/display/title/18063) develops this at length. The mapping here uses a different lens (cognitive architecture rather than Peircean semiotics) but lands on the same triangle. Lethen ([2022](https://www.researchgate.net/publication/363283008)) formalizes Trinitarian logic computationally using metaobject structures.
+
 ---
 
 *Written via the [double loop](/double-loop).*
