@@ -1,0 +1,125 @@
+<svg viewBox="0 0 800 400" width="1040" height="520" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; fill: #666; font-size: 11px; }
+    .dark { fill: #333; }
+    .accent { fill: #3b82f6; }
+    .green { fill: #2d7d2d; }
+    .red { fill: #c43c3c; }
+    .bold { font-weight: bold; }
+    .title { font-size: 12px; letter-spacing: 0.5px; fill: #333; font-weight: bold; }
+    .label { font-size: 10px; fill: #888; }
+    .small { font-size: 9px; }
+  </style>
+  <defs>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+    </marker>
+    <marker id="arrow-dim" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#aaa" />
+    </marker>
+  </defs>
+
+  <!-- === LEFT: TAPE === -->
+  <text x="155" y="18" text-anchor="middle" class="title">TAPE</text>
+
+  <!-- Snapshot BEFORE -->
+  <rect x="30" y="30" width="250" height="150" fill="none" stroke="#ddd" stroke-width="1.5" rx="4" />
+  <text x="155" y="50" text-anchor="middle" class="label bold accent">BEFORE</text>
+
+  <!-- Engine block -->
+  <rect x="100" y="65" width="110" height="55" fill="none" stroke="#ccc" stroke-width="1.5" rx="3" />
+  <text x="155" y="97" text-anchor="middle" class="small dark">ENGINE</text>
+
+  <!-- Alternator -->
+  <circle cx="70" cy="92" r="16" fill="none" stroke="#2d7d2d" stroke-width="1.5" />
+  <text x="70" y="96" text-anchor="middle" class="green" style="font-size:8px">ALT</text>
+  <line x1="86" y1="92" x2="100" y2="92" stroke="#ccc" stroke-width="1" />
+  <!-- Battery -->
+  <rect x="135" y="57" width="8" height="5" fill="none" stroke="#ccc" stroke-width="1" />
+  <rect x="143" y="57" width="8" height="5" fill="none" stroke="#ccc" stroke-width="1" />
+  <!-- Fuel -->
+  <rect x="220" y="80" width="30" height="22" fill="none" stroke="#ccc" stroke-width="1" rx="2" />
+  <text x="235" y="95" text-anchor="middle" style="font-size:7px" fill="#999">FUEL</text>
+  <line x1="210" y1="92" x2="220" y2="92" stroke="#ccc" stroke-width="1" />
+
+  <circle cx="155" cy="143" r="5" fill="#2d7d2d" />
+  <text x="155" y="163" text-anchor="middle" class="small green">RUNNING</text>
+
+  <!-- Arrow -->
+  <path d="M 155 185 L 155 200" stroke="#aaa" stroke-width="1" marker-end="url(#arrow-dim)" fill="none" />
+  <text x="172" y="197" class="small" style="font-size:8px">tap</text>
+
+  <!-- Snapshot AFTER -->
+  <rect x="30" y="208" width="250" height="150" fill="none" stroke="#ddd" stroke-width="1.5" rx="4" />
+  <text x="155" y="228" text-anchor="middle" class="label bold accent">AFTER</text>
+
+  <!-- Engine block -->
+  <rect x="100" y="243" width="110" height="55" fill="none" stroke="#ccc" stroke-width="1.5" rx="3" />
+  <text x="155" y="275" text-anchor="middle" class="small dark">ENGINE</text>
+
+  <!-- Alternator highlighted -->
+  <circle cx="70" cy="270" r="16" fill="none" stroke="#3b82f6" stroke-width="2" />
+  <text x="70" y="274" text-anchor="middle" class="accent" style="font-size:8px">ALT</text>
+  <line x1="86" y1="270" x2="100" y2="270" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,2" />
+  <!-- Battery -->
+  <rect x="135" y="235" width="8" height="5" fill="none" stroke="#ccc" stroke-width="1" />
+  <rect x="143" y="235" width="8" height="5" fill="none" stroke="#ccc" stroke-width="1" />
+  <!-- Fuel -->
+  <rect x="220" y="258" width="30" height="22" fill="none" stroke="#ccc" stroke-width="1" rx="2" />
+  <text x="235" y="273" text-anchor="middle" style="font-size:7px" fill="#999">FUEL</text>
+  <line x1="210" y1="270" x2="220" y2="270" stroke="#ccc" stroke-width="1" />
+
+  <circle cx="155" cy="321" r="5" fill="#c43c3c" />
+  <text x="155" y="341" text-anchor="middle" class="small red">STALLED</text>
+
+  <!-- === MIDDLE: XOR === -->
+  <path d="M 290 195 L 380 195" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-accent)" fill="none" />
+  <text x="335" y="187" text-anchor="middle" class="small accent bold">XOR</text>
+
+  <!-- === RIGHT: OUTPUT === -->
+
+  <!-- FIGURE -->
+  <rect x="400" y="30" width="370" height="140" fill="none" stroke="#3b82f6" stroke-width="1.5" rx="4" />
+  <text x="585" y="52" text-anchor="middle" class="title accent">FIGURE (what changed)</text>
+
+  <!-- Alternator state -->
+  <rect x="420" y="68" width="155" height="65" fill="#faf8f4" stroke="#e8e4dc" stroke-width="1" rx="3" />
+  <text x="497" y="86" text-anchor="middle" class="label dark bold">ALTERNATOR</text>
+  <circle cx="460" cy="108" r="8" fill="none" stroke="#2d7d2d" stroke-width="1.5" />
+  <text x="460" y="112" text-anchor="middle" class="green" style="font-size:7px">OK</text>
+  <path d="M 473 108 L 500 108" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-accent)" fill="none" />
+  <circle cx="514" cy="108" r="8" fill="none" stroke="#3b82f6" stroke-width="1.5" />
+  <text x="514" y="112" text-anchor="middle" class="accent" style="font-size:7px">TAP</text>
+  <text x="497" y="127" text-anchor="middle" class="small accent">connection disrupted</text>
+
+  <!-- Engine state -->
+  <rect x="595" y="68" width="155" height="65" fill="#faf8f4" stroke="#e8e4dc" stroke-width="1" rx="3" />
+  <text x="672" y="86" text-anchor="middle" class="label dark bold">ENGINE</text>
+  <circle cx="640" cy="108" r="5" fill="#2d7d2d" />
+  <path d="M 652 108 L 680 108" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow-accent)" fill="none" />
+  <circle cx="694" cy="108" r="5" fill="#c43c3c" />
+  <text x="672" y="127" text-anchor="middle" class="small accent">RUNNING -> STALLED</text>
+
+  <!-- GROUND -->
+  <rect x="400" y="200" width="370" height="130" fill="none" stroke="#ddd" stroke-width="1.5" rx="4" />
+  <text x="585" y="222" text-anchor="middle" class="label">GROUND (unchanged)</text>
+
+  <rect x="425" y="240" width="55" height="28" fill="none" stroke="#e0e0e0" stroke-width="1" rx="2" />
+  <text x="452" y="258" text-anchor="middle" class="small" style="font-size:8px">battery</text>
+  <circle cx="453" cy="278" r="3" fill="#ddd" />
+
+  <rect x="498" y="240" width="55" height="28" fill="none" stroke="#e0e0e0" stroke-width="1" rx="2" />
+  <text x="525" y="258" text-anchor="middle" class="small" style="font-size:8px">fuel</text>
+  <circle cx="526" cy="278" r="3" fill="#ddd" />
+
+  <rect x="571" y="240" width="55" height="28" fill="none" stroke="#e0e0e0" stroke-width="1" rx="2" />
+  <text x="598" y="258" text-anchor="middle" class="small" style="font-size:8px">spark</text>
+  <circle cx="599" cy="278" r="3" fill="#ddd" />
+
+  <rect x="644" y="240" width="55" height="28" fill="none" stroke="#e0e0e0" stroke-width="1" rx="2" />
+  <text x="671" y="258" text-anchor="middle" class="small" style="font-size:8px">wiring</text>
+  <circle cx="672" cy="278" r="3" fill="#ddd" />
+
+  <text x="585" y="315" text-anchor="middle" class="small">battery, fuel, spark, wiring = frame</text>
+
+</svg>

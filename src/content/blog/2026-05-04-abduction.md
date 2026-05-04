@@ -1,56 +1,66 @@
 ---
-variant: post-medium
+variant: post-wide
 title: "Abduction"
 tags: cognition, methodology
 ---
 
 *Part of the [cognition](/cognition) series. Sequel to [Modes of Reason](/modes-of-reason).*
 
+A mechanic taps the alternator and the engine stalls. Two hypotheses fire: test the battery, test the voltage regulator. Nobody taught the mechanic a hypothesis-generation algorithm. The shape of the failure named the next experiment.
+
 If no mechanism for generating deliberate follow-up hypotheses exists, every intuition would arrive at random, in arbitrary order. But science's knowledge graph keeps expanding, and attention drives connections between experiments. So the mechanism is real. Can we formalize and encode it?
 
-This is a computability claim. Cognition is computation. Six decades of cognitive architecture research rest on that bet. Under CTM, procedures that generate non-random hypotheses are computable.
-
-Evolution found the trick before brains existed. Chemotaxis is proto-abduction: observe a gradient (figure), ignore everything else (ground), move toward the source (hypothesis). No nervous system required.
-
-### The minimal invariant
+### The logical primitive
 
 Two samples, one before and one after, and a diff. What flipped is figure; what held is ground. If that operation is encodable, the loop closes.
 
-Everything past the minimal diff is optimization: more samples (Ernst/Daikon), autonomous frame inference (bi-abduction), flipped polarity (incorrectness), branching (tri-abduction), n-ary. Each step in the [lineage table](/modes-of-reason#prior-art) adds efficiency. The primitive already works at two samples.
+Every car on the road already runs this. [OBD-II](https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II) reads sensor states, diffs against expected values, and generates fault codes: the mechanic's intuition, mechanized since 1996. But OBD-II is hardcoded: the fault tree is hand-authored, the hypotheses enumerated in advance. The primitive works; it just never left the engine bay. The same abstraction that tells a mechanic "test the alternator next" is what ML has no general interface for.
 
-### The structure
-
-The intuition underneath is **diff**: take a snapshot before, a snapshot after, and XOR them. The prefixes are degrees of freedom:
+The intuition underneath is **diff**: snapshot before, snapshot after, XOR. The prefixes are degrees of freedom:
 
 - Unary diff (one before, one after) → one frame
 - Bi-abduction → infer frame autonomously from observation
 - Incorrectness → flip polarity (attend to failure, not success)
 - Tri-abduction → diff across branches (cause vs counterfactual)
 
-Each step adds an operand. One snapshot pair → one frame. Two pairs (actual and counterfactual) → one causal edge. N pairs across N branches → a typed subgraph. The pattern stays diff; the arity grows.
+Each step adds an operand. One snapshot pair → one frame. Two pairs (actual and counterfactual) → one causal edge. N pairs across N branches → a typed subgraph. The pattern stays diff; the arity grows. Everything past the minimal diff is optimization: more samples ([Ernst/Daikon](https://dl.acm.org/doi/10.1145/302405.302467)), autonomous frame inference ([bi-abduction](https://dl.acm.org/doi/10.1145/1480881.1480917)), flipped polarity ([incorrectness](https://dl.acm.org/doi/10.1145/3371078)), branching ([tri-abduction](https://arxiv.org/abs/2305.04842)). The primitive already works at two samples.
 
-### Who's already doing this
+### Bi-abduction
 
-**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. The loop closes on its own. 180 verified skills in Minecraft. LLM as abduction engine.
+<div style="margin: 2em auto;">
+<img src="/assets/bi-abduction.svg" alt="Bi-abduction: before and after snapshots of an engine, XOR produces figure (alternator changed) and ground (battery, fuel, spark unchanged)" />
+</div>
 
-**Infer** (Facebook, from Calcagno et al. 2009): bi-abduction running in production on millions of lines of code. Formal observation + formal goal → formal hypothesis. Deployed constructive witness.
+---
 
-**IRM** (Arjovsky et al. 2019): invariant feature separation across training environments. The ML field's version: use environment variation as the lever to force figure/ground separation.
+### Tri-abduction
+
+<div style="margin: 2em auto;">
+<img src="/assets/tri-abduction.svg" alt="Tri-abduction: fork from shared start into two branches — tap alternator (engine stalls) vs tap radiator (engine runs), converging into a causal edge" />
+</div>
+
+### Three witnesses
+
+[Infer](https://fbinfer.com/) (Facebook, from [Calcagno et al. 2009](https://dl.acm.org/doi/10.1145/1480881.1480917)): bi-abduction running in production on millions of lines of code. Formal observation + formal goal → formal hypothesis. The primitive, deployed.
+
+[Voyager](https://arxiv.org/abs/2305.16291) (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. The loop closes on its own. 180 verified skills in Minecraft. LLM as abduction engine.
+
+[IRM](https://arxiv.org/abs/1907.02893) (Arjovsky et al. 2019): invariant feature separation across training environments. Use environment variation as the lever to force figure/ground separation. The ML field's version, closest to scaling.
+
+Three fields, three encodings, zero cross-citation. [Peirce](https://archive.org/details/pragmatismasprin0000peir) named the genus in 1903. Everyone else described their species.
 
 ### The monad move
 
 Instead of arguing whether SOAR's chunking and bi-abduction are "the same operation," encode abduction as a typed primitive and run it. Let results settle the debate. The artifact is the crosswalk.
 
-Skip the meta-level reasoning; encode the effect in the type system and compute with it. `abduct_candidates(observation, target) → list[Candidate]`. The test isn't evidence for the argument. The test *is* the argument.
+`abduct_candidates(observation, target) → list[Candidate]`. The test is both the evidence and the argument.
+
+### The missing mode
+
+[The Bitter Lesson](http://www.incompleteideas.net/IncsightBlurb/SBLPblurb.html) says general methods leveraging computation beat hand-engineered knowledge. The lesson is right. It's about induction. Scale the data, scale the compute, let the model find the pattern. The entire scaling-laws era is mode two applied.
+
+But induction doesn't generate hypotheses. It generalizes from examples someone already chose. The question of *which* experiment to run next, *which* data to collect, *which* perturbation to try. That's outside the lesson's frame. Induction scales within a research program. Abduction generates research programs.
+
+Every capability curve is a sigmoid. The market prices the steep part and extrapolates a line. When the curve flattens, the marginal return on scaling induction drops. The mechanism that finds the *next* sigmoid: the next architecture, the next question, the next perturbation that starts a new curve. That's mode three. ML has deduction (type checkers, provers) and induction (everything since the perceptron). The third mode is the gap.
 
 What happens when you point it at a human playthrough, or ten thousand RL rollouts?
-
----
-
-### Refs
-
-**PL / separation logic**: Calcagno, Distefano, O'Hearn, Yang, "Compositional Shape Analysis by Means of Bi-Abduction," POPL 2009. O'Hearn, "Incorrectness Logic," POPL 2020. Zilberstein, Saliling, Silva, "Outcome Separation Logic," OOPSLA 2024. Ernst, Cockrell, Griswold, Notkin, "Dynamically Discovering Likely Program Invariants," ICSE 1999.
-
-**Engineering witnesses**: Wang, Xie, Jiang et al., "Voyager: An Open-Ended Embodied Agent with Large Language Models," arXiv:2305.16291, 2023. Arjovsky, Bottou, Gulczynski, Lopez-Paz, "Invariant Risk Minimization," arXiv:1907.02893, 2019.
-
-**Philosophy**: Peirce, "Harvard Lectures on Pragmatism," 1903 (Collected Papers, vol. 5). Chauviré, "Peirce, Popper, Abduction, and the Idea of a Logic of Discovery," Semiotica, 2005. Paavola, "Abduction as a Logic of Discovery," University of Helsinki, 2006.

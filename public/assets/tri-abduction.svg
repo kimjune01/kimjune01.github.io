@@ -1,0 +1,108 @@
+<svg viewBox="0 0 800 460" width="1040" height="598" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; fill: #666; font-size: 11px; }
+    .dark { fill: #333; }
+    .accent { fill: #3b82f6; }
+    .green { fill: #2d7d2d; }
+    .red { fill: #c43c3c; }
+    .bold { font-weight: bold; }
+    .title { font-size: 12px; letter-spacing: 0.5px; fill: #333; font-weight: bold; }
+    .label { font-size: 10px; fill: #888; }
+    .small { font-size: 9px; }
+  </style>
+  <defs>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2d7d2d" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c43c3c" />
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+    </marker>
+  </defs>
+
+  <!-- === LEFT: SHARED START === -->
+  <rect x="20" y="165" width="140" height="130" fill="none" stroke="#ddd" stroke-width="1.5" rx="4" />
+  <text x="90" y="188" text-anchor="middle" class="label accent bold">SHARED START</text>
+
+  <!-- Engine block -->
+  <rect x="45" y="205" width="90" height="40" fill="none" stroke="#ccc" stroke-width="1.5" rx="3" />
+  <text x="90" y="229" text-anchor="middle" class="small dark">ENGINE</text>
+
+  <!-- Alternator -->
+  <circle cx="40" cy="225" r="10" fill="none" stroke="#ccc" stroke-width="1" />
+  <text x="40" y="229" text-anchor="middle" style="font-size:7px" fill="#999">ALT</text>
+  <!-- Radiator -->
+  <rect x="102" y="250" width="25" height="12" fill="none" stroke="#ccc" stroke-width="0.8" rx="1" />
+  <text x="114" y="260" text-anchor="middle" style="font-size:6px" fill="#999">RAD</text>
+
+  <circle cx="90" cy="275" r="4" fill="#2d7d2d" />
+  <text x="90" y="290" text-anchor="middle" class="small green">RUNNING</text>
+
+  <!-- === Y-FORK === -->
+  <path d="M 160 210 C 190 210, 190 115, 220 115" stroke="#2d7d2d" stroke-width="1.5" fill="none" marker-end="url(#arrow-green)" />
+  <path d="M 160 260 C 190 260, 190 350, 220 350" stroke="#c43c3c" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrow-red)" />
+  <text x="185" y="240" text-anchor="middle" class="small dark bold">FORK</text>
+
+  <!-- === BRANCH A: TAP ALTERNATOR === -->
+  <rect x="225" y="45" width="200" height="140" fill="none" stroke="#2d7d2d" stroke-width="1.5" rx="4" />
+  <text x="325" y="67" text-anchor="middle" class="label green bold">BRANCH A: Tap alternator</text>
+
+  <!-- Engine -->
+  <rect x="275" y="85" width="100" height="42" fill="none" stroke="#ccc" stroke-width="1" rx="3" />
+  <text x="325" y="110" text-anchor="middle" class="small dark">ENGINE</text>
+  <!-- Alternator tapped -->
+  <circle cx="268" cy="106" r="12" fill="none" stroke="#3b82f6" stroke-width="2" />
+  <text x="268" y="110" text-anchor="middle" style="font-size:7px" class="accent">ALT</text>
+  <line x1="256" y1="94" x2="280" y2="118" stroke="#3b82f6" stroke-width="1" opacity="0.5" />
+  <!-- Radiator unchanged -->
+  <rect x="342" y="132" width="22" height="10" fill="none" stroke="#ccc" stroke-width="0.8" rx="1" />
+  <text x="353" y="140" text-anchor="middle" style="font-size:5px" fill="#999">RAD</text>
+
+  <circle cx="325" cy="160" r="4" fill="#c43c3c" />
+  <text x="325" y="177" text-anchor="middle" class="small red bold">STALLED</text>
+
+  <!-- === BRANCH B: TAP RADIATOR === -->
+  <rect x="225" y="280" width="200" height="140" fill="none" stroke="#c43c3c" stroke-width="1.5" rx="4" stroke-dasharray="5,3" />
+  <text x="325" y="302" text-anchor="middle" class="label red bold">BRANCH B: Tap radiator</text>
+
+  <!-- Engine -->
+  <rect x="275" y="320" width="100" height="42" fill="none" stroke="#ccc" stroke-width="1" rx="3" />
+  <text x="325" y="345" text-anchor="middle" class="small dark">ENGINE</text>
+  <!-- Alternator unchanged -->
+  <circle cx="268" cy="341" r="12" fill="none" stroke="#ccc" stroke-width="1" />
+  <text x="268" y="345" text-anchor="middle" style="font-size:7px" fill="#999">ALT</text>
+  <!-- Radiator tapped -->
+  <rect x="342" y="367" width="22" height="10" fill="none" stroke="#3b82f6" stroke-width="2" rx="1" />
+  <text x="353" y="375" text-anchor="middle" style="font-size:5px" class="accent">RAD</text>
+  <line x1="340" y1="365" x2="366" y2="379" stroke="#3b82f6" stroke-width="1" opacity="0.5" />
+
+  <circle cx="325" cy="396" r="4" fill="#2d7d2d" />
+  <text x="325" y="413" text-anchor="middle" class="small green bold">RUNNING</text>
+
+  <!-- === CONVERGENCE ARROWS === -->
+  <path d="M 425 125 C 460 125, 460 195, 490 195" stroke="#2d7d2d" stroke-width="1.5" fill="none" />
+  <path d="M 425 350 C 460 350, 460 270, 490 270" stroke="#c43c3c" stroke-width="1.5" fill="none" stroke-dasharray="5,3" />
+
+  <!-- === RIGHT: CAUSAL EDGE === -->
+  <rect x="490" y="150" width="290" height="170" fill="none" stroke="#3b82f6" stroke-width="1.5" rx="4" />
+  <text x="635" y="174" text-anchor="middle" class="title accent">CAUSAL EDGE</text>
+
+  <!-- Tap alternator -> stalled -->
+  <rect x="510" y="190" width="140" height="30" fill="#f4f8f4" stroke="#d4e8d4" stroke-width="1" rx="3" />
+  <text x="580" y="209" text-anchor="middle" class="small green bold">tap ALT -> STALLED</text>
+  <path d="M 662 197 L 672 209 L 690 193" stroke="#2d7d2d" stroke-width="2.5" fill="none" />
+
+  <!-- Tap radiator -> still running -->
+  <rect x="510" y="234" width="140" height="30" fill="#fdf4f4" stroke="#e8d4d4" stroke-width="1" rx="3" />
+  <text x="580" y="253" text-anchor="middle" class="small red bold">tap RAD -> RUNNING</text>
+  <line x1="665" y1="238" x2="687" y2="260" stroke="#c43c3c" stroke-width="2.5" />
+  <line x1="687" y1="238" x2="665" y2="260" stroke="#c43c3c" stroke-width="2.5" />
+
+  <!-- Shared ground -->
+  <line x1="510" y1="278" x2="760" y2="278" stroke="#e0e0e0" stroke-width="1" />
+  <text x="635" y="296" text-anchor="middle" class="small">shared ground: fuel, spark, wiring, battery</text>
+  <text x="635" y="312" text-anchor="middle" class="small accent bold">cause: alternator, not radiator</text>
+
+</svg>

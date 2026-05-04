@@ -35,36 +35,34 @@ Peirce's term for the expected fertility of a reasoning mode: **uberty**, how mu
 Eight entries across six fields circle the same pattern: given an observation, separate signal from noise. Each coined its own word. None recognize each other's.
 
 <div class="table-wrap">
-<table style="max-width:70%; margin:1em auto; font-size:14px;">
-<colgroup><col style="width:10em"><col style="width:10em"><col style="width:10em"><col style="width:10em"><col style="width:9em"><col style="width:10em"></colgroup>
+<table>
 <thead><tr>
-<th style="background:#f0f0f0">Field</th>
-<th style="background:#f0f0f0">The operation</th>
-<th style="background:#f0f0f0">Figure (what changed)</th>
-<th style="background:#f0f0f0">Ground (what didn't)</th>
-<th style="background:#f0f0f0">Branching version</th>
-<th style="background:#f0f0f0">Key ref</th>
+<th>Field</th>
+<th>The operation</th>
+<th>Figure (what changed)</th>
+<th>Ground (what didn't)</th>
+<th>Branching version</th>
+<th>Key ref</th>
 </tr></thead>
-<tr><td><strong>PL / separation logic</strong></td><td>Bi-abduction</td><td>Anti-frame (missing precondition)</td><td>Frame (untouched heap fragment)</td><td>Tri-abduction</td><td>Calcagno et al. POPL 2009; Zilberstein et al. OOPSLA 2024</td></tr>
-<tr><td><strong>Cognitive arch (SOAR)</strong></td><td>Chunking (impasse resolution)</td><td>Result (WMEs resolving the impasse)</td><td style="white-space:nowrap">Superstate conditions (tested WMEs → chunk LHS)</td><td>Operator-tie impasse</td><td>Laird et al. 1987</td></tr>
-<tr><td><strong>Cognitive arch (BPL)</strong></td><td>Type inference</td><td>Type (structural program)</td><td>Token-level variance (marginalized out)</td><td>Implicit</td><td>Lake et al. Science 2015</td></tr>
-<tr><td><strong>Gestalt (Rubin/Koffka)</strong></td><td>Figure-ground segregation</td><td><em>Figur</em> (bounded, salient)</td><td><em>Grund</em> (formless, extending)</td><td>Multistability</td><td>Rubin 1915; Koffka 1935</td></tr>
-<tr><td><strong>Developmental (Piaget)</strong></td><td>Equilibration</td><td>Perturbation (novel element)</td><td>Schema (assimilates without changing)</td><td>Reflective abstraction</td><td>Piaget 1975/1985</td></tr>
-<tr><td><strong>Causal inference (Pearl)</strong></td><td>Intervention / identification</td><td>Treatment variable (<em>do(X=x)</em>)</td><td>Background variables <em>U</em> (held fixed)</td><td style="white-space:nowrap">Counterfactual contrast <em>Y₁ - Y₀</em></td><td>Pearl 2009</td></tr>
-<tr><td><strong>Philosophy (Peirce)</strong></td><td>Abduction (retroduction)</td><td>Surprising fact <em>C</em></td><td>Settled expectations</td><td>Economy of research</td><td>Peirce 1903; CP 5.189</td></tr>
-<tr><td><strong>ML/RL</strong></td><td>Invariant feature separation</td><td>Invariant features (stable across envs)</td><td>Spurious features (env-specific)</td><td>Counterfactual policy evaluation</td><td>Arjovsky et al. 2019 (IRM)</td></tr>
+<tr><td>PL / separation logic</td><td>Bi-abduction</td><td>Anti-frame (missing precondition)</td><td>Frame (untouched heap fragment)</td><td>Tri-abduction</td><td><a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009</a>; <a href="https://arxiv.org/abs/2305.04842">Zilberstein et al. 2024</a></td></tr>
+<tr style="background:#f8f8f8"><td>Cognitive arch (SOAR)</td><td>Chunking (impasse resolution)</td><td>Result (WMEs resolving the impasse)</td><td>Superstate conditions (tested WMEs → chunk LHS)</td><td>Operator-tie impasse</td><td><a href="https://apps.dtic.mil/sti/tr/pdf/ADA188742.pdf">Laird et al. 1987</a></td></tr>
+<tr><td>Cognitive arch (BPL)</td><td>Type inference</td><td>Type (structural program)</td><td>Token-level variance (marginalized out)</td><td>Implicit</td><td><a href="https://www.science.org/doi/10.1126/science.aab3050">Lake et al. 2015</a></td></tr>
+<tr style="background:#f8f8f8"><td>Gestalt (Rubin/Koffka)</td><td>Figure-ground segregation</td><td><em>Figur</em> (bounded, salient)</td><td><em>Grund</em> (formless, extending)</td><td>Multistability</td><td><a href="https://philpapers.org/rec/RUBSF">Rubin 1915</a>; <a href="https://en.wikipedia.org/wiki/Principles_of_Gestalt_Psychology">Koffka 1935</a></td></tr>
+<tr><td>Developmental (Piaget)</td><td>Equilibration</td><td>Perturbation (novel element)</td><td>Schema (assimilates without changing)</td><td>Reflective abstraction</td><td><a href="https://en.wikipedia.org/wiki/Equilibration">Piaget 1975/1985</a></td></tr>
+<tr style="background:#f8f8f8"><td>Causal inference (Pearl)</td><td>Intervention / identification</td><td>Treatment variable (<em>do(X=x)</em>)</td><td>Background variables <em>U</em> (held fixed)</td><td>Counterfactual contrast <em>Y₁ - Y₀</em></td><td><a href="https://www.cambridge.org/core/books/causality/B0046844FAE10CBF274D4ACBDAEB5F5B">Pearl 2009</a></td></tr>
+<tr><td>Philosophy (Peirce)</td><td>Abduction (retroduction)</td><td>Surprising fact <em>C</em></td><td>Settled expectations</td><td>Economy of research</td><td><a href="https://archive.org/details/pragmatismasprin0000peir">Peirce 1903</a></td></tr>
+<tr style="background:#f8f8f8"><td>ML/RL</td><td>Invariant feature separation</td><td>Invariant features (stable across envs)</td><td>Spurious features (env-specific)</td><td>Counterfactual policy evaluation</td><td><a href="https://arxiv.org/abs/1907.02893">Arjovsky et al. 2019</a></td></tr>
 </table>
 </div>
 
 ### Prior art
 
 - **Aristotle (~350 BC)**: formalized deduction (syllogistic logic). Discussed induction (*epagoge*) but didn't elevate it to a method.
-- **Francis Bacon (1620)**: *Novum Organum*. Foregrounded induction as systematic method. Two modes now.
-- **Peirce (1903)**: the trichotomy. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
-- **Popper (1934)**: rejected induction entirely. All science is deduction from conjectures, but where conjectures come from, he doesn't say. (Abduction. Popper just didn't use the word.)
-- **Zilberstein et al. (2024)**: tri-abduction. Abduction gains a branching degree of freedom.
+- **[Francis Bacon](https://en.wikipedia.org/wiki/Novum_Organum) (1620)**: *Novum Organum*. Foregrounded induction as systematic method. Two modes now.
+- **[Peirce](https://archive.org/details/pragmatismasprin0000peir) (1903)**: the trichotomy. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
+- **[Popper](https://en.wikipedia.org/wiki/The_Logic_of_Scientific_Discovery) (1934)**: rejected induction entirely. All science is deduction from conjectures, but where conjectures come from, he doesn't say. (Abduction. Popper just didn't use the word.)
+- **[Zilberstein et al.](https://arxiv.org/abs/2305.04842) (2024)**: tri-abduction. Abduction gains a branching degree of freedom.
 
-Aristotle (1 mode) → Bacon (2) → Peirce (3) → Zilberstein (2024). Two millennia to reach three, and the third is still sharpening.
 
 ### Compositions
 
@@ -94,18 +92,3 @@ The monoid [broke in Soar](/diagnosis-soar) because the abductive morphism (epme
 
 That's a [different post](/abduction).
 
----
-
-### Refs
-
-**PL / separation logic**: Calcagno, Distefano, O'Hearn, Yang, "Compositional Shape Analysis by Means of Bi-Abduction," POPL 2009. O'Hearn, "Incorrectness Logic," POPL 2020. Reynolds, "Separation Logic," LICS 2002. Zilberstein, Saliling, Silva, "Outcome Separation Logic," OOPSLA 2024. Ernst, Cockrell, Griswold, Notkin, "Dynamically Discovering Likely Program Invariants," ICSE 1999.
-
-**Cognitive architectures**: Laird, Newell, Rosenbloom, "SOAR: An Architecture for General Intelligence," AI 33(1), 1987. Anderson, "How Can the Human Mind Occur in the Physical Universe?" Oxford, 2007. Lake, Salakhutdinov, Tenenbaum, "Human-level Concept Learning through Probabilistic Program Induction," Science 350(6266), 2015.
-
-**Perception / cognitive science**: Rubin, "Synsoplevede Figurer," 1915. Koffka, "Principles of Gestalt Psychology," 1935. Gibson, "The Ecological Approach to Visual Perception," 1979. Piaget, "The Equilibration of Cognitive Structures," 1975/1985.
-
-**Causal inference**: Pearl, "Causality," Cambridge, 2000. 2nd ed. 2009.
-
-**ML**: Arjovsky, Bottou, Gulczynski, Lopez-Paz, "Invariant Risk Minimization," arXiv:1907.02893, 2019.
-
-**Philosophy of abduction**: Peirce, "Harvard Lectures on Pragmatism," 1903 (Collected Papers, vol. 5). Lipton, "Inference to the Best Explanation," Routledge, 1991. 2nd ed. 2004. Chauviré, "Peirce, Popper, Abduction, and the Idea of a Logic of Discovery," Semiotica, 2005.
