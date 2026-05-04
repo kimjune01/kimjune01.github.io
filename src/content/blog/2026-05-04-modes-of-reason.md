@@ -16,7 +16,7 @@ tags: cognition, methodology
 >
 > — Arthur Conan Doyle, [*The Adventure of Silver Blaze*](https://en.wikipedia.org/wiki/The_Adventure_of_Silver_Blaze) (1892)
 
-The Holmes canon calls this deduction. It isn't — no syllogism, no chain of premises. He noticed what *didn't* happen: the dog didn't bark. He separated that silence from the ordinary night and landed on an explanation: the intruder was someone the dog knew. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
+The Holmes canon calls this deduction. It isn't. No syllogism, no chain of premises. He noticed what *didn't* happen: the dog didn't bark. He separated that silence from the ordinary night and landed on an explanation: the intruder was someone the dog knew. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
 
 That operation has a name. It's the neglected third mode of reasoning.
 
@@ -24,11 +24,11 @@ That operation has a name. It's the neglected third mode of reasoning.
 
 All three from Latin *ducere* ("to lead"):
 
-- **Deduction** (*de-ducere*, "to lead from"): given premises, derive consequences. Millennia of formal logic. Solved — theorem provers, type checkers, SAT solvers. Zero uberty: the conclusion is already in the premises.
+- **Deduction** (*de-ducere*, "to lead from"): given premises, derive consequences. Millennia of formal logic. Solved: theorem provers, type checkers, SAT solvers. Zero uberty: the conclusion is already in the premises.
 - **Induction** (*in-ducere*, "to lead toward"): given examples, generalize a pattern. The ML scaling curve. Next-token prediction, pushing toward diminishing returns at the compute frontier. Moderate uberty.
 - **Abduction** (*ab-ducere*, "to lead away"): given an observation, propose what matters. The neglected third. Highest uberty, lowest security.
 
-Peirce's term for the expected fertility of a reasoning mode: **uberty** — how much new knowledge the mode can produce.
+Peirce's term for the expected fertility of a reasoning mode: **uberty**, how much new knowledge the mode can produce.
 
 ### The crosswalk
 
@@ -61,10 +61,10 @@ Eight entries across six fields circle the same pattern: given an observation, s
 - **Aristotle (~350 BC)**: formalized deduction (syllogistic logic). Discussed induction (*epagoge*) but didn't elevate it to a method.
 - **Francis Bacon (1620)**: *Novum Organum*. Foregrounded induction as systematic method. Two modes now.
 - **Peirce (1903)**: the trichotomy. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
-- **Popper (1934)**: rejected induction entirely. All science is deduction from conjectures — but where conjectures come from, he doesn't say. (Abduction. Popper just didn't use the word.)
+- **Popper (1934)**: rejected induction entirely. All science is deduction from conjectures, but where conjectures come from, he doesn't say. (Abduction. Popper just didn't use the word.)
 - **Zilberstein et al. (2024)**: tri-abduction. Abduction gains a branching degree of freedom.
 
-Aristotle (1 mode) → Bacon (2) → Peirce (3) → Zilberstein (2024). Two millennia to reach three — and the third is still sharpening.
+Aristotle (1 mode) → Bacon (2) → Peirce (3) → Zilberstein (2024). Two millennia to reach three, and the third is still sharpening.
 
 ### Compositions
 
@@ -73,10 +73,10 @@ Three primitives; everything else decomposes:
 - **Analogy** = abduction (observe surprising similarity across domains) + induction (generalize the structural correspondence). Peirce saw it this way; Brewer's legal account confirms it.
 - **Diagnosis** = abduction (propose what's wrong) + deduction (trace consequences)
 - **Scientific method** = abduction (hypothesize) + deduction (predict) + induction (test)
-- **Debugging** = abduction (propose cause) + deduction (if this, then that) + abduction again (it wasn't — next cause)
+- **Debugging** = abduction (propose cause) + deduction (if this, then that) + abduction again (it wasn't; next cause)
 - **Legal precedent** = abduction (match to prior case) + induction (generalize principle) + deduction (apply rule)
 
-Holmes, House, Semmelweis, Darwin — all running the same compositions. Doyle misnamed the mode; his characters perform it anyway.
+Holmes, House, Semmelweis, Darwin. All running the same compositions. Doyle misnamed the mode; his characters perform it anyway.
 
 ### The triangle
 

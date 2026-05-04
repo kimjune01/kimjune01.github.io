@@ -10,15 +10,15 @@ The [previous post](/modes-of-reason) named the third mode and mapped it across 
 
 ### The existence argument
 
-Suppose no computation for generating follow-up hypotheses exists. Every hypothesis would arrive at random, in arbitrary order. But science's knowledge graph keeps expanding, and attention drives connections between experiments. So the computation is real — we just haven't named the primitive.
+Suppose no computation for generating follow-up hypotheses exists. Every hypothesis would arrive at random, in arbitrary order. But science's knowledge graph keeps expanding, and attention drives connections between experiments. So the computation is real. We just haven't named the primitive.
 
-This is a computability claim, not just existence. Cognition is computation — six decades of cognitive architecture research rest on that bet. Under CTM, procedures that generate non-random hypotheses are computable.
+This is a computability claim, not just existence. Cognition is computation. Six decades of cognitive architecture research rest on that bet. Under CTM, procedures that generate non-random hypotheses are computable.
 
 Evolution found the trick before brains existed. Chemotaxis is proto-abduction: observe a gradient (figure), ignore everything else (ground), move toward the source (hypothesis). No nervous system required.
 
 ### The minimal invariant
 
-Two samples — one before, one after — and a diff. What flipped is figure; what held is ground. If that operation is encodable, the loop closes.
+Two samples, one before and one after, and a diff. What flipped is figure; what held is ground. If that operation is encodable, the loop closes.
 
 Everything past the minimal diff is optimization: more samples (Ernst/Daikon), autonomous frame inference (bi-abduction), flipped polarity (incorrectness), branching (tri-abduction), n-ary. Each step in the [lineage table](/modes-of-reason#prior-art) adds efficiency. The primitive already works at two samples.
 
@@ -35,7 +35,7 @@ Each step adds an operand. One snapshot pair → one frame. Two pairs (actual an
 
 ### Who's already doing this
 
-**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. 180 verified skills in Minecraft — a demo, not production, but the loop closes on its own. LLM as abduction engine.
+**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. 180 verified skills in Minecraft, a demo, not production, but the loop closes on its own. LLM as abduction engine.
 
 **Infer** (Facebook, from Calcagno et al. 2009): bi-abduction running in production on millions of lines of code. Formal observation + formal goal → formal hypothesis. Deployed constructive witness.
 
@@ -43,7 +43,7 @@ Each step adds an operand. One snapshot pair → one frame. Two pairs (actual an
 
 ### The monad move
 
-Instead of arguing whether SOAR's chunking and bi-abduction are "the same operation," encode abduction as a typed primitive and run it. Let results settle the debate — the artifact is the crosswalk.
+Instead of arguing whether SOAR's chunking and bi-abduction are "the same operation," encode abduction as a typed primitive and run it. Let results settle the debate. The artifact is the crosswalk.
 
 Skip the meta-level reasoning; encode the effect in the type system and compute with it. `abduct_candidates(observation, target) → list[Candidate]`. The test isn't evidence for the argument. The test *is* the argument.
 
