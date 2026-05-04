@@ -35,7 +35,7 @@ Each step adds an operand. One snapshot pair → one frame. Two pairs (actual an
 
 ### Who's already doing this
 
-**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. 180 verified skills in Minecraft, a demo, not production, but the loop closes on its own. LLM as abduction engine.
+**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. 180 verified skills in Minecraft. Still a demo, but the loop closes on its own. LLM as abduction engine.
 
 **Infer** (Facebook, from Calcagno et al. 2009): bi-abduction running in production on millions of lines of code. Formal observation + formal goal → formal hypothesis. Deployed constructive witness.
 

@@ -18,7 +18,7 @@ tags: cognition, methodology
 
 The Holmes canon calls this deduction. It isn't. No syllogism, no chain of premises. He noticed what *didn't* happen: the dog didn't bark. He separated that silence from the ordinary night and landed on an explanation: the intruder was someone the dog knew. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
 
-That operation has a name. It's the neglected third mode of reasoning.
+That operation is the neglected third mode of reasoning.
 
 ### Three modes
 
