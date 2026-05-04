@@ -6,46 +6,46 @@ tags: cognition, methodology
 
 *Part of the [cognition](/cognition) series. Sequel to [Modes of Reason](/modes-of-reason).*
 
-The [previous post](/modes-of-reason) named the third mode and mapped it across six fields. This post asks: can it be encoded?
+The [previous post](/modes-of-reason) named the third mode and mapped it across six fields. The question now: can it be encoded?
 
 ### The existence argument
 
-Suppose no computation for generating follow-up hypotheses exists. Hypotheses would be random, their order arbitrary. But the knowledge graph of science does expand, and our attention drives connections from one experiment to another. So the class of such computations must exist.
+Suppose no computation for generating follow-up hypotheses exists. Every hypothesis would arrive at random, in arbitrary order. But science's knowledge graph keeps expanding, and attention drives connections between experiments. So the computation is real — we just haven't named the primitive.
 
-This is a computability claim, not just an existence claim. Cognition is computation — the bet six decades of cognitive architecture research is built on. Under CTM, the procedures that generate non-random hypotheses are computable.
+This is a computability claim, not just existence. Cognition is computation — six decades of cognitive architecture research rest on that bet. Under CTM, procedures that generate non-random hypotheses are computable.
 
-Evolution found inhabitants before brains existed. Chemotaxis is proto-abduction: observe a gradient (figure), ignore everything else (ground), move toward the source (hypothesis). No nervous system required.
+Evolution found the trick before brains existed. Chemotaxis is proto-abduction: observe a gradient (figure), ignore everything else (ground), move toward the source (hypothesis). No nervous system required.
 
 ### The minimal invariant
 
-Abduction from two samples: one before, one after. Diff. What flipped is figure; what held is ground. If that operation is encodable, the loop closes.
+Two samples — one before, one after — and a diff. What flipped is figure; what held is ground. If that operation is encodable, the loop closes.
 
-Everything after the minimal diff is optimization: more samples (Ernst/Daikon), autonomous frame inference (bi-abduction), flipped polarity (incorrectness), branching (tri-abduction), n-ary. Each step in the [lineage table](/modes-of-reason#prior-art) is more efficient, not more fundamental. The primitive is already running at two samples.
+Everything past the minimal diff is optimization: more samples (Ernst/Daikon), autonomous frame inference (bi-abduction), flipped polarity (incorrectness), branching (tri-abduction), n-ary. Each step in the [lineage table](/modes-of-reason#prior-art) adds efficiency. The primitive already works at two samples.
 
 ### The structure
 
-The intuition underneath is **diff**. Snapshot before, snapshot after, XOR. The prefixes are degrees of freedom:
+The intuition underneath is **diff**: take a snapshot before, a snapshot after, and XOR them. The prefixes are degrees of freedom:
 
 - Unary diff (one before, one after) → one frame
 - Bi-abduction → infer frame autonomously from observation
 - Incorrectness → flip polarity (attend to failure, not success)
 - Tri-abduction → diff across branches (cause vs counterfactual)
 
-Each step adds an operand. One snapshot pair → one frame. Two pairs (actual and counterfactual) → one causal edge. N pairs across N branches → a typed subgraph. The operation is always XOR; the arity grows. More diffs, more freedom, sharper attention.
+Each step adds an operand. One snapshot pair → one frame. Two pairs (actual and counterfactual) → one causal edge. N pairs across N branches → a typed subgraph. The pattern stays diff; the arity grows.
 
 ### Who's already doing this
 
-**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes fix, self-verifies, commits to skill library. 180 verified skills in Minecraft — a demo, not production, but it proves the loop closes autonomously. LLM-everywhere as the abduction engine.
+**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. 180 verified skills in Minecraft — a demo, not production, but the loop closes on its own. LLM as abduction engine.
 
 **Infer** (Facebook, from Calcagno et al. 2009): bi-abduction running in production on millions of lines of code. Formal observation + formal goal → formal hypothesis. Deployed constructive witness.
 
-**IRM** (Arjovsky et al. 2019): invariant feature separation across training environments. The ML field's version — use environment variation as the lever to force figure/ground separation.
+**IRM** (Arjovsky et al. 2019): invariant feature separation across training environments. The ML field's version: use environment variation as the lever to force figure/ground separation.
 
 ### The monad move
 
-Instead of arguing philosophically about whether SOAR's chunking and bi-abduction are "the same operation," encode abduction as a typed primitive, run it, let the results settle the debate. The engineering artifact is the crosswalk.
+Instead of arguing whether SOAR's chunking and bi-abduction are "the same operation," encode abduction as a typed primitive and run it. Let results settle the debate — the artifact is the crosswalk.
 
-Don't reason about the effect at the meta-level — encode it into the type system and compute with it. `abduct_candidates(observation, target) → list[Candidate]`. The test isn't evidence for the argument. The test *is* the argument.
+Skip the meta-level reasoning; encode the effect in the type system and compute with it. `abduct_candidates(observation, target) → list[Candidate]`. The test isn't evidence for the argument. The test *is* the argument.
 
 What happens when you point it at a human playthrough, or ten thousand RL rollouts?
 

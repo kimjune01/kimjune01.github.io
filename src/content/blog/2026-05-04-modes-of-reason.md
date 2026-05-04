@@ -16,23 +16,23 @@ tags: cognition, methodology
 >
 > — Arthur Conan Doyle, [*The Adventure of Silver Blaze*](https://en.wikipedia.org/wiki/The_Adventure_of_Silver_Blaze) (1892)
 
-Holmes calls this deduction. It isn't. There's no syllogism, no chain of premises. He observed what *didn't* happen — the dog didn't bark — separated that absence from everything that did happen normally, and proposed the explanation: the intruder was known to the dog. The absence is the figure. The normal night is the ground. The hypothesis falls out of the diff.
+The Holmes canon calls this deduction. It isn't — no syllogism, no chain of premises. He noticed what *didn't* happen: the dog didn't bark. He separated that silence from the ordinary night and landed on an explanation: the intruder was someone the dog knew. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
 
-That operation has a name. It's not deduction. It's the neglected third mode of reasoning.
+That operation has a name. It's the neglected third mode of reasoning.
 
 ### Three modes
 
 All three from Latin *ducere* ("to lead"):
 
 - **Deduction** (*de-ducere*, "to lead from"): given premises, derive consequences. Millennia of formal logic. Solved — theorem provers, type checkers, SAT solvers. Zero uberty: the conclusion is already in the premises.
-- **Induction** (*in-ducere*, "to lead toward"): given examples, generalize a pattern. The entire ML scaling curve. Next-token prediction pushing into diminishing returns at the compute frontier. Moderate uberty.
+- **Induction** (*in-ducere*, "to lead toward"): given examples, generalize a pattern. The ML scaling curve. Next-token prediction, pushing toward diminishing returns at the compute frontier. Moderate uberty.
 - **Abduction** (*ab-ducere*, "to lead away"): given an observation, propose what matters. The neglected third. Highest uberty, lowest security.
 
 Peirce's term for the expected fertility of a reasoning mode: **uberty** — how much new knowledge the mode can produce.
 
 ### The crosswalk
 
-Six fields independently formalized abduction: given an observation, simultaneously separate what's relevant from what's irrelevant. None of them recognize each other's word.
+Eight entries across six fields circle the same pattern: given an observation, separate signal from noise. Each coined its own word. None recognize each other's.
 
 | Field | The operation | Figure (what changed) | Ground (what didn't) | Branching version | Key ref |
 |---|---|---|---|---|---|
@@ -47,39 +47,39 @@ Six fields independently formalized abduction: given an observation, simultaneou
 
 ### Prior art
 
-- **Aristotle (~350 BC)**: deduction only. Syllogistic logic.
-- **Francis Bacon (1620)**: *Novum Organum*. Named induction as a formal method. Two modes now.
-- **Peirce (1903)**: the trichotomy. Deduction, induction, abduction. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
-- **Popper (1934)**: rejected induction entirely. All science is deduction from conjectures. Conjectures come from... he doesn't say. (They come from abduction, but Popper didn't use the word.)
+- **Aristotle (~350 BC)**: formalized deduction (syllogistic logic). Discussed induction (*epagoge*) but didn't elevate it to a method.
+- **Francis Bacon (1620)**: *Novum Organum*. Foregrounded induction as systematic method. Two modes now.
+- **Peirce (1903)**: the trichotomy. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
+- **Popper (1934)**: rejected induction entirely. All science is deduction from conjectures — but where conjectures come from, he doesn't say. (Abduction. Popper just didn't use the word.)
 - **Zilberstein et al. (2024)**: tri-abduction. Abduction gains a branching degree of freedom.
 
-Aristotle (1 mode) → Bacon (2) → Peirce (3) → Zilberstein (2024). Two thousand years to get to three. Still sharpening the third.
+Aristotle (1 mode) → Bacon (2) → Peirce (3) → Zilberstein (2024). Two millennia to reach three — and the third is still sharpening.
 
 ### Compositions
 
-Three primitives. Everything else decomposes:
+Three primitives; everything else decomposes:
 
-- **Analogy** = abduction (observe surprising similarity across domains) + induction (generalize the structural correspondence). Peirce saw it this way; Brewer's legal account agrees.
+- **Analogy** = abduction (observe surprising similarity across domains) + induction (generalize the structural correspondence). Peirce saw it this way; Brewer's legal account confirms it.
 - **Diagnosis** = abduction (propose what's wrong) + deduction (trace consequences)
 - **Scientific method** = abduction (hypothesize) + deduction (predict) + induction (test)
 - **Debugging** = abduction (propose cause) + deduction (if this, then that) + abduction again (it wasn't — next cause)
 - **Legal precedent** = abduction (match to prior case) + induction (generalize principle) + deduction (apply rule)
 
-Holmes, House, Semmelweis, Darwin — all running the same compositions. Doyle misnamed the mode; the characters perform it correctly.
+Holmes, House, Semmelweis, Darwin — all running the same compositions. Doyle misnamed the mode; his characters perform it anyway.
 
 ### The triangle
 
 The three modes map onto the three morphisms of the [memory monoid](/functor-wizardry):
 
-- **Abduction**: epmem → smem. Episodes become knowledge. Observe what happened, separate figure from ground, propose what's true.
+- **Abduction**: epmem → smem. Episodes become knowledge. Observe an episode, separate figure from ground, and propose what's true.
 - **Deduction**: smem → pmem. Knowledge becomes procedure. Given what's true, derive how to act.
-- **Induction**: pmem → epmem. Procedure produces episodes. Run the procedure, accumulate evidence, produce new observations.
+- **Induction**: pmem → epmem. Procedure produces episodes. Run the procedure, accumulate evidence, and feed new observations back in.
 
 <div style="max-width:min(460px, 100%); margin:1.5em auto;">
 <img src="/assets/modes-of-reason-triangle.svg" alt="Triangle: epmem → smem (abduction), smem → pmem (deduction), pmem → epmem (induction). Three modes, three morphisms, one monoid." style="width:100%; display:block;">
 </div>
 
-The monoid [broke in Soar](/diagnosis-soar) because the abductive morphism (epmem → smem) was missing. [`cons`](/cons) closed it manually. The [Natural Framework](/the-natural-framework) gave the interface. The question is whether the third edge can be automated.
+The monoid [broke in Soar](/diagnosis-soar) because the abductive morphism (epmem → smem) was missing. [`cons`](/cons) closed it manually; the [Natural Framework](/the-natural-framework) gave the interface. Whether the third edge can be automated remains open.
 
 That's a [different post](/abduction).
 
