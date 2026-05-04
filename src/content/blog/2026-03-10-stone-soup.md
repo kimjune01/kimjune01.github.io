@@ -19,9 +19,11 @@ The pot doesn't recruit. It just sits there, bubbling. Each ingredient is someth
 
 *The auction theorist.* Says "[the math checks out](/power-diagrams-ad-auctions)." They show up because an open protocol with novel scoring is a paper waiting to happen.
 
-*The privacy analyst.* The theorist sends them the proof. They show up because [users' privates keep getting sold](/transparency-is-irreversible) and they're tired of yelling about it.
+*The privacy analyst.* The theorist sends them the proof. They show up because an open architecture they can verify is rarer than yet another "trust us."
 
-*The first publisher.* Brings a crowd. They show up because the [kitchen stays safe and clean](/monetizing-the-untouchable).
+*The privacy advocate.* The analyst sends them the verdict. They show up because [users' privates keep getting sold](/transparency-is-irreversible) and they're tired of yelling about it.
+
+*The first publisher.* Brings a crowd. They show up because the [kitchen stays safe and clean](/monetizing-the-untouchable). The advocate said so where their lawyer can see.
 
 *The first advertiser.* Brings the dough. They show up because the [recipe](/the-playbook) calls for the freshest leads.
 
