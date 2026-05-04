@@ -6,13 +6,9 @@ tags: cognition, methodology
 
 *Part of the [cognition](/cognition) series. Sequel to [Modes of Reason](/modes-of-reason).*
 
-The [previous post](/modes-of-reason) named the third mode and mapped it across six fields. The question now: can it be encoded?
+If no mechanism for generating deliberate follow-up hypotheses exists, every intuition would arrive at random, in arbitrary order. But science's knowledge graph keeps expanding, and attention drives connections between experiments. So the mechanism is real. Can we formalize and encode it?
 
-### The existence argument
-
-Suppose no computation for generating follow-up hypotheses exists. Every hypothesis would arrive at random, in arbitrary order. But science's knowledge graph keeps expanding, and attention drives connections between experiments. So the computation is real. We just haven't named the primitive.
-
-This is a computability claim, not just existence. Cognition is computation. Six decades of cognitive architecture research rest on that bet. Under CTM, procedures that generate non-random hypotheses are computable.
+This is a computability claim. Cognition is computation. Six decades of cognitive architecture research rest on that bet. Under CTM, procedures that generate non-random hypotheses are computable.
 
 Evolution found the trick before brains existed. Chemotaxis is proto-abduction: observe a gradient (figure), ignore everything else (ground), move toward the source (hypothesis). No nervous system required.
 
@@ -35,7 +31,7 @@ Each step adds an operand. One snapshot pair → one frame. Two pairs (actual an
 
 ### Who's already doing this
 
-**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. 180 verified skills in Minecraft. Still a demo, but the loop closes on its own. LLM as abduction engine.
+**Voyager** (Wang et al. 2023): GPT-4 observes failure, proposes a fix, self-verifies, commits to a skill library. The loop closes on its own. 180 verified skills in Minecraft. LLM as abduction engine.
 
 **Infer** (Facebook, from Calcagno et al. 2009): bi-abduction running in production on millions of lines of code. Formal observation + formal goal → formal hypothesis. Deployed constructive witness.
 
