@@ -62,7 +62,7 @@ section ul li span { display: inline-block; color: #757575; letter-spacing: 1px;
 }
 
 /* ── Article (replaces article.scss) ── */
-article { max-width: 500px; margin: 0 auto; }
+article { max-width: 525px; margin: 0 auto; }
 article .title { line-height: 1.35em; text-align: center; }
 article .center { text-align: center; margin: 0 auto; }
 article .center h1 { font-weight: 300; }

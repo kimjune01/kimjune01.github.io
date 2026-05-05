@@ -35,7 +35,7 @@ image: "/assets/slug-name.png"
 ---
 ```
 
-**`variant:`** controls page width. `post` (500px, default), `post-medium` (700px), `post-wide` (90vw), `poetry`. Works in both `.md` and `.mdx`.
+**`variant:`** controls page width. `post` (525px, default), `post-medium` (700px), `post-wide` (90vw), `poetry`. Works in both `.md` and `.mdx`.
 
 `image:` sets the social preview (`og:image`, `twitter:card`, JSON-LD). It's independent of images in the post body — an inline diagram is not an og:image. Set it when the post has a meaningful preview image. Not all posts need one.
 

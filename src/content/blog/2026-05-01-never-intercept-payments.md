@@ -16,7 +16,7 @@ In the standard model, the advertiser pays the exchange, which takes its cut and
 
 Flip it. The advertiser pays the publisher directly; the publisher pays the exchange a service fee for routing demand — bid evaluation, [auction resolution](/power-diagrams-ad-auctions), [receipt generation](/receipts-please) — like a CDN bills for bandwidth. One visible line item.
 
-Every dollar the advertiser paid lands in the publisher's account. Visible on arrival. The exchange's fee is separate, explicit, auditable. Nothing to reconcile because nothing was commingled.
+Every dollar the advertiser paid lands in the publisher's account. Visible on arrival. The exchange's fee is separate, explicit, auditable. Nothing to reconcile because nothing was commingled. Settlement runs on [envelopay](/envelopay-spec): the transfer happens on-chain, the email carries the proof, and the DKIM-signed thread is the audit trail. Cost per settlement: under a tenth of a cent.
 
 ## Routing Is the Leverage
 

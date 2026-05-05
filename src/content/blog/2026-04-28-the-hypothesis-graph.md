@@ -146,9 +146,9 @@ I don't have a theorem — I'm just showing you that good diagnosticians converg
 
 ### An observation
 
-Suppose the algorithm for revealing follow-up hypotheses doesn't exist. The absence of structure must mean that hypotheses are randomly generated, and their order, arbitrary. But we observe that the knowledge graph of science does expand, and our attention drives connections from one experiment to another. It's proof that the algorithm for coming up with new hypotheses from experiments must exist.
+Suppose no algorithm for generating follow-up hypotheses exists. Hypotheses would be random, their order arbitrary. But the knowledge graph of science does expand, and our attention drives connections from one experiment to another. So the class of such algorithms must exist.
 
-[Popper](https://www.cambridge.org/core/journals/dialogue-canadian-philosophical-review-revue-canadienne-de-philosophie/article/idea-of-a-logic-of-discovery/5E31DF041E9E6B5D31EA79C6C06B065E) was right that there's no logical method of having new ideas from nothing. But they don't come from nothing; they come from the shape of the last experiment. The failure mode of the current test points to the next hypothesis. [Science on trial](/science-on-trial) described the protocol that protects this loop: prereg, red-team, work log, publish all.
+[Popper](https://www.cambridge.org/core/journals/dialogue-canadian-philosophical-review-revue-canadienne-de-philosophie/article/idea-of-a-logic-of-discovery/5E31DF041E9E6B5D31EA79C6C06B065E) was right that there's no logical method of having new ideas from nothing. They come from the shape of the last experiment. The failure mode of the current test points to the next hypothesis. Kill conditions are one algorithm in this class. The class itself has no name and no formal study. [Science on trial](/science-on-trial) described the protocol that protects this loop: prereg, red-team, work log, publish all.
 
 For any system you can perturb, the hypothesis graph decomposes it. Each perturbation produces a node, whose classification generates edges that point to the next perturbations. The graph expands until it covers the system's structure, or until there's a boundary you can't perturb past.
 
@@ -158,10 +158,17 @@ The classification is limited to where you have:
 - independence between streams (correlated sensors weaken composition)
 - identifiability (some systems look the same under all perturbations)
 
-Within those limits, the algorithm converges. Outside them, it tells you where you're stuck and why, which is itself an edge.
+Within those limits, the algorithm converges. Outside them, it tells you where you're stuck and why, which is itself an edge. [Hume](https://en.wikipedia.org/wiki/David_Hume) proved that causation can't be deduced from observation alone. Sciences that can't perturb their subject (astronomy, macroeconomics, paleontology) are structurally unable to learn causality this way. The hypothesis graph only works where you can poke.
 
 Engineered systems are the best case. You have perturbation access and partial design knowledge. Every unexpected state is a free perturbation, every test failure is a node, and every failure mode is an edge. The hypothesis graph is how engineered complexity becomes legible: one perturbation at a time, with the kill condition telling you where to cut next.
 
 If the thought process can be encoded, it can be scaled and repeated. The hypothesis graph encodes it: perturb, classify the shape, follow the edge. An agent that runs this loop doesn't need intuition; it needs perturbation access and a classifier.
+
+### Open questions
+
+- Algorithms that generate hypotheses from experimental shape exist across fields: [model-based diagnosis](https://www.sciencedirect.com/science/article/pii/0004370287900622) (Reiter, 1987), [algorithmic debugging](https://www.weizmann.ac.il/math/shapiro/algorithmic-program-debugging-0) (Shapiro, 1983), [counterexample-guided synthesis](https://www.cs.cmu.edu/~emc/papers/Conference%20Papers/Counterexample-guided%20Abstraction%20Refinement.pdf) (Clarke et al., 2003), [abduction](https://plato.stanford.edu/archives/fall2024/entries/scientific-discovery/) (Peirce). Each formalizes a slice. No cross-domain theory characterizes what they share: a mismatch between predicted and observed structure, converted into constraints that select the next hypothesis or experiment.
+- Can the hypothesis graph be shown to converge to the true causal structure under stated conditions? The pieces exist independently (Chernoff, He & Geng, Grünwald). Connecting them is open.
+- What happens at the boundary where perturbation access runs out? The graph tells you where you're stuck, but is that boundary information formally recoverable, or just a practitioner's intuition?
+- Some systems violate every assumption (no isolation, correlated streams, unidentifiable structure) and people still learn them. [Parenting Horizons](/parenting-horizons) explores the case where the measurement window is shortest relative to the system's dynamics, and two rational observers have no shared formalism to resolve their disagreement.
 
 If we can poke it, we know how to know.
