@@ -1,5 +1,5 @@
 ---
-variant: post
+variant: post-medium
 title: "StarCraft 2 Is the Ideal Benchmark"
 tags: cognition, methodology
 image: "/assets/sc2-benchmark.jpg"
@@ -78,3 +78,7 @@ ImageNet created AlexNet. The benchmark came first. The breakthrough followed be
 Cognitive architectures are waiting for that result. But you can't have an AlexNet moment without an ImageNet.
 
 If Soar is intelligence encoded, it should prove it, or lose trying. Build the stage; see who shows up.
+
+### Slides
+
+<iframe src="https://docs.google.com/presentation/d/1vooxr8rQZ8v4avJSixzYVClh_PaDEQ9Cwc4omZOTLCM/embed?start=false&loop=false&delayms=3000" frameborder="0" width="700" height="422" allowfullscreen="true"></iframe>
