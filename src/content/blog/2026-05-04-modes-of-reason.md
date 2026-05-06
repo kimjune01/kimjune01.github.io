@@ -16,7 +16,7 @@ tags: cognition, methodology
 >
 > — Arthur Conan Doyle, [*The Adventure of Silver Blaze*](https://en.wikipedia.org/wiki/The_Adventure_of_Silver_Blaze) (1892)
 
-The Holmes canon calls this deduction. It isn't. No syllogism, no chain of premises. He noticed what *didn't* happen: the dog didn't bark. He separated that silence from the ordinary night and landed on an explanation: the intruder was someone the dog knew. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
+The Holmes canon calls this deduction. You could reconstruct one: dogs bark at strangers; the dog didn't bark; the intruder wasn't a stranger. But where did the first premise come from? Holmes knows a thousand things about dogs, night, stables, strangers. The skill is selecting which prior to test against the scene. In this case: the dog that should have barked but didn't. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
 
 That operation is the neglected third mode of reasoning.
 
@@ -30,9 +30,9 @@ All three from Latin *ducere* ("to lead"):
 
 Peirce's term for the expected fertility of a reasoning mode: **uberty**, how much new knowledge the mode can produce.
 
-### The crosswalk
+### Same operation, eight names
 
-Eight entries across six fields circle the same pattern: given an observation, separate signal from noise. Each coined its own word. None recognize each other's.
+Eight entries across six fields circle the same pattern: given an observation, separate signal from noise. Each coined its own word. None cite each other.
 
 <div class="table-wrap">
 <table>
@@ -64,11 +64,11 @@ Eight entries across six fields circle the same pattern: given an observation, s
 - **[Zilberstein et al.](https://arxiv.org/abs/2305.04842) (2024)**: tri-abduction. Abduction gains a branching degree of freedom.
 
 
-### Compositions
+### Everything decomposes
 
 Three primitives; everything else decomposes:
 
-- **Analogy** = abduction (observe surprising similarity across domains) + induction (generalize the structural correspondence). Peirce saw it this way; Brewer's legal account confirms it.
+- **Analogy** = abduction (observe surprising similarity across domains) + induction (generalize the structural correspondence). Peirce saw it this way; [Brewer's](https://cyber.harvard.edu/bridge/Library/brewer.htm) legal account confirms it.
 - **Diagnosis** = abduction (propose what's wrong) + deduction (trace consequences)
 - **Scientific method** = abduction (hypothesize) + deduction (predict) + induction (test)
 - **Debugging** = abduction (propose cause) + deduction (if this, then that) + abduction again (it wasn't; next cause)
