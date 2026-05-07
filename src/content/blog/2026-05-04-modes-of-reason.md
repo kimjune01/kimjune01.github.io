@@ -18,7 +18,7 @@ tags: cognition, methodology
 
 The Holmes canon calls this deduction. You could reconstruct one: dogs bark at strangers; the dog didn't bark; the intruder wasn't a stranger. But where did the first premise come from? Holmes knows a thousand things about dogs, night, stables, strangers. The skill is selecting which prior to test against the scene. In this case: the dog that should have barked but didn't. Absence is the figure; the quiet night, the ground. The hypothesis falls out of the diff.
 
-That operation is the neglected third mode of reasoning.
+That operation is the neglected third mode of reasoning. It's what people mean when they call someone *sharp*: fast figure-ground separation.
 
 ### Three modes
 
@@ -80,15 +80,15 @@ Holmes, House, Semmelweis, Darwin. All running the same compositions. Doyle misn
 
 The three modes map onto the three morphisms of the [memory monoid](/functor-wizardry):
 
-- **Abduction**: epmem → smem. Episodes become knowledge. Observe an episode, separate figure from ground, and propose what's true.
-- **Deduction**: smem → pmem. Knowledge becomes procedure. Given what's true, derive how to act.
-- **Induction**: pmem → epmem. Procedure produces episodes. Run the procedure, accumulate evidence, and feed new observations back in.
+- **Abduction**: Observation → Theory. Episodes become knowledge. Observe an episode, separate figure from ground, and propose what's true.
+- **Deduction**: Theory → Experiment. Knowledge becomes procedure. Given what's true, derive how to act.
+- **Induction**: Experiment → Observation. Procedure produces episodes. Run the procedure, accumulate evidence, and feed new observations back in.
 
 <div style="max-width:min(460px, 100%); margin:1.5em auto;">
-<img src="/assets/modes-of-reason-triangle.svg" alt="Triangle: epmem → smem (abduction), smem → pmem (deduction), pmem → epmem (induction). Three modes, three morphisms, one monoid." style="width:100%; display:block;">
+<img src="/assets/modes-of-reason-triangle.svg" alt="Triangle: Observation → Theory (abduction), Theory → Experiment (deduction), Experiment → Observation (induction). Three modes, three morphisms, one monoid." style="width:100%; display:block;">
 </div>
 
-The monoid [broke in Soar](/diagnosis-soar) because the abductive morphism (epmem → smem) was missing. [`cons`](/cons) closed it manually; the [Natural Framework](/the-natural-framework) gave the interface. Whether the third edge can be automated remains open.
+The monoid [broke in Soar](/diagnosis-soar) because the abductive morphism (Observation → Theory) was missing. [`cons`](/cons) closed it manually; the [Natural Framework](/the-natural-framework) gave the interface. Whether the third edge can be automated remains open.
 
 That's a [different post](/abduction).
 

@@ -26,13 +26,13 @@
   <!-- Background: inscribed triangle -->
   <polygon points="230,22 102,244 358,244" stroke="#e8ddd0" stroke-width="1" fill="none" opacity="0.5"/>
 
-  <!-- epmem → smem (left side — ABDUCTION, gold) -->
+  <!-- Observation → Theory (left side — ABDUCTION, gold) -->
   <path class="arrow-abd" d="M211,55 Q120,100 121,211"/>
 
-  <!-- smem → pmem (bottom — DEDUCTION, solid) -->
+  <!-- Theory → Experiment (bottom — DEDUCTION, solid) -->
   <path class="arrow" d="M140,244 Q230,290 320,244"/>
 
-  <!-- pmem → epmem (right side — INDUCTION, solid) -->
+  <!-- Experiment → Observation (right side — INDUCTION, solid) -->
   <path class="arrow" d="M339,211 Q340,100 249,55"/>
 
   <!-- Edge labels: mode name + operation -->
@@ -46,13 +46,13 @@
   <text x="340" y="137" text-anchor="start" style="font-size:10px; fill:#777; font-style:italic;">run → accumulate</text>
 
   <!-- Nodes at vertices -->
-  <text class="node-text" x="230" y="28">epmem</text>
+  <text class="node-text" x="230" y="28">Observation</text>
   <text class="node-sub" x="230" y="46">what happened</text>
 
-  <text class="node-text" x="102" y="240">smem</text>
+  <text class="node-text" x="102" y="240">Theory</text>
   <text class="node-sub" x="102" y="258">what is true</text>
 
-  <text class="node-text" x="358" y="240">pmem</text>
+  <text class="node-text" x="358" y="240">Experiment</text>
   <text class="node-sub" x="358" y="258">how to act</text>
 
   <!-- Latin roots, tucked under each edge -->
