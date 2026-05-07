@@ -356,3 +356,9 @@ TVG session 4: 40+ hypotheses across 4 sessions. Birthday bound formalization �
 ### 12:15 — H26 correction: log factor is structural
 
 H26 correction: sequential delegation does NOT kill the log factor. Root delegation gives Θ(k log k) — temporal filtering at relay vertices is structural. The CPS O(n log n) cannot be improved to O(n) within their framework. K-early+late (K=3, ~5n) works empirically but proof requires multi-hop reasoning. Dead end count: 45+ hypotheses across 4 sessions. The gap remains at biclique spanner ≤ 4k-3.
+
+## 2026-05-07
+
+### 03:00 — tinygrad matvec investigation → PR
+
+Investigated tinygrad LLaMA inference gap. Root cause: MV_ROWS_PER_THREAD=4 (never tuned) wastes 87% of cache lines on matvec. Fix: 4→16, +62-105% bandwidth. PR #16072 (CI passed). First fix (GROUP removal) killed by bug hunt for nn.Linear regression (oscillatory). Surviving fix: one number. Renamed /interrogate → /investigate, extended skill with prework→benchmark→hunt→ship pipeline + feedback loop. Blog post drafted. Experiment repo: github.com/kimjune01/tinygrad-matvec-experiment
