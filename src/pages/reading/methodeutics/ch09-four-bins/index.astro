@@ -11,16 +11,16 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p class="text-gray-400 text-sm mb-6">Chapter 9 &middot; Milnor 1985, Strogatz 2014, Ramdas 2023</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
-      <p class="text-lg" style="max-width:none">You have the trajectory. It oscillates. Is the system fighting itself, or is your measurement noisy? <a href="/evidence-has-a-trajectory">Chapter 8</a> gave you e-values &mdash; evidence that accumulates over time instead of compressing to a scalar. You can watch the trajectory now. This chapter tells you how to read it.</p>
+      <p class="text-lg" style="max-width:none">You have the trajectory. It oscillates. Is the system fighting itself, or is your measurement noisy? <a href="/evidence-has-a-trajectory">Chapter 8</a> gave you e-values that accumulate over time instead of compressing to a scalar. This chapter tells you how to read the shape.</p>
     </div>
 
-    <p>An e-value stream is a time series. It goes up, down, sideways, or nowhere in particular. "Goes up" is not a diagnosis. "Goes up then down then up" is not a diagnosis either. You need a classification &mdash; a finite set of shapes, each mapping to a different kind of system and a different next move. Dynamical systems theory provides exactly four.</p>
+    <p>An e-value stream is a time series. "Goes up" is not a diagnosis. "Goes up then down then up" is not a diagnosis either. You need a finite set of trajectory shapes, each mapping to a different kind of system and a different next move. Dynamical systems theory provides exactly four.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Why four and not more</h2>
 
-    <p>Perturb a system. Watch the response over time. The trajectory does one of four things:</p>
+    <p>Perturb a system. Watch the response. The trajectory does one of four things:</p>
 
     <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.5em; max-width: 500px; margin: 1em auto;">
       <img src="/assets/trajectory-convergence.svg" alt="Convergence: perturbation settles back to baseline" />
@@ -30,17 +30,17 @@ import Neighbors from "../../../../components/Neighbors.astro";
     </div>
 
     <ol class="list-decimal pl-5 mb-4">
-      <li class="mb-2"><strong>Convergent.</strong> The perturbation decays. The system returns to its previous state. Something absorbed the shock.</li>
-      <li class="mb-2"><strong>Divergent.</strong> The perturbation grows. The system moves away from its previous state and keeps going. Nothing stopped the cascade.</li>
-      <li class="mb-2"><strong>Oscillatory.</strong> The perturbation neither decays nor grows &mdash; it cycles. The system swings between two states. Two subsystems are pushing against each other.</li>
-      <li class="mb-2"><strong>Chaotic.</strong> The trajectory stays bounded but never repeats. It is sensitive to initial conditions &mdash; two nearby starting points diverge exponentially. The system is deterministic but unpredictable past a short horizon.</li>
+      <li class="mb-2"><strong>Convergent.</strong> The perturbation decays. The system returns to its previous state. A compensating mechanism absorbed the shock.</li>
+      <li class="mb-2"><strong>Divergent.</strong> The perturbation grows. The system moves away and keeps going. No compensating mechanism exists.</li>
+      <li class="mb-2"><strong>Oscillatory.</strong> The perturbation cycles. Two subsystems push against each other: one compensates, the other overcompensates.</li>
+      <li class="mb-2"><strong>Chaotic.</strong> The trajectory stays bounded but never repeats. Two nearby starting points diverge exponentially. Deterministic but unpredictable past a short horizon.</li>
     </ol>
 
-    <p>These four patterns cover the common cases for perturbation traces from engineered systems. The classification is inspired by dynamical systems theory — Milnor (1985) and Strogatz (2014) show that fixed points, limit cycles, and strange attractors exhaust the attractors of smooth systems — but applied to finite observed trajectories, the bins classify <em>evidence behavior</em>, not the true underlying system. A finite trace cannot prove chaos; it can only rule out settling and periodicity within the observed window.</p>
+    <p>Milnor (1985) and Strogatz (2014) prove that fixed points, limit cycles, and strange attractors exhaust the attractors of smooth dynamical systems. Applied to finite observed trajectories, the four bins classify <em>evidence behavior</em>, not the true underlying system. A finite trace cannot prove chaos; it can only rule out settling and periodicity within the observed window.</p>
 
-    <h2>The eigenstructure argument</h2>
+    <h2>Eigenvalues determine trajectory shape</h2>
 
-    <p>For linear systems, the classification falls directly out of eigenvalues. Linearize the system around an equilibrium point. The Jacobian matrix <em>J</em> has eigenvalues &lambda;. The eigenvalues determine the trajectory shape:</p>
+    <p>Linearize the system around an equilibrium point. The Jacobian <em>J</em> has eigenvalues &lambda;, and they determine the bin:</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -61,7 +61,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The eigenvalue table has five rows but only three bins: convergent (decay), divergent (growth), and oscillatory (rotation). That covers the linear case completely. Chaos requires nonlinearity &mdash; it cannot appear in linear systems. For the fourth bin, you need Lyapunov exponents.</p>
+    <p>Five rows, three bins: convergent (decay), divergent (growth), oscillatory (rotation). Chaos requires nonlinearity and cannot appear in linear systems. For the fourth bin, you need Lyapunov exponents.</p>
 
     <h3>Lyapunov exponents for the nonlinear case</h3>
 
@@ -87,13 +87,11 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>Eigenvalues are the linear case. Lyapunov exponents are the general case. For linear systems they coincide &mdash; the Lyapunov exponents are the real parts of the eigenvalues. For nonlinear systems, Lyapunov exponents are the only game in town. The four bins hold regardless.</p>
+    <p>Eigenvalues are the linear case; Lyapunov exponents are the general case. For linear systems they coincide (the Lyapunov exponents are the real parts of the eigenvalues). For nonlinear systems, Lyapunov exponents are all you have. The four bins hold regardless.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The classification table</h2>
-
-    <p>Each bin tells you something different about the system. The trajectory shape is a diagnosis. The diagnosis implies a next experiment.</p>
+    <h2>Shape prescribes the next experiment</h2>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -114,7 +112,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The table is a decision tree: observe the trajectory, match the shape, read the diagnosis, run the next experiment. The bins triage the response. Convergent means "this perturbation was absorbed under these conditions — try a different node." Divergent means "this node matters, dig deeper." Oscillatory means "two things are coupled, find the coupling." Chaotic means "your decomposition is wrong, start over."</p>
+    <p>Observe the trajectory, match the shape, read the diagnosis, run the next experiment. Convergent: "this perturbation was absorbed, try a different node." Divergent: "this node matters, dig deeper." Oscillatory: "two things are coupled, find the coupling." Chaotic: "your decomposition is wrong, start over."</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto text-sm my-6"><code>def next_experiment(classification, current_node, graph):
     """Given a trajectory classification, return the next experiment."""
@@ -141,13 +139,13 @@ import Neighbors from "../../../../components/Neighbors.astro";
         # Indeterminate. Collect more data at the same node.
         return current_node</code></pre>
 
-    <p>The function maps each bin to a graph operation: move to a neighbor (convergent), follow a dependency (divergent), test an interface (oscillatory), or decompose further (chaotic). The bins don't just classify &mdash; they prescribe. Chapter 10 shows how each prescription becomes an edge in the hypothesis graph.</p>
+    <p>Each bin maps to a graph operation: move to a neighbor, follow a dependency, test an interface, or decompose further. The bins prescribe, not just classify. Chapter 10 shows how each prescription becomes an edge in the hypothesis graph.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The decision tree</h2>
+    <h2>Three questions classify any trajectory</h2>
 
-    <p>Given a time series from a perturbation experiment, classify it. The tree has three questions:</p>
+    <p>Given a perturbation time series, three yes/no questions determine the bin:</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto text-sm"><code>1. Is the trajectory bounded?
    &boxur;&mdash; NO  &rarr; <strong>DIVERGENT</strong>
@@ -161,21 +159,19 @@ import Neighbors from "../../../../components/Neighbors.astro";
    &boxur;&mdash; YES &rarr; <strong>OSCILLATORY</strong>
    &boxur;&mdash; NO  &rarr; <strong>CHAOTIC</strong></code></pre>
 
-    <p>"Bounded" means: does the variance stabilize or does it grow without limit? A monotone trend test (Mann-Kendall or Cox-Stuart) on the absolute values answers this. If the trend is significantly increasing and shows no sign of flattening, classify as divergent.</p>
+    <p><strong>Bounded?</strong> Run a Mann-Kendall trend test on the absolute values. If the trend is significantly increasing with no sign of flattening, divergent.</p>
 
-    <p>"Settles" means: does the trajectory approach a constant? Check whether the variance of the last third of the series is significantly smaller than the variance of the first third. If it is, convergent.</p>
+    <p><strong>Settles?</strong> Compare the variance of the last third to the first third. If the late variance is significantly smaller (Levene's test), convergent.</p>
 
-    <p>"Repeats periodically" means: is there a dominant frequency in the spectrum? Compute the power spectral density. If a single frequency contains more than (say) 40% of the total power, oscillatory. If the power is spread across many frequencies with no dominant peak, chaotic.</p>
-
-    <p>Each question has a clean statistical test. The decision tree is implementable.</p>
+    <p><strong>Periodic?</strong> Compute the power spectral density. If a single frequency holds more than 40% of total power, oscillatory. If power is spread across many frequencies with no dominant peak, chaotic.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Examples</h2>
+    <h2>Same perturbation, four possible responses</h2>
 
     <h3>Web server under load</h3>
 
-    <p>A web server handles 1,000 requests per second normally. You increase the load to 1,500 rps and watch response time over the next hour. All four bins can appear:</p>
+    <p>A web server handles 1,000 rps. You increase to 1,500 rps and watch response time for an hour:</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -195,7 +191,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>Same system, same perturbation, four possible responses depending on the architecture. The bin tells you what to look at next. Convergent: the autoscaler handled it, test something else. Divergent: no backup exists, find the bottleneck. Oscillatory: two controllers are coupled, test the interface between them. Chaotic: your decomposition is wrong &mdash; you're treating the whole server stack as one component when it's actually several interacting loops.</p>
+    <p>Same system, same perturbation, four responses depending on architecture. Chaotic is the interesting one: you're treating the whole server stack as one component when it's actually several interacting loops.</p>
 
     <h3>Automobile diagnostics</h3>
 
@@ -204,10 +200,10 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <ul class="list-disc pl-5 mb-4">
       <li class="mb-1"><strong>Convergent:</strong> Battery voltage dips to 11.8V, recovers to 12.6V when the alternator reconnects. The battery absorbed the perturbation. The alternator is not load-bearing at current draw.</li>
       <li class="mb-1"><strong>Divergent:</strong> Voltage drops steadily. The radio dims, the dashboard flickers, the engine stalls. The alternator was the only power source at this draw level. Everything downstream cascaded.</li>
-      <li class="mb-1"><strong>Oscillatory:</strong> Voltage swings between 11V and 14V with a 2-second period. The voltage regulator and the alternator are fighting &mdash; one compensates, the other overcompensates, back and forth. The fault is in the interface (the regulator), not the alternator itself.</li>
+      <li class="mb-1"><strong>Oscillatory:</strong> Voltage swings between 11V and 14V with a 2-second period. The voltage regulator and the alternator are fighting: one compensates, the other overcompensates. The fault is in the interface (the regulator), not the alternator itself.</li>
     </ul>
 
-    <p>Chaos is rare in simple electrical circuits &mdash; three bins cover most automotive faults. But it appears in engine management systems with enough interacting control loops (fuel injection, ignition timing, variable valve timing, turbo boost) where a single sensor failure produces bounded but aperiodic behavior that no single root cause explains.</p>
+    <p>Chaos is rare in simple electrical circuits. Three bins cover most automotive faults. But engine management systems have enough interacting control loops (fuel injection, ignition timing, variable valve timing, turbo boost) that a single sensor failure can produce bounded but aperiodic behavior no single root cause explains.</p>
 
     <h3>Clinical trial</h3>
 
@@ -215,18 +211,18 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <ul class="list-disc pl-5 mb-4">
       <li class="mb-1"><strong>Convergent:</strong> BP drops from 150 to 130 in the first month, stabilizes. The drug works and the effect is stable.</li>
-      <li class="mb-1"><strong>Divergent:</strong> BP drops to 130, then creeps back to 145, then 155, then 160. The body is adapting. The drug works in the snapshot window but the compensatory response overwhelms it. This is Vioxx &mdash; <a href="/evidence-has-a-trajectory">chapter 8's opening example</a>.</li>
-      <li class="mb-1"><strong>Oscillatory:</strong> BP swings between 125 and 155 with a monthly period. The drug suppresses BP for two weeks, then the body overshoots for two weeks, then the drug wins again. Two subsystems fighting. The interface is the feedback loop between the drug and the body's compensatory mechanism.</li>
-      <li class="mb-1"><strong>Chaotic:</strong> BP stays between 120 and 160 but follows no pattern. The drug interacts with diet, exercise, stress, sleep, and other medications in ways that produce bounded but unpredictable responses. A single drug-response model is the wrong decomposition. You need to factor out the other variables before the drug's effect is visible.</li>
+      <li class="mb-1"><strong>Divergent:</strong> BP drops to 130, then creeps back to 145, then 155, then 160. The body adapts. The drug works in the snapshot window but the compensatory response overwhelms it. This is Vioxx (<a href="/evidence-has-a-trajectory">chapter 8's opening example</a>).</li>
+      <li class="mb-1"><strong>Oscillatory:</strong> BP swings between 125 and 155 with a monthly period. The drug suppresses BP for two weeks, the body overshoots for two weeks, the drug wins again. The interface is the feedback loop between drug and compensatory mechanism.</li>
+      <li class="mb-1"><strong>Chaotic:</strong> BP stays between 120 and 160 but follows no pattern. The drug interacts with diet, exercise, stress, sleep, and other medications to produce bounded but unpredictable responses. A single drug-response model is the wrong decomposition; factor out the other variables first.</li>
     </ul>
 
-    <p>A 9-month snapshot of the divergent case would show "BP dropped, drug works." An e-value trajectory over 18 months would show the evidence reversing. The bin classification tells you why: the system is divergent, the drug is load-bearing in the wrong direction, and the compensatory response is the mechanism to investigate.</p>
+    <p>A 9-month snapshot of the divergent case shows "BP dropped, drug works." The 18-month e-value trajectory shows the evidence reversing. The bin tells you why: the compensatory response overwhelms the drug, and that response is the mechanism to investigate.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Code: trajectory classifier</h2>
 
-    <p>Given a time series from a perturbation experiment, classify it into one of the four bins. The implementation follows the decision tree: check boundedness, then settling, then periodicity.</p>
+    <p>The implementation follows the decision tree: check boundedness, then settling, then periodicity.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`<span class="hl-keyword">import</span> numpy <span class="hl-keyword">as</span> np
 <span class="hl-keyword">from</span> scipy <span class="hl-keyword">import</span> stats, signal
@@ -309,39 +305,35 @@ divergent   &rarr; divergent
 oscillatory &rarr; oscillatory
 chaotic     &rarr; chaotic</code></pre>
 
-    <p>The classifier is simple &mdash; three statistical tests in sequence. The simplicity is deliberate. A trajectory classifier that requires tuning 20 parameters would be useless in practice because you'd spend more time calibrating the classifier than reading the trajectory. Three tests, three thresholds, four bins.</p>
+    <p>Three statistical tests in sequence. The simplicity is deliberate: a classifier that requires tuning 20 parameters costs more to calibrate than the trajectory is worth reading. Three tests, three thresholds, four bins.</p>
 
     <h3>Where the classifier fails</h3>
 
-    <p>Two failure modes are worth noting. First, <strong>transient classification</strong>: a system that is divergent in the first 100 observations may converge by observation 500. The classifier sees whatever window you give it. Run it on a short window and you may classify a convergent system as divergent (or vice versa). The fix is simple: run the classifier on a rolling window and watch whether the classification itself changes over time. If the bin flips, you're in the transient regime and need more data.</p>
+    <p><strong>Transient classification.</strong> A system divergent in the first 100 observations may converge by observation 500. The classifier sees whatever window you give it. Fix: run the classifier on a rolling window and watch whether the bin itself flips. If it does, you're in the transient regime and need more data.</p>
 
-    <p>Second, <strong>oscillatory vs. chaotic at the boundary</strong>: a system with a dominant frequency that also has significant broadband noise will be classified as oscillatory or chaotic depending on the 40% threshold. In practice, this boundary is the least important one. Both oscillatory and chaotic trajectories indicate coupling between subsystems. The difference matters for prediction (oscillatory is predictable, chaotic is not) but not for the next experimental step (both say "test the interface" or "decompose").</p>
-
-    <hr class="border-zinc-700 my-8"/>
-
-    <h2>Connecting to e-values</h2>
-
-    <p>Chapter 8 introduced e-values as a trajectory-preserving alternative to p-values. The e-value stream is itself a time series. Apply the four-bin classifier to it.</p>
-
-    <p>An e-value that <strong>converges</strong> to a high value means: the evidence for the hypothesis accumulated and stabilized. Under the chosen betting strategy, the evidence has stabilized in favor of the hypothesis. Consider redirecting budget elsewhere.</p>
-
-    <p>An e-value that <strong>diverges</strong> (grows without bound) means: the evidence is piling up monotonically. A correctly specified alternative hypothesis against a true null produces unbounded e-value growth. This is the normal "success" mode for anytime-valid inference.</p>
-
-    <p>An e-value that <strong>oscillates</strong> means: the evidence for the hypothesis swings back and forth. Sometimes it looks true, sometimes false, periodically. This is the signature of <a href="/evidence-has-a-trajectory">Boeing's MCAS</a> &mdash; two subsystems fighting. The oscillation in your evidence reflects the oscillation in the system. The hypothesis isn't wrong. It's incomplete. It captures one half of a coupled pair.</p>
-
-    <p>An e-value that looks <strong>chaotic</strong> means: the evidence is bounded but never settles and never repeats. Your betting strategy is poorly matched to the system's dynamics. The hypothesis may be about the wrong level of abstraction &mdash; like testing "does the server have a latency problem?" when the real question requires decomposing into cache, queue, and retry-loop subproblems.</p>
-
-    <p>The four bins applied to e-value trajectories are a diagnostic tool, not a decision rule. They tell you what kind of evidence you have. They do not tell you what to do with it.</p>
+    <p><strong>Oscillatory vs. chaotic at the boundary.</strong> A system with a dominant frequency plus significant broadband noise will land on one side or the other of the 40% threshold. This boundary is the least important one. Both bins indicate coupling between subsystems; the difference matters for prediction (oscillatory is predictable, chaotic is not) but not for the next experiment (both say "test the interface" or "decompose").</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>What this chapter does not solve</h2>
+    <h2>E-value trajectories have the same four shapes</h2>
 
-    <p>The classification table has a column labeled "Next experiment." Convergent &rarr; test a different node. Divergent &rarr; test its dependencies. Oscillatory &rarr; test the interface. Chaotic &rarr; decompose differently.</p>
+    <p>The e-value stream from Chapter 8 is itself a time series. Apply the classifier to it.</p>
 
-    <p>These are sensible defaults, not derivations. Nothing in the eigenstructure or the Lyapunov exponent tells you <em>which</em> different node to test, <em>which</em> dependency to probe, or <em>how</em> to decompose differently. The four bins tell you what KIND of response you got. They don't tell you what to DO next.</p>
+    <p>An e-value that <strong>converges</strong> to a high value: evidence accumulated and stabilized. Redirect budget elsewhere.</p>
 
-    <p>The mapping from shape to next experiment is the claim of chapter 10. Each bin produces a <em>kill condition</em> &mdash; a specific, testable statement about what would have to be true for the diagnosis to be wrong. The kill condition generates the next edge in the hypothesis graph. The four bins classify the node. The kill conditions generate the edges.</p>
+    <p>An e-value that <strong>diverges</strong>: evidence piling up monotonically. This is the normal "success" mode for anytime-valid inference.</p>
+
+    <p>An e-value that <strong>oscillates</strong>: evidence swings back and forth periodically. This is the signature of <a href="/evidence-has-a-trajectory">Boeing's MCAS</a>. The hypothesis is not wrong; it is incomplete. It captures one half of a coupled pair.</p>
+
+    <p>An e-value that looks <strong>chaotic</strong>: evidence is bounded but never settles and never repeats. Your betting strategy is poorly matched to the system's dynamics. You are testing at the wrong level of abstraction, like asking "does the server have a latency problem?" when the real question requires decomposing into cache, queue, and retry-loop subproblems.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Bins classify nodes; kill conditions generate edges</h2>
+
+    <p>The classification table has a column labeled "Next experiment." But nothing in the eigenstructure or the Lyapunov exponent tells you <em>which</em> node to test, <em>which</em> dependency to probe, or <em>how</em> to decompose. The four bins tell you what kind of response you got. They do not tell you what to do next.</p>
+
+    <p>That mapping is the claim of chapter 10. Each bin produces a <em>kill condition</em>: a specific, testable statement about what would have to be true for the diagnosis to be wrong. The kill condition generates the next edge in the hypothesis graph.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
