@@ -173,6 +173,32 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>This is why the operation is insecure. There is no deductive guarantee that the partition is correct. The same observation admits multiple figure-ground splits. Rubin's vase is the literal demonstration: the same stimulus, two partitions, both valid, mutually exclusive. Security would require a unique correct partition. Uberty requires exactly the opposite — multiple candidate partitions, each proposing a different explanation, each fertile in a different direction.</p>
 
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def partition(observation, prior):
+    """The common operation: split observation into salient and retained."""
+    salient = &#123;k: v for k, v in observation.items() if v != prior.get(k)&#125;
+    retained = &#123;k: v for k, v in observation.items() if v == prior.get(k)&#125;
+    return salient, retained
+
+# Gestalt: figure-ground
+scene = &#123;"face": "visible", "vase": "visible", "background": "white"&#125;
+prior = &#123;"face": "hidden", "vase": "visible", "background": "white"&#125;
+figure, ground = partition(scene, prior)
+# figure: &#123;"face": "visible"&#125;, ground: &#123;"vase": "visible", "background": "white"&#125;
+
+# Debugging: what changed
+after_deploy = &#123;"cpu": "90%", "memory": "4GB", "disk": "50GB", "config": "v2"&#125;
+before_deploy = &#123;"cpu": "30%", "memory": "4GB", "disk": "50GB", "config": "v1"&#125;
+changed, held = partition(after_deploy, before_deploy)
+# changed: &#123;"cpu": "90%", "config": "v2"&#125;, held: &#123;"memory": "4GB", "disk": "50GB"&#125;
+
+# Separation logic: frame inference (simplified)
+heap_after = &#123;"ptr_a": "allocated", "ptr_b": "freed", "ptr_c": "allocated"&#125;
+heap_before = &#123;"ptr_a": "allocated", "ptr_b": "allocated", "ptr_c": "allocated"&#125;
+footprint, frame = partition(heap_after, heap_before)
+# footprint: &#123;"ptr_b": "freed"&#125;, frame: &#123;"ptr_a": "allocated", "ptr_c": "allocated"&#125;`} /></pre>
+
+    <p>One function covers all three cases. The vocabulary changes — figure/ground, changed/held, footprint/frame — but <code>partition</code> is the same dict comparison every time. The separation-logic example is the loosest fit: a real frame includes cells read but unchanged, not just cells with different values. The toy version captures the structural role (salient vs retained) without the full semantics. Chapter 4 will formalize the shared primitive as diff.</p>
+
     <h2>Why they don't cite each other</h2>
 
     <p>The citation gap is not an accident. It has three causes, and understanding them explains why the operation stayed unnamed for a century.</p>

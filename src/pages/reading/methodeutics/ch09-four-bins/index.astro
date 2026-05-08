@@ -116,6 +116,33 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>The table is a decision tree: observe the trajectory, match the shape, read the diagnosis, run the next experiment. The bins triage the response. Convergent means "this perturbation was absorbed under these conditions — try a different node." Divergent means "this node matters, dig deeper." Oscillatory means "two things are coupled, find the coupling." Chaotic means "your decomposition is wrong, start over."</p>
 
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto text-sm my-6"><code>def next_experiment(classification, current_node, graph):
+    """Given a trajectory classification, return the next experiment."""
+    if classification == "convergent":
+        # This perturbation was absorbed. Try a different node.
+        return graph.least_tested_neighbor(current_node)
+
+    elif classification == "divergent":
+        # Load-bearing. Follow its dependencies.
+        return graph.most_dependent(current_node)
+
+    elif classification == "oscillatory":
+        # Two subsystems fighting. Test the interface.
+        return graph.interface_between(
+            current_node,
+            graph.oscillation_partner(current_node)
+        )
+
+    elif classification == "chaotic":
+        # Decomposition is too coarse. Split into finer components.
+        return graph.split(current_node)
+
+    else:
+        # Indeterminate. Collect more data at the same node.
+        return current_node</code></pre>
+
+    <p>The function maps each bin to a graph operation: move to a neighbor (convergent), follow a dependency (divergent), test an interface (oscillatory), or decompose further (chaotic). The bins don't just classify &mdash; they prescribe. Chapter 10 shows how each prescription becomes an edge in the hypothesis graph.</p>
+
     <hr class="border-zinc-700 my-8"/>
 
     <h2>The decision tree</h2>

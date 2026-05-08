@@ -116,7 +116,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
 np.random.seed(<span class="hl-number">42</span>)
 T = <span class="hl-number">200</span>
-forcing = <span class="hl-number">0.15</span>  <span class="hl-comment"># weak shared signal</span>
+forcing = <span class="hl-number">0.2</span>  <span class="hl-comment"># weak shared signal</span>
 
 <span class="hl-comment"># Stream 1: normal, mu shifts by forcing</span>
 x_normal = np.random.normal(loc=forcing, scale=<span class="hl-number">1.0</span>, size=T)
@@ -141,6 +141,43 @@ cum_composed = np.cumprod(e_normal * e_poisson)
 <span class="hl-builtin">print</span>(<span class="hl-string">f"  Composed crosses? &#123;np.any(cum_composed >= 20)&#125;"</span>)</code></pre>
 
     <p>Neither stream alone accumulates enough evidence to cross the rejection threshold. The composed trajectory does. The signal was always there; it was distributed across streams that no individual analysis could detect.</p>
+
+    <h3>Driving the hypothesis graph to closure</h3>
+
+    <p>Composition tells you that evidence across streams is valid. But the hypothesis graph is not just streams &mdash; it is a loop: measure, classify, open or close edges, repeat. Here is the loop in full.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code><span class="hl-keyword">def</span> <span class="hl-builtin">investigate</span>(system, budget):
+    <span class="hl-string">"""Run the hypothesis graph to convergence."""</span>
+    graph = HypothesisGraph()
+    graph.add_edge(<span class="hl-string">"initial"</span>, classify(measure(system)))
+
+    <span class="hl-keyword">for</span> _ <span class="hl-keyword">in</span> range(budget):
+        <span class="hl-keyword">if not</span> graph.open_edges():
+            <span class="hl-keyword">break</span>  <span class="hl-comment"># converged: no open questions</span>
+
+        <span class="hl-comment"># Economy (ch 7): pick the cheapest decisive experiment</span>
+        edge = min(graph.open_edges(), key=<span class="hl-keyword">lambda</span> e: e.cost / e.info_gain)
+
+        <span class="hl-comment"># Measure and classify (ch 8-9)</span>
+        result = measure(system, edge.perturbation)
+        shape = classify(result)
+
+        <span class="hl-comment"># Kill condition (ch 10): failure names the next edge</span>
+        <span class="hl-keyword">if</span> shape == <span class="hl-string">"convergent"</span>:
+            graph.close(edge)
+        <span class="hl-keyword">elif</span> shape == <span class="hl-string">"divergent"</span>:
+            graph.close(edge)
+            graph.add_edge(edge.target, <span class="hl-string">"follow dependency"</span>)
+        <span class="hl-keyword">elif</span> shape == <span class="hl-string">"oscillatory"</span>:
+            graph.close(edge)
+            graph.add_edge(edge.target, <span class="hl-string">"test interface A"</span>)
+            graph.add_edge(edge.target, <span class="hl-string">"test interface B"</span>)
+        <span class="hl-keyword">else</span>:
+            graph.add_edge(edge.target, <span class="hl-string">"collect more data"</span>)
+
+    <span class="hl-keyword">return</span> graph  <span class="hl-comment"># converged or budget exhausted</span></code></pre>
+
+    <p>Each iteration closes one edge and may open zero, one, or two new ones. Convergent results close without opening. Divergent results open one. Oscillatory results open two (a split). The graph converges when closures outpace openings &mdash; which Kelly&rsquo;s theorem says happens for finite-structure systems under Ockham-efficient strategies.</p>
 
     <hr class="border-zinc-700 my-8"/>
 

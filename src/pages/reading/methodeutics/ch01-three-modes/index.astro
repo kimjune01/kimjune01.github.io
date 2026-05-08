@@ -76,6 +76,22 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>Each mode rearranges the same three propositions (Rule, Case, Result). Deduction goes from Rule + Case to Result. Induction goes from Case + Result to Rule. Abduction goes from Rule + Result to Case. The logical form is symmetric; the epistemic status is not. Deduction preserves truth with certainty. Induction converges on truth under assumptions (sufficient samples, stable distribution). Abduction proposes a candidate explanation that might be entirely wrong.</p>
 
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300"># Three propositions. Three arrangements. Three epistemic statuses.
+rule   = "All beans from this bag are white"
+case   = "These beans are from this bag"
+result = "These beans are white"
+
+# Deduction: Rule + Case → Result. Certain.
+print("Deduce:", result, "  (given rule and case)")
+
+# Induction: Case + Result → Rule. Probable.
+print("Induce:", rule,   "  (given case and result)")
+
+# Abduction: Rule + Result → Case. Plausible.
+print("Abduce:", case,   "  (given rule and result)")</code></pre>
+
+    <p>The code makes the symmetry visible: same data, three arrangements, three epistemic statuses. The arrangement determines what's given and what's concluded.</p>
+
     <h2>Why three and only three</h2>
 
     <p>In his 1903 Harvard lectures, Peirce argued that the trichotomy is exhaustive. The argument rests on his theory of categories: there are exactly three irreducible kinds of relation.</p>
