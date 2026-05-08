@@ -11,12 +11,12 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p class="text-gray-400 text-sm mb-6">Chapter 6 &middot; Zilberstein et al. 2024, Calcagno et al. 2009, O'Hearn 2019</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
-      <p class="text-lg" style="max-width:none">The program branches on a condition. Each branch changes different state. Bi-abduction handles one path. When execution forks, you need a primitive that handles both paths and the condition that separates them.</p>
+      <p class="text-lg" style="max-width:none">A program branches on a condition. Each branch changes different state. Bi-abduction handles one path. When execution forks, you need a primitive that handles both paths and the condition separating them.</p>
     </div>
 
     <h2>Where bi-abduction stops</h2>
 
-    <p>Chapter 5 showed how bi-abduction infers the frame and anti-frame for a single execution path. The checkout function reads some keys, writes others; bi-abduction figures out what must exist beforehand and what stays untouched. Each function analyzed in isolation, results composed across the call graph. Polynomial per function, linear composition. Infer runs this on millions of lines daily.</p>
+    <p>Chapter 5 showed how bi-abduction infers the frame and anti-frame for a single execution path. The checkout function reads some keys, writes others; bi-abduction figures out what must exist beforehand and what stays untouched. Each function analyzed in isolation, results composed across the call graph. Polynomial per function, linear composition.</p>
 
     <p>But chapter 5 ended on a crack. Consider a function with an <code>if/else</code>:</p>
 
@@ -32,17 +32,17 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>Branch A touches <code>{'{'}card_number, authorization_code{'}'}</code>. Branch B touches <code>{'{'}bank_account, transfer_id{'}'}</code>. Run bi-abduction on branch A: the anti-frame says <code>card_number</code> must exist, the frame excludes <code>authorization_code</code>. Run bi-abduction on branch B: the anti-frame says <code>bank_account</code> must exist, the frame excludes <code>transfer_id</code>. Two separate analyses, two separate answers.</p>
 
-    <p>Which precondition does the caller need to establish? Both? Neither? It depends on which branch executes, which depends on <code>payment_method</code>. Bi-abduction gives you one (anti-frame, frame) pair per path. It cannot tell you how the paths relate to each other &mdash; that the branch condition itself is load-bearing, that the <em>choice</em> between paths is the real structure.</p>
+    <p>Which precondition does the caller need to establish? Both? Neither? It depends on which branch executes, which depends on <code>payment_method</code>. Bi-abduction gives you one (anti-frame, frame) pair per path. It cannot tell you how the paths relate to each other: that the branch condition itself is load-bearing, that the <em>choice</em> between paths is the real structure.</p>
 
-    <p>The same limitation shows up everywhere programs fork: <code>if/else</code>, <code>try/catch</code>, pattern matching, concurrent threads racing to a shared resource. Each branch has its own footprint. Bi-abduction analyzes them independently. What's missing is the joint analysis: a precondition that is valid for <em>all</em> branches in a single pass.</p>
+    <p>The same limitation shows up everywhere programs fork: <code>if/else</code>, <code>try/catch</code>, pattern matching, concurrent threads racing to a shared resource. Each branch has its own footprint. Bi-abduction analyzes them independently. What's missing is the joint analysis: a single precondition valid for <em>all</em> branches.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Outcome separation logic</h2>
 
-    <p>Zilberstein, Saliling, and Silva (2024) introduced <strong>Outcome Separation Logic</strong> at OOPSLA. The key move: extend the separating conjunction from two-part separation (footprint <code>*</code> frame) to <em>n</em>-part separation across outcomes. Where separation logic says "the heap splits into what the function touches and what it doesn't," outcome separation logic says "the heap splits into what each <em>branch</em> touches and what none of them touch." The methodeutic reading below — recasting this as causal inference — is our extrapolation, not theirs.</p>
+    <p>Zilberstein, Saliling, and Silva (2024) introduced <strong>Outcome Separation Logic</strong> at OOPSLA. The key move: extend the separating conjunction from two-part separation (footprint <code>*</code> frame) to <em>n</em>-part separation across outcomes. Where separation logic says "the heap splits into what the function touches and what it doesn't," outcome separation logic says "the heap splits into what each <em>branch</em> touches and what none of them touch." The methodeutic reading below, recasting this as causal inference, is our extrapolation, not theirs.</p>
 
-    <p>Bi-abduction solves for two unknowns: anti-frame and frame, one execution path. Tri-abduction solves for <em>three</em>: the precondition that must hold before the fork, plus the frame and postcondition for each branch. "Tri" because the minimum branching program has three logical parts: the shared prefix (before the fork), branch A, and branch B.</p>
+    <p>Bi-abduction solves for two unknowns along one execution path: anti-frame and frame. We use <em>tri-abduction</em> as this book's name for the N=2 outcome-separation case. It solves for <em>three</em>: the precondition before the fork, plus the frame and postcondition for each branch. "Tri" because the minimum branching program has three logical parts: shared prefix, branch A, branch B.</p>
 
     <p>The tri-abduction judgment looks like this:</p>
 
@@ -58,22 +58,22 @@ Such that:
   Pre * F  ⊢  P_A * F_A    (Pre plus frame entails branch A's needs)
   Pre * F  ⊢  P_B * F_B    (Pre plus frame entails branch B's needs)</code></pre>
 
-    <p>Where bi-abduction infers one (anti-frame, frame) pair, tri-abduction infers a precondition valid for all branches simultaneously. The frame is the intersection: heap that <em>no</em> branch touches. The precondition is the union: everything that <em>any</em> branch might need, conditioned on the branching predicate.</p>
+    <p>Where bi-abduction infers one (anti-frame, frame) pair, tri-abduction infers a precondition valid for all branches simultaneously. The frame is the intersection: heap <em>no</em> branch touches. The precondition is the union: everything <em>any</em> branch might need, conditioned on the branching predicate.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>The mechanic, forked</h2>
 
-    <p>Return to the engine. The mechanic stands at the same starting state &mdash; engine running, all gauges nominal. She performs two perturbations:</p>
+    <p>Return to the engine. The mechanic starts from the same state: engine running, all gauges nominal. She performs two perturbations:</p>
 
     <p><strong>Branch A:</strong> Tap the alternator. Engine stalls.</p>
     <p><strong>Branch B:</strong> Tap the radiator. Engine keeps running.</p>
 
-    <p>Same starting state. Two perturbations. Two outcomes. The unary diff (chapter 4) can analyze each branch in isolation. Branch A's figure: alternator tapped, engine stalled. Branch B's figure: radiator tapped, engine unchanged. Bi-abduction (chapter 5) can infer the frame for each branch independently.</p>
+    <p>Same starting state. Two perturbations. Two outcomes. The unary diff (chapter 4) analyzes each branch in isolation. Branch A's figure: alternator tapped, engine stalled. Branch B's figure: radiator tapped, engine unchanged. Bi-abduction (chapter 5) infers the frame for each branch independently.</p>
 
-    <p>But the real diagnostic power is in the <em>comparison between branches</em>. The alternator tap caused a stall. The radiator tap didn't. The engine was running in both cases before the tap. The shared ground &mdash; fuel, spark, wiring, battery &mdash; was identical across both branches. The only difference between the two experiments is which component was tapped. The difference in outcomes (stall vs. no stall) localizes the cause to the alternator, not the radiator.</p>
+    <p>The diagnostic power is in the <em>comparison between branches</em>. The alternator tap caused a stall. The radiator tap didn't. The engine was running in both cases before the tap. The shared ground (fuel, spark, wiring, battery) was identical across both branches. The only difference is which component was tapped. The divergent outcomes (stall vs. no stall) localize the cause to the alternator, not the radiator.</p>
 
-    <p>This is the causal edge. Not just "what changed within one experiment" but "what explains why two experiments from the same starting state produced different results." The branching condition (which component was tapped) is the cause. The divergent outcomes are the evidence. The shared ground is the control.</p>
+    <p>This is the causal edge: what explains why two experiments from the same starting state produced different results. The branching condition (which component was tapped) is the candidate cause. The divergent outcomes are the evidence. The shared ground is the control.</p>
 
     <!-- Inline SVG: tri-abduction fork diagram -->
     <div style="margin: 2em auto; max-width: 780px;">
@@ -161,13 +161,13 @@ Such that:
       </svg>
     </div>
 
-    <p>The diagram reads left to right. A shared starting state (engine running) forks into two branches. Branch A taps the alternator &mdash; engine stalls. Branch B taps the radiator &mdash; engine keeps running. The two outcomes converge into the causal edge: the alternator is the cause, not the radiator, because only the alternator perturbation changed the outcome. The shared ground (fuel, spark, wiring, battery) is the control surface that rules out confounders.</p>
+    <p>The diagram reads left to right. A shared starting state (engine running) forks into two branches. Branch A taps the alternator; engine stalls. Branch B taps the radiator; engine keeps running. The two outcomes converge into the causal edge: the alternator is the candidate cause: only its perturbation changed the outcome. The shared ground (fuel, spark, wiring, battery) rules out confounders.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>From diff to tri-abduction: the arity grows</h2>
+    <h2>Each step adds an operand</h2>
 
-    <p>The progression across chapters 4&ndash;6 is a single pattern with increasing operand count:</p>
+    <p>Chapters 4&ndash;6 are a single pattern with increasing arity:</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -208,19 +208,17 @@ Such that:
 
     <p>Chapter 4's diff answers: "what changed?" Chapter 5's bi-abduction answers: "what changed, and what must have been true for it to work?" Chapter 6's tri-abduction answers: "what changed, and why did it change <em>here</em> but not <em>there</em>?"</p>
 
-    <p>Each step adds an operand. One snapshot pair gives one frame. Two snapshot pairs (actual and counterfactual) give one causal edge. The pattern stays diff; the arity grows. The unary diff partitions state into figure and ground. Bi-abduction infers the partition autonomously. Tri-abduction compares partitions across branches to isolate the cause.</p>
+    <p>One snapshot pair gives one frame. Two snapshot pairs (actual and counterfactual) give one causal edge. The primitive stays diff; the arity grows. Unary diff partitions state into figure and ground. Bi-abduction infers the partition autonomously. Tri-abduction compares partitions across branches to isolate the cause.</p>
 
-    <p>The key insight from Zilberstein et al. is that this generalizes to arbitrary arity. A program with N branches yields N outcomes from one shared starting state. The causal analysis compares all N outcomes to identify which branching conditions explain which outcome differences. Tri-abduction is the N=2 case. The general case is outcome separation across N outcomes.</p>
+    <p>Zilberstein et al. show this generalizes to arbitrary arity. A program with N branches yields N outcomes from one shared starting state. Comparing all N outcomes identifies which branching conditions explain which outcome differences. Tri-abduction is the N=2 case. The general case is outcome separation across N outcomes.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>For methodeutics</h2>
+    <h2>Controlled experiments are tri-abduction</h2>
 
-    <p>Translate out of verification and back into the language of inquiry.</p>
+    <p>Chapters 1&ndash;3 established abduction as the third mode of reasoning, distinct from deduction and induction: generating hypotheses from surprising observations. Chapter 4 defined the primitive: diff. Chapter 5 automated it: bi-abduction infers the frame without the observer choosing what to snapshot.</p>
 
-    <p>Chapters 1&ndash;3 established that abduction &mdash; generating hypotheses from surprising observations &mdash; is the third mode of reasoning, distinct from deduction and induction, and that it appears under different names across multiple fields. Chapter 4 defined the primitive: diff. Chapter 5 automated the primitive: bi-abduction infers the frame without the observer choosing what to snapshot.</p>
-
-    <p>Tri-abduction adds the branching degree of freedom. The question shifts from "what explains this observation?" to "what explains why this observation differs from that one?" The difference between the questions is the difference between diagnosis and causal inference. Diagnosis says the alternator might be the problem. Causal inference says the alternator <em>is</em> the problem, because tapping it changed the outcome and tapping the radiator didn't.</p>
+    <p>Tri-abduction adds branching. The question moves from "what explains this observation?" to "what explains why this observation differs from that one?" That is the gap between diagnosis and causal inference. Diagnosis says the alternator might be the problem. Causal inference says the alternator <em>is</em> the problem, because tapping it changed the outcome and tapping the radiator didn't.</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -256,11 +254,11 @@ Such that:
       </table>
     </div>
 
-    <p>The controlled experiment is tri-abduction performed by a human. Hold the starting conditions constant. Vary one thing. Observe whether the outcome changes. If it does, the varied thing is a candidate cause — subject to confounding, measurement quality, and power. Mill's method of difference, read through a separation logic lens.</p>
+    <p>The controlled experiment is tri-abduction performed by a human. Hold starting conditions constant. Vary one thing. Observe whether the outcome changes. If it does, the varied thing is a candidate cause, subject to confounding, measurement quality, and power. Mill's method of difference, read through a separation logic lens.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Code: identifying the branching condition</h2>
+    <h2>Code: three snapshots find the cause</h2>
 
     <p>Given two experimental outcomes from the same starting state with different perturbations, identify the branching condition that explains the divergence.</p>
 
@@ -392,45 +390,45 @@ print(f"    => alternator is causal, radiator is not")`} /></pre>
     radiator perturbation -> nominal
     => alternator is causal, radiator is not</code></pre>
 
-    <p>The function takes three snapshots instead of two. The shared start is the control. The two branch endpoints are the experimental outcomes. The shared ground (battery, fuel pump, spark) is what held across both experiments &mdash; the variables that are ruled out as causes. The divergent keys (alternator, radiator, engine) are the figure. Within the figure, the code identifies which perturbation (alternator vs. radiator) correlates with the outcome change (stalled vs. running).</p>
+    <p>The function takes three snapshots instead of two. The shared start is the control. The two branch endpoints are the experimental outcomes. The shared ground (battery, fuel pump, spark) is what held across both experiments, ruling out those variables as causes. The divergent keys (alternator, radiator, engine) are the figure. Within the figure, the code identifies which perturbation (alternator vs. radiator) correlates with the outcome change (stalled vs. running).</p>
 
-    <p>Bi-abduction on branch A alone would say: "the alternator changed and the engine stalled." True, but not causal. It could be coincidence. Tri-abduction adds the counterfactual: "the radiator changed and the engine <em>didn't</em> stall." The comparison between branches is what moves toward causation — same starting state, different perturbation, different outcome. Under controlled conditions (no hidden confounding, adequate measurement), the perturbation that changed the outcome is a candidate cause.</p>
+    <p>Bi-abduction on branch A alone says: "the alternator changed and the engine stalled." True, but not causal. It could be coincidence. Tri-abduction adds the counterfactual: "the radiator changed and the engine <em>didn't</em> stall." The comparison between branches supports a causal claim: same starting state, different perturbation, different outcome. Under controlled conditions (no hidden confounding, adequate measurement), the perturbation that changed the outcome is the candidate cause.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Beyond programs: branching in the wild</h2>
 
-    <p>Tri-abduction's fork structure appears everywhere experiments branch:</p>
+    <p>The fork structure appears everywhere experiments branch:</p>
 
-    <p><strong>A/B testing.</strong> Same user population (shared start), two UI variants (branches), different conversion rates (outcomes). The causal edge is the UI difference that explains the conversion gap. The shared ground is everything else: user demographics, time of day, device type.</p>
+    <p><strong>A/B testing.</strong> Randomized comparable populations (shared start), two UI variants (branches), different conversion rates (outcomes). The causal edge is the UI difference explaining the conversion gap. Shared ground: user demographics, time of day, device type.</p>
 
-    <p><strong>Compiler optimization.</strong> Same source program, two tile sizes in a GPU kernel. One runs in 4ms, the other in 12ms. The starting state is the program. The branches are the two configurations. The causal edge is tile size. The shared ground is everything the optimization didn't change: instruction count, memory layout, thread count.</p>
+    <p><strong>Compiler optimization.</strong> Same source program, two tile sizes in a GPU kernel. One runs in 4ms, the other in 12ms. The causal edge is tile size. Shared ground: instruction count, memory layout, thread count.</p>
 
-    <p><strong>Clinical trials.</strong> Same patient cohort, drug vs. placebo. Different recovery rates. The branching condition is whether the patient received the drug. The shared ground is the controlled variables: age, severity, diet, exercise. Randomization is the mechanism that makes the shared ground trustworthy.</p>
+    <p><strong>Clinical trials.</strong> Randomized comparable groups, drug vs. placebo. Different recovery rates. The branching condition is whether the patient received the drug. Shared ground: age, severity, diet, exercise. Randomization makes the shared ground trustworthy.</p>
 
-    <p>In every case the structure is the same: shared starting conditions, a fork into branches with different perturbations, divergent outcomes, and a causal edge extracted from the comparison. The controlled experiment <em>is</em> tri-abduction. Mill described the method of difference in 1843. Separation logic gave it a formal semantics in 2024.</p>
+    <p>Every case has the same structure: shared starting conditions, a fork, divergent outcomes, a causal edge extracted from the comparison. The controlled experiment <em>is</em> tri-abduction. Mill described the method of difference in 1843. Outcome separation logic (Zilberstein et al. 2024) offers a formal framework for reasoning about such branching contrasts.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The compositionality question</h2>
+    <h2>Tri-abduction composes</h2>
 
-    <p>Bi-abduction's power came from compositionality. Infer analyzes each function once, infers its contract, and composes contracts across call boundaries. Does tri-abduction compose the same way?</p>
+    <p>Bi-abduction's power came from compositionality: analyze each function once, infer its contract, compose contracts across call boundaries. Does tri-abduction compose the same way?</p>
 
-    <p>The short answer: yes, because outcomes separate. If function A branches internally and function B branches internally, their outcome sets multiply &mdash; but the separation guarantee means A's branches don't interfere with B's frame. Zilberstein et al. prove this: outcome separation logic inherits the frame rule from standard separation logic. Local reasoning remains sound across branching boundaries.</p>
+    <p>Yes, because outcomes separate. If function A branches internally and function B branches internally, their outcome sets multiply. But the separation guarantee means A's branches don't interfere with B's frame. Zilberstein et al. prove this: outcome separation logic inherits the frame rule from standard separation logic. Local reasoning stays sound across branching boundaries.</p>
 
-    <p>The practical consequence: a compositional analysis can handle programs with nested branching. Function A has an <code>if/else</code>. It calls function B, which also has an <code>if/else</code>. Outcome separation logic analyzes each function independently, infers preconditions valid for all branches, and composes. The same architecture that let Infer scale bi-abduction to millions of lines should, in principle, scale tri-abduction to branching programs.</p>
+    <p>The practical consequence: compositional analysis handles nested branching. Function A has an <code>if/else</code>. It calls function B, which also has an <code>if/else</code>. Outcome separation logic analyzes each function independently, infers preconditions valid for all branches, and composes. The same architecture that scaled bi-abduction to millions of lines in Infer scales tri-abduction to branching programs.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>What breaks</h2>
 
-    <p>The arity grows cleanly. Unary diff (chapter 4), bi-abduction (chapter 5), tri-abduction (chapter 6). The pattern generalizes: N branches from a shared state produce N outcomes, and the comparison across outcomes isolates the causal branching conditions. The primitive scales. Compositionality holds.</p>
+    <p>The arity grows cleanly. N branches from a shared state produce N outcomes; comparing outcomes isolates the causal branching conditions. The primitive scales. Compositionality holds.</p>
 
-    <p>But we now have a new problem. The mechanic had two branches &mdash; tap alternator, tap radiator. A real engine has dozens of components to tap. A compiler has thousands of configurations. A drug trial has millions of candidate molecules. Each is a potential branch. Each produces a candidate causal edge.</p>
+    <p>But now there is a new problem. The mechanic had two branches: tap alternator, tap radiator. A real engine has dozens of components to tap. A compiler has thousands of configurations. A drug trial has millions of candidate molecules. Each is a potential branch. Each produces a candidate causal edge.</p>
 
-    <p>The primitive generates hypotheses. It does not rank them. Chapters 4&ndash;6 formalized the machinery for producing candidate explanations at increasing arity: one diff, one frame inference, one causal edge. But with N possible perturbations, we get N candidate hypotheses. Which ones are worth testing?</p>
+    <p>The primitive generates hypotheses. It does not rank them. Chapters 4&ndash;6 formalized candidate-explanation machinery at increasing arity: one diff, one frame inference, one causal edge. But N possible perturbations yield N candidate hypotheses. Which ones are worth testing?</p>
 
-    <p>Testing is expensive. Every experiment costs time, compute, or reagents. The abductive primitive can produce dozens of candidates from a single fork. Running all of them is rarely feasible. We need a theory of which hypotheses to invest in &mdash; a theory of the <em>economy of research</em>.</p>
+    <p>Testing is expensive. Every experiment costs time, compute, or reagents. The abductive primitive produces dozens of candidates from a single fork. Running all of them is rarely feasible. We need a theory of which hypotheses to invest in: a theory of the <em>economy of research</em>.</p>
 
     <p>That is Chapter 7.</p>
 
