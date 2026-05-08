@@ -14,34 +14,34 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <p class="text-lg" style="max-width:none">Five sensor streams, each individually undetectable. Composed e-values classify the forcing pattern at F1&nbsp;=&nbsp;0.996. The math composes. But a human can&rsquo;t run this loop at scale.</p>
     </div>
 
-    <p>Chapters 8&ndash;10 built a pipeline: track evidence as a trajectory (ch&nbsp;8), classify the trajectory&rsquo;s shape into four bins (ch&nbsp;9), and use the failure mode of each classification to generate edges in the hypothesis graph (ch&nbsp;10). Each piece works locally &mdash; one experiment, one trajectory, one kill condition. The question this chapter answers: does the graph as a whole converge? When you compose evidence across many experiments, each chosen adaptively based on the last, does the accumulated evidence settle on the truth?</p>
+    <p>Chapters 8&ndash;10 built a pipeline: track evidence as a trajectory (ch&nbsp;8), classify the trajectory&rsquo;s shape into four bins (ch&nbsp;9), and use each classification&rsquo;s failure mode to generate edges in the hypothesis graph (ch&nbsp;10). Each piece works locally: one experiment, one trajectory, one kill condition. Does the graph as a whole converge? When you compose evidence across many experiments, each chosen adaptively based on the last, does the accumulated evidence settle on the truth?</p>
 
-    <p>Two theorems, from two different fields, say yes. Neither cites the other. Connecting them is this chapter&rsquo;s contribution.</p>
+    <p>Two theorems, from two different fields, say yes. Neither cites the other.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>E-value composition: the product rule</h2>
 
-    <p>Chapter 8 introduced e-values as an alternative to p-values: a measure of evidence that you can peek at any time without inflating error. The key property for convergence is composition.</p>
+    <p>Chapter 8 introduced e-values as an alternative to p-values: a measure of evidence you can peek at any time without inflating error. E-values compose.</p>
 
-    <p>Suppose you run five experiments sequentially, choosing each based on the results of the previous ones. Each experiment produces an e-value E<sub>i</sub>. The product E<sub>1</sub> &times; E<sub>2</sub> &times; &hellip; &times; E<sub>5</sub> is itself a valid e-value. No correction for multiple testing. No penalty for adaptive selection. The product is valid as long as each e-value is constructed conditional on all previous data and decisions.</p>
+    <p>Run five experiments sequentially, choosing each based on the results of the previous ones. Each experiment produces an e-value E<sub>i</sub>. The product E<sub>1</sub> &times; E<sub>2</sub> &times; &hellip; &times; E<sub>5</sub> is itself a valid e-value. No correction for multiple testing. No penalty for adaptive selection. The product is valid as long as each e-value is constructed conditional on all previous data and decisions.</p>
 
-    <p>This is <a href="https://academic.oup.com/jrsssb/article/86/5/1091/7623686">Gr&uuml;nwald, Henzi, and Ly (2024)</a>. The formal statement: if each E<sub>i</sub> is an e-variable for the null hypothesis conditional on all previous data and decisions, then &prod;E<sub>i</sub> is an e-variable for the same null. The proof uses the tower property of conditional expectations. The result holds under arbitrary stopping, arbitrary experiment selection, and arbitrary dependence between experiments &mdash; as long as each e-value is valid given what came before.</p>
+    <p>This is <a href="https://academic.oup.com/jrsssb/article/86/5/1091/7623686">Gr&uuml;nwald, Henzi, and Ly (2024)</a>. If each E<sub>i</sub> is an e-variable for the null hypothesis conditional on all previous data and decisions, then &prod;E<sub>i</sub> is an e-variable for the same null. The proof uses the tower property of conditional expectations. The result holds under arbitrary stopping, arbitrary experiment selection, and arbitrary dependence between experiments, as long as each e-value is valid given what came before.</p>
 
-    <p><a href="https://arxiv.org/abs/2106.11429">Ramdas, Gr&uuml;nwald, Vovk, and Shafer (2023)</a> extended this to continuous time and showed that the composed e-value process is a test supermartingale. The practical consequence: you can run an open-ended investigation, composing evidence as you go, and the composed trajectory carries the system&rsquo;s dynamics with a valid error guarantee at every step.</p>
+    <p><a href="https://arxiv.org/abs/2106.11429">Ramdas, Gr&uuml;nwald, Vovk, and Shafer (2023)</a> extended this to continuous time and showed that the composed e-value process is a test supermartingale. You can run an open-ended investigation, composing evidence as you go, with a valid error guarantee at every step.</p>
 
     <blockquote>
       <p>&ldquo;E-values can be multiplied across different data sources, experiments, or analyses, no matter how they were selected.&rdquo;</p>
       <p class="text-sm text-gray-500">&mdash; Gr&uuml;nwald, Henzi, and Ly, &ldquo;E-values: Calibration, combination, and applications&rdquo; (2024)</p>
     </blockquote>
 
-    <p>The product weights each experiment by its informativeness. An experiment that produces E<sub>i</sub> = 12 contributes more to the product than one that produces E<sub>i</sub> = 1.1. This is Fisher information weighting in disguise: the likelihood ratio underlying each e-value gives informative experiments more say. Good diagnosticians already do this intuitively &mdash; they weight sharp tests over diffuse ones. The composition theorem says the weighting is valid.</p>
+    <p>The product weights each experiment by its informativeness. An experiment producing E<sub>i</sub> = 12 contributes more than one producing E<sub>i</sub> = 1.1. This is Fisher information weighting in disguise: the likelihood ratio underlying each e-value gives informative experiments more say. The composition theorem says the weighting is valid.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The experiment: five streams, one signal</h2>
+    <h2>Five streams, one signal</h2>
 
-    <p>The <a href="https://github.com/kimjune01/e-value-trajectory">e-value trajectory classifier</a> tested this directly. Five heterogeneous sensor streams &mdash; normal, Poisson, exponential, Bernoulli, lognormal &mdash; each measuring a different quantity, each contaminated with a weak forcing signal. The forcing signal shifts each stream&rsquo;s parameter by a small amount, inducing one of four trajectory shapes: convergent, divergent, oscillatory, or aperiodic.</p>
+    <p>The <a href="https://github.com/kimjune01/e-value-trajectory">e-value trajectory classifier</a> tested this directly. Five heterogeneous sensor streams &mdash; normal, Poisson, exponential, Bernoulli, lognormal &mdash; each measuring a different quantity, each contaminated with a weak forcing signal. The signal shifts each stream&rsquo;s parameter by a small amount, inducing one of four trajectory shapes: convergent, divergent, oscillatory, or aperiodic.</p>
 
     <p>Individually, each stream is too noisy to detect the forcing. F1 score per stream: 0.279. Barely above chance for a four-class problem.</p>
 
@@ -76,7 +76,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The standardized sum performs badly because it gives each stream equal weight. A Bernoulli stream with subtle frequency shifts and an exponential stream with rate changes carry different amounts of Fisher information. Averaging treats them the same. The e-value product does not: each likelihood ratio automatically scales by the stream&rsquo;s informativeness.</p>
+    <p>The standardized sum fails because it gives each stream equal weight. A Bernoulli stream with subtle frequency shifts and an exponential stream with rate changes carry different amounts of Fisher information. Averaging treats them the same. The e-value product does not: each likelihood ratio scales by the stream&rsquo;s informativeness.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -140,11 +140,11 @@ cum_composed = np.cumprod(e_normal * e_poisson)
 <span class="hl-builtin">print</span>(<span class="hl-string">f"  Poisson crosses? &#123;np.any(cum_poisson >= 20)&#125;"</span>)
 <span class="hl-builtin">print</span>(<span class="hl-string">f"  Composed crosses? &#123;np.any(cum_composed >= 20)&#125;"</span>)</code></pre>
 
-    <p>Neither stream alone accumulates enough evidence to cross the rejection threshold. The composed trajectory does. The signal was always there; it was distributed across streams that no individual analysis could detect.</p>
+    <p>Neither stream alone crosses the rejection threshold. The composed trajectory does.</p>
 
     <h3>Driving the hypothesis graph to closure</h3>
 
-    <p>Composition tells you that evidence across streams is valid. But the hypothesis graph is not just streams &mdash; it is a loop: measure, classify, open or close edges, repeat. Here is the loop in full.</p>
+    <p>Composition validates evidence across streams. But the hypothesis graph is a loop: measure, classify, open or close edges, repeat.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code><span class="hl-keyword">def</span> <span class="hl-builtin">investigate</span>(system, budget):
     <span class="hl-string">"""Run the hypothesis graph to convergence."""</span>
@@ -177,15 +177,15 @@ cum_composed = np.cumprod(e_normal * e_poisson)
 
     <span class="hl-keyword">return</span> graph  <span class="hl-comment"># converged or budget exhausted</span></code></pre>
 
-    <p>Each iteration closes one edge and may open zero, one, or two new ones. Convergent results close without opening. Divergent results open one. Oscillatory results open two (a split). The graph converges when closures outpace openings &mdash; which Kelly&rsquo;s theorem says happens for finite-structure systems under Ockham-efficient strategies.</p>
+    <p>Each iteration closes one edge and may open zero, one, or two new ones. Convergent results close without opening. Divergent results open one. Oscillatory results open two (a split). The graph converges when closures outpace openings. Kelly&rsquo;s theorem says this happens for finite-structure systems under Ockham-efficient strategies.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Kelly: the logic of reliable inquiry</h2>
+    <h2>Ockham&rsquo;s razor is a convergence theorem</h2>
 
-    <p>Composition tells you that evidence accumulates validly. It does not tell you that inquiry <em>converges</em> &mdash; that you will eventually reach the truth and stay there. For that, you need Kevin Kelly.</p>
+    <p>Composition guarantees that evidence accumulates validly. It does not guarantee that inquiry <em>converges</em>: that you eventually reach the truth and stay there.</p>
 
-    <p><a href="https://global.oup.com/academic/product/the-logic-of-reliable-inquiry-9780195091953">Kelly (1996)</a>, <em>The Logic of Reliable Inquiry</em>, proved something remarkable. He recast the problem of scientific method as a question in topology: given a class of possible worlds and a stream of evidence, which inquiry methods converge to the truth?</p>
+    <p><a href="https://global.oup.com/academic/product/the-logic-of-reliable-inquiry-9780195091953">Kelly (1996)</a>, <em>The Logic of Reliable Inquiry</em>, recast scientific method as a question in topology: given a class of possible worlds and a stream of evidence, which inquiry methods converge to the truth?</p>
 
     <p>The setup is austere. An inquiry method is a function from evidence sequences to hypotheses. At each step, the method sees one more datum and outputs its current best guess. The method <em>converges</em> if, after finitely many observations, it settles on the correct hypothesis and never changes its mind again. Kelly asks: among all methods that converge on a given problem, which one converges fastest?</p>
 
@@ -208,7 +208,7 @@ cum_composed = np.cumprod(e_normal * e_poisson)
       <p class="text-sm text-gray-500">&mdash; Kevin Kelly, <em>The Logic of Reliable Inquiry</em> (1996)</p>
     </blockquote>
 
-    <p>This reframes a 700-year-old heuristic as a theorem. William of Ockham said &ldquo;do not multiply entities beyond necessity&rdquo; as methodological advice. Kelly proved it is the <em>only</em> policy that minimizes wasted effort on the way to truth. Every alternative policy overshoots: it considers hypotheses it didn&rsquo;t need to, retracts positions it shouldn&rsquo;t have held, and cycles through states the Ockham method skips.</p>
+    <p>William of Ockham said &ldquo;do not multiply entities beyond necessity&rdquo; as methodological advice. Kelly proved it is the <em>only</em> policy that minimizes wasted effort on the way to truth. Every alternative overshoots: considers hypotheses it didn&rsquo;t need to, retracts positions it shouldn&rsquo;t have held, cycles through states the Ockham method skips.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -244,15 +244,13 @@ cum_composed = np.cumprod(e_normal * e_poisson)
       </table>
     </div>
 
-    <p>Kelly&rsquo;s framework is topological, not statistical. He does not talk about probability, sample size, or significance levels. He talks about which hypotheses an evidence stream can distinguish in the limit, and how many retractions the method suffers along the way. The result holds for any evidence-generating process, not just i.i.d. samples.</p>
-
     <hr class="border-zinc-700 my-8"/>
 
     <h2>The Kelly-Ramdas gap</h2>
 
-    <p>Kelly proved THAT efficient inquiry converges. His framework is topological: it characterizes which problems are solvable, which methods are optimal, and how many mind-changes the optimal method requires. It says nothing about how to measure evidence at each step.</p>
+    <p>Kelly&rsquo;s framework is topological: which problems are solvable, which methods are optimal, how many mind-changes the optimal method requires. No probability, no sample size, no significance levels. The result holds for any evidence-generating process, not just i.i.d. samples. Silent on how to measure evidence at each step.</p>
 
-    <p>Ramdas (with Gr&uuml;nwald, Vovk, and Shafer) proved THAT evidence composes across adaptive experiments. Their framework is measure-theoretic: e-values, supermartingales, anytime-valid inference. It says nothing about whether the composed evidence converges to the truth in the limit, or how many retractions are needed along the way.</p>
+    <p>Ramdas&rsquo;s framework is measure-theoretic: e-values, supermartingales, anytime-valid inference. Silent on whether composed evidence converges to truth in the limit, or how many retractions are needed.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -283,17 +281,17 @@ cum_composed = np.cumprod(e_normal * e_poisson)
 
     <p>Both are at CMU. No collaboration between them appears in the published literature. Kelly is in the Department of Philosophy; Ramdas is in Statistics and Machine Learning. Their theorems address different halves of the same question: Kelly provides the convergence guarantee, Ramdas provides the evidence-composition mechanism. The hypothesis graph needs both.</p>
 
-    <p>Connect them and you get: an inquiry that follows Ockham&rsquo;s razor, measures evidence with e-values, and composes across adaptive experiments will (1) reach the truth with minimum retractions (Kelly) and (2) maintain valid error control at every step along the way (Ramdas). The first says you&rsquo;ll get there efficiently. The second says you&rsquo;ll know where you are while traveling.</p>
+    <p>Connect them: an inquiry that follows Ockham&rsquo;s razor, measures evidence with e-values, and composes across adaptive experiments will (1) reach the truth with minimum retractions (Kelly) and (2) maintain valid error control at every step (Ramdas). Kelly says you&rsquo;ll get there efficiently. Ramdas says you&rsquo;ll know where you are while traveling.</p>
 
-    <p>No published theorem makes this connection. The pieces fit. The bridge between topology and measure theory for adaptive inquiry is open.</p>
+    <p>The bridge between topology and measure theory for adaptive inquiry is open. No published theorem crosses it.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Fixed point</h2>
+    <h2>When the graph has nothing left to say</h2>
 
     <p>The graph converges when every frontier edge points to a node already tested and stably classified. No new questions. The map returns what you gave it: f(x)&nbsp;=&nbsp;x.</p>
 
-    <p>Mathematicians call this a <a href="https://en.wikipedia.org/wiki/Fixed_point_(mathematics)">fixed point</a>. Computer scientists call it a <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator">fixpoint</a> &mdash; where a computation stabilizes and halts. Same idea from two angles: the system has nothing left to say.</p>
+    <p>Mathematicians call this a <a href="https://en.wikipedia.org/wiki/Fixed_point_(mathematics)">fixed point</a>. Computer scientists call it a <a href="https://en.wikipedia.org/wiki/Fixed-point_combinator">fixpoint</a>: a computation stabilizes and halts. Same idea from two angles.</p>
 
     <p>In the hypothesis graph, the fixed point requires three conditions:</p>
 
@@ -303,15 +301,15 @@ cum_composed = np.cumprod(e_normal * e_poisson)
       <li class="mb-2"><strong>Composability.</strong> The composed e-values across all experiments preserve the regime&rsquo;s signature. The global trajectory confirms what the local trajectories claim.</li>
     </ol>
 
-    <p>If all three hold, the graph has converged. The investigation is complete &mdash; not because you ran out of budget, but because the structure has no more questions to ask. Every perturbation has been classified, every kill condition has been followed, and the composed evidence points to a single, stable map of the system.</p>
+    <p>If all three hold, the graph has converged. The investigation is complete &mdash; not because you ran out of budget, but because the structure has no more questions to ask. Every perturbation classified, every kill condition followed, the composed evidence pointing to a single stable map.</p>
 
-    <p>Compare this to how investigations typically end: the grant runs out, the deadline arrives, the engineer gets reassigned. Those are resource-based stopping conditions. The fixed point is a structural stopping condition. The system tells you when you&rsquo;re done.</p>
+    <p>Most investigations end when the grant runs out, the deadline arrives, or the engineer gets reassigned. Those are resource-based stopping conditions. The fixed point is structural. The system tells you when you&rsquo;re done.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Conditions for convergence</h2>
+    <h2>Three conditions, all required</h2>
 
-    <p>The graph converges under three conditions. Violate any one and the graph cannot close.</p>
+    <p>Violate any one of three conditions and the graph cannot close.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -342,35 +340,35 @@ cum_composed = np.cumprod(e_normal * e_poisson)
       </table>
     </div>
 
-    <p><strong>Perturbation access</strong> is the most fundamental. Hume proved that causation cannot be deduced from observation alone. Sciences that cannot perturb their subject &mdash; astronomy, macroeconomics, paleontology &mdash; are structurally unable to close the hypothesis graph. They can observe, classify, and compose evidence, but they cannot run the crucial experiment that would resolve a frontier edge. The graph stays open. This is not a failure of method; it is a boundary condition. The hypothesis graph works where you can poke.</p>
+    <p><strong>Perturbation access</strong> is the most fundamental. Sciences that cannot perturb their subject &mdash; astronomy, macroeconomics, paleontology &mdash; cannot close the hypothesis graph. They can observe, classify, and compose evidence, but they cannot run the experiment that would resolve a frontier edge. The graph stays open. This is a boundary condition, not a failure of method. The hypothesis graph works where you can poke.</p>
 
-    <p><strong>Independence</strong> is the assumption that makes the product rule work. If two sensor streams are correlated &mdash; if they share a hidden common cause that inflates both signals &mdash; the product of their e-values overstates the evidence. Gr&uuml;nwald&rsquo;s theorem requires that each e-value be valid conditional on all previous data and decisions. Correlated streams violate this: stream B&rsquo;s data is not conditionally independent of stream A&rsquo;s, given the shared cause.</p>
+    <p><strong>Independence</strong> makes the product rule work. If two sensor streams share a hidden common cause that inflates both signals, the product of their e-values overstates the evidence. Gr&uuml;nwald&rsquo;s theorem requires each e-value be valid conditional on all previous data and decisions. Correlated streams violate this: stream B&rsquo;s data is not conditionally independent of stream A&rsquo;s, given the shared cause.</p>
 
-    <p><strong>Identifiability</strong> is the assumption that the truth is findable. If two hypotheses predict identical observations under every possible experiment, no evidence can distinguish them. The graph has a frontier edge between them that no experiment can resolve. This is a genuine limit of inquiry, not a practical limitation. Some systems have symmetries that prevent identification &mdash; gauge invariances in physics, confounders in causal inference.</p>
+    <p><strong>Identifiability</strong> means the truth is findable. If two hypotheses predict identical observations under every possible experiment, no evidence can distinguish them. The graph has a permanent frontier edge between them. Some systems have symmetries that prevent identification &mdash; gauge invariances in physics, confounders in causal inference.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Where it fails</h2>
 
-    <p>Convergence requires perturbation. Remove it and the graph cannot close. Three fields illustrate the failure mode.</p>
+    <p>Convergence requires perturbation. Remove it and the graph cannot close.</p>
 
-    <p><strong>Astronomy.</strong> You cannot perturb a star. You observe its spectrum, its motion, its variability. You compose evidence across wavelengths, time, and instruments. The composed trajectory can be rich. But if two models of stellar interior predict the same surface observables, no observation can distinguish them. The graph has a permanent frontier edge. Astronomers call this &ldquo;model degeneracy.&rdquo; Kelly would call it a topological limitation: the hypothesis class is not separable by the evidence topology.</p>
+    <p><strong>Astronomy.</strong> You cannot perturb a star. You observe its spectrum, motion, variability. You compose evidence across wavelengths, time, and instruments. But if two models of stellar interior predict the same surface observables, no observation can distinguish them. Permanent frontier edge. Astronomers call this &ldquo;model degeneracy.&rdquo; Kelly would call it a topological limitation: the hypothesis class is not separable by the evidence topology.</p>
 
-    <p><strong>Macroeconomics.</strong> You cannot run a controlled experiment on a national economy. You observe natural variation, policy changes, and shocks. But every observation is confounded by everything else happening simultaneously. Independence between streams is structurally violated. The e-value product across economic indicators overstates evidence because the indicators share common causes (monetary policy, global trade, sentiment). Convergence claims in macroeconomics are always provisional &mdash; the graph is open, and everyone knows it.</p>
+    <p><strong>Macroeconomics.</strong> You cannot run a controlled experiment on a national economy. Every observation is confounded by everything else happening simultaneously. The e-value product across economic indicators overstates evidence because the indicators share common causes (monetary policy, global trade, sentiment). The graph is open, and everyone knows it.</p>
 
-    <p><strong>Paleontology.</strong> You cannot perturb an extinct organism. You observe fossils &mdash; fragmentary, biased by preservation, separated by millions of years. Each fossil is a single frozen observation, not a trajectory. Composition across fossils is possible but the &ldquo;stream&rdquo; has massive gaps and unknown selection bias. The graph converges only on questions where the evidence is rich enough to resolve: gross morphology, phylogenetic placement. Fine-grained questions &mdash; behavior, coloration, soft tissue &mdash; remain open edges.</p>
+    <p><strong>Paleontology.</strong> You cannot perturb an extinct organism. Fossils are fragmentary, biased by preservation, separated by millions of years. Each is a single frozen observation, not a trajectory. The graph converges only where evidence is rich enough: gross morphology, phylogenetic placement. Fine-grained questions &mdash; behavior, coloration, soft tissue &mdash; remain open edges.</p>
 
-    <p>The boundary is informative. When the graph cannot close, the open edges tell you <em>why</em> it cannot close. &ldquo;Model degeneracy at the stellar interior&rdquo; is a different failure mode from &ldquo;confounded economic indicators.&rdquo; The first requires a new observable (gravitational waves, neutrinos). The second requires a natural experiment (a policy change that doesn&rsquo;t correlate with other changes). The failure mode names the next question, even when the question is unanswerable with current tools.</p>
+    <p>The open edges tell you <em>why</em> the graph cannot close. &ldquo;Model degeneracy at the stellar interior&rdquo; is a different failure mode from &ldquo;confounded economic indicators.&rdquo; The first requires a new observable (gravitational waves, neutrinos). The second requires a natural experiment (a policy change uncorrelated with other changes). The failure mode names the next question, even when the question is unanswerable with current tools.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Engineered systems: the best case</h2>
+    <h2>Why debugging works</h2>
 
-    <p>Engineered systems satisfy all three conditions. You have perturbation access &mdash; you can restart, inject faults, change configurations, deploy canaries. Sensor streams are often independent by design &mdash; CPU, memory, network, disk are measured by separate subsystems. And the system is identifiable &mdash; different root causes produce different observable signatures (a memory leak looks different from a CPU bottleneck).</p>
+    <p>Engineered systems satisfy all three conditions. You can restart, inject faults, change configurations, deploy canaries (perturbation). CPU, memory, network, and disk are measured by separate subsystems (independence). A memory leak looks different from a CPU bottleneck (identifiability).</p>
 
-    <p>This is why debugging works. The hypothesis graph for a software system can close. The mechanic&rsquo;s diagnostic tree terminates. The SRE&rsquo;s runbook converges on a root cause. Not because the practitioners are brilliant, but because the system&rsquo;s structure admits convergence.</p>
+    <p>The hypothesis graph for a software system can close. The mechanic&rsquo;s diagnostic tree terminates. The SRE&rsquo;s runbook converges on a root cause. Not because the practitioners are brilliant, but because the system&rsquo;s structure admits convergence.</p>
 
-    <p>The hypothesis graph formalizes what practitioners already do: perturb, classify, follow the edge, compose evidence across tests. The convergence theorem says this works &mdash; not just in practice, but necessarily, given the conditions. Kelly&rsquo;s Ockham efficiency guarantees that following the simplest surviving hypothesis minimizes wasted effort. Ramdas&rsquo;s composition theorem guarantees that the accumulated evidence remains valid. Together, they say: the practitioner&rsquo;s loop converges, and it converges efficiently.</p>
+    <p>Kelly&rsquo;s Ockham efficiency guarantees that following the simplest surviving hypothesis minimizes wasted effort. Ramdas&rsquo;s composition theorem guarantees the accumulated evidence remains valid. The practitioner&rsquo;s loop converges, and it converges efficiently.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -378,9 +376,9 @@ cum_composed = np.cumprod(e_normal * e_poisson)
 
     <p>Two earlier results complete the picture.</p>
 
-    <p><strong><a href="https://projecteuclid.org/journals/annals-of-mathematical-statistics/volume-30/issue-3/Sequential-Design-of-Experiments/10.1214/aoms/1177706205.full">Chernoff (1959)</a></strong> proved that adaptive experiment selection converges to the true hypothesis exponentially fast, at a rate determined by the Kullback-Leibler divergence between hypotheses. The optimal policy at each step selects the experiment that maximizes the minimum KL divergence between the current best hypothesis and its nearest competitor. This is the economy of research (ch&nbsp;7) made asymptotically precise.</p>
+    <p><strong><a href="https://projecteuclid.org/journals/annals-of-mathematical-statistics/volume-30/issue-3/Sequential-Design-of-Experiments/10.1214/aoms/1177706205.full">Chernoff (1959)</a></strong> proved that adaptive experiment selection converges to the true hypothesis exponentially fast, at a rate determined by the KL divergence between hypotheses. The optimal policy selects the experiment that maximizes the minimum KL divergence between the current best hypothesis and its nearest competitor. The economy of research (ch&nbsp;7) made asymptotically precise.</p>
 
-    <p><strong><a href="https://jmlr.org/papers/v9/he08a.html">He and Geng (2008)</a></strong> proved that adaptive interventions &mdash; experiments chosen based on previous results &mdash; recover the true causal structure under faithfulness and sufficiency assumptions. The result connects perturbation access to causal identifiability: if you can intervene on any variable, you can distinguish any two causal graphs that produce different interventional distributions.</p>
+    <p><strong><a href="https://jmlr.org/papers/v9/he08a.html">He and Geng (2008)</a></strong> proved that adaptive interventions recover the true causal structure under faithfulness and sufficiency assumptions. If you can intervene on any variable, you can distinguish any two causal graphs that produce different interventional distributions.</p>
 
     <p>Line them up:</p>
 
@@ -418,7 +416,7 @@ cum_composed = np.cumprod(e_normal * e_poisson)
       </table>
     </div>
 
-    <p>Four results, four decades, four subfields (sequential analysis, formal epistemology, causal inference, mathematical statistics). No published paper connects all four. Each proves one piece: convergence rate, efficiency, identifiability, composition. The hypothesis graph needs all four. This textbook connects them.</p>
+    <p>Four results, four decades, four subfields (sequential analysis, formal epistemology, causal inference, mathematical statistics). Each proves one piece: convergence rate, efficiency, identifiability, composition. No published paper connects all four.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -433,9 +431,9 @@ cum_composed = np.cumprod(e_normal * e_poisson)
       <li class="mb-2">Compose evidence across experiments, knowing the composition is valid and the inquiry converges (ch&nbsp;11).</li>
     </ol>
 
-    <p>The framework is mathematically grounded. Kelly guarantees convergence. Ramdas guarantees composition. Chernoff guarantees rate. He and Geng guarantee identifiability. The conditions are stated. The boundaries are named.</p>
+    <p>Kelly guarantees convergence. Ramdas guarantees composition. Chernoff guarantees rate. He and Geng guarantee identifiability.</p>
 
-    <p>There is one problem. The framework requires a human to generate hypotheses, select experiments, classify trajectories, and follow edges. A human who reads kill conditions, chooses the next perturbation, and composes evidence across five heterogeneous sensor streams. For one system, this is diagnosis. For ten systems, this is a full-time job. For a thousand systems, it is impossible.</p>
+    <p>One problem. The framework requires a human to generate hypotheses, select experiments, classify trajectories, and follow edges. For one system, this is diagnosis. For ten systems, a full-time job. For a thousand, impossible.</p>
 
     <p>The math works. The loop is too expensive to run by hand. Can it run without a human?</p>
 
