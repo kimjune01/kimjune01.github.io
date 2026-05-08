@@ -11,36 +11,36 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p class="text-gray-400 text-sm mb-6">Chapter 10 &middot; Kill conditions generate edges</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
-      <p class="text-lg" style="max-width:none">A monotone trend test fires but curvature is indeterminate. Is the system decelerating or drifting? You can&rsquo;t tell from the current data. But you know exactly what to run next: a longer experiment that resolves curvature. The failure mode named the next hypothesis. That is the edge-generation mechanism.</p>
+      <p class="text-lg" style="max-width:none">A monotone trend test fires but curvature is indeterminate. Is the system decelerating or drifting? You can&rsquo;t tell from the current data. But you know exactly what to run next: a longer experiment that resolves curvature. The failure mode named the next hypothesis.</p>
     </div>
 
-    <p>Chapter 9 classified trajectories into four bins: convergent, divergent, oscillatory, aperiodic. The classification works. Given a trajectory, you can assign a label. But a label is a noun, not a verb. It tells you what the system did. It does not tell you what to do next.</p>
+    <p>Chapter 9 classified trajectories into four bins: convergent, divergent, oscillatory, aperiodic. Given a trajectory, you can assign a label. But a label is a noun, not a verb. It tells you what the system did, not what to do next.</p>
 
-    <p>The gap is between classification and generation. The reader who finishes Chapter 9 can look at a trajectory and say "oscillatory." The reader who finishes this chapter can look at a trajectory and say "oscillatory &mdash; test the interface between the two subsystems that are fighting." The label becomes an action. The mechanism is the kill condition.</p>
+    <p>After Chapter 9, you look at a trajectory and say "oscillatory." After this chapter, you say "oscillatory &mdash; test the interface between the two subsystems that are fighting." The label becomes an action. The mechanism is the kill condition.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The central claim</h2>
+    <h2>Failure modes are constructive</h2>
 
     <p>The failure mode of a test names the next experiment.</p>
 
-    <p>Every test in the classification tree either fires (assigns a label) or misfires (the data is ambiguous). When a test fires, you get a classification. When it misfires, you get something more valuable: a specific statement about what the data cannot resolve. That statement is a hypothesis. It points to the experiment that would resolve it.</p>
+    <p>Every test in the classification tree either fires (assigns a label) or misfires (the data is ambiguous). When a test fires, you get a classification. When it misfires, you get something more valuable: a specific statement about what the data cannot resolve. That statement is a hypothesis pointing to the experiment that would resolve it.</p>
 
-    <p>This is not metaphor. It is mechanism. The kill condition is a decision point where the test lacks the information to proceed. The shape of that lack &mdash; what the test needed and didn't have &mdash; specifies the next measurement. The failure mode is constructive. It builds the graph.</p>
+    <p>The kill condition is a decision point where the test lacks the information to proceed. What the test needed and didn't have specifies the next measurement. The failure mode builds the graph.</p>
 
     <h2>The kill-condition decision tree</h2>
 
-    <p>Chapter 9 introduced the four bins. Here is the classifier as a decision tree, with each branch annotated by its failure mode.</p>
+    <p>The classifier from Chapter 9, as a decision tree. Each branch is annotated by its failure mode.</p>
 
     <ol class="list-decimal pl-5 mb-4">
-      <li class="mb-3"><strong>Test for monotone trend.</strong> Is the trajectory consistently increasing or decreasing? If it fails &mdash; no trend detected &mdash; skip to step 3 (periodicity).</li>
+      <li class="mb-3"><strong>Test for monotone trend.</strong> Is the trajectory consistently increasing or decreasing? If no trend, skip to step 3 (periodicity).</li>
       <li class="mb-3"><strong>If monotone, test curvature.</strong> Is the rate of change decelerating (convergent) or constant/accelerating (divergent)?</li>
-      <li class="mb-3"><strong>Test for spectral peaks.</strong> Does the frequency spectrum have a narrow peak? If yes &mdash; oscillatory.</li>
-      <li class="mb-3"><strong>Test for aperiodic structure.</strong> Is there structure that isn't periodic? If yes &mdash; aperiodic.</li>
+      <li class="mb-3"><strong>Test for spectral peaks.</strong> Does the frequency spectrum have a narrow peak? If yes: oscillatory.</li>
+      <li class="mb-3"><strong>Test for aperiodic structure.</strong> Is there structure that isn't periodic? If yes: aperiodic.</li>
       <li class="mb-3"><strong>Nothing triggered.</strong> Null.</li>
     </ol>
 
-    <p>Five tests. Each test that fires produces a label. Each test that <em>misfires</em> produces a hypothesis &mdash; an edge pointing to an experiment that would resolve the ambiguity.</p>
+    <p>Five tests. Each test that fires produces a label. Each test that <em>misfires</em> produces a hypothesis: an edge pointing to the experiment that would resolve the ambiguity.</p>
 
     <h2>Misfires are edges</h2>
 
@@ -75,17 +75,17 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The first row is the opening example. The trend test fires: the trajectory is monotone. But the curvature test can't resolve whether the rate is decelerating (heading toward a fixed point) or constant (heading toward infinity). Both look the same in a short window. The failure mode &mdash; "insufficient samples to distinguish deceleration from drift" &mdash; names the remedy: collect more data. That is an edge in the hypothesis graph, pointing to a specific experiment with a specific expected outcome.</p>
+    <p>The first row is the opening example. The trend test fires: the trajectory is monotone. But the curvature test can't resolve whether the rate is decelerating (heading toward a fixed point) or constant (heading toward infinity). Both look the same in a short window. The failure mode "insufficient samples to distinguish deceleration from drift" names the remedy: collect more data. That edge points to a specific experiment with a specific expected outcome.</p>
 
-    <p>The second row: the spectral test detects a peak, but the peak is broad. A narrow peak means a clean oscillation with a definite period. A broad peak means either a noisy cycle (the period exists but the signal is contaminated) or colored noise (no true period, just autocorrelation). The failure mode names two candidate hypotheses and the experiment that discriminates: sample at a different frequency, or extend the observation window until the peak either sharpens or dissolves.</p>
+    <p>The second row: the spectral test detects a peak, but the peak is broad. A narrow peak means a clean oscillation with a definite period. A broad peak means either a noisy cycle (signal contaminated) or colored noise (no true period, just autocorrelation). The failure mode names two candidate hypotheses and the experiment that discriminates: sample at a different frequency, or extend the window until the peak sharpens or dissolves.</p>
 
-    <p>The third row: nothing triggered. The trajectory has no detectable monotone trend, no spectral peak, no aperiodic structure. Either the system genuinely has no response to this perturbation (a flat null &mdash; dead end) or you perturbed the wrong node. The edge points to a different perturbation site. This is the weakest edge &mdash; it says "try elsewhere" without specifying where &mdash; but it is still more than "fail to reject."</p>
+    <p>The third row: nothing triggered. No monotone trend, no spectral peak, no aperiodic structure. Either the system has no response to this perturbation (dead end) or you perturbed the wrong node. The edge points to a different perturbation site. It says "try elsewhere" without specifying where, but that is still more than "fail to reject."</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The classifications themselves generate edges</h2>
+    <h2>Successes generate edges too</h2>
 
-    <p>Misfires are not the only source of edges. A successful classification also generates hypotheses, because each label implies a structural claim about the system. That claim has consequences.</p>
+    <p>A successful classification also generates hypotheses. Each label implies a structural claim about the system, and that claim has consequences.</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -121,19 +121,19 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The convergent label says: something in the system compensated. The perturbation was absorbed. The next question is not "test this node harder" but "test a different node." The absorbing mechanism is working; the interesting structure is elsewhere. The label does not just describe. It redirects.</p>
+    <p><strong>Convergent:</strong> something compensated. The perturbation was absorbed. The next question is not "test this node harder" but "test a different node." The absorbing mechanism works; the interesting structure is elsewhere. The label redirects.</p>
 
-    <p>The divergent label says: this node is load-bearing. Nothing compensated. The system's response grew without bound. The next question: what depends on this node? If it fails, what else fails? The edge points downstream.</p>
+    <p><strong>Divergent:</strong> this node is load-bearing and nothing compensated. What depends on it? If it fails, what else fails? The edge points downstream.</p>
 
-    <p>The oscillatory label says: two constraints are in conflict. The system alternates between satisfying one and violating the other. The next question: what is the interface between the two subsystems? The edge points to the coupling point, not to either subsystem individually.</p>
+    <p><strong>Oscillatory:</strong> two constraints are in conflict. The system alternates between satisfying one and violating the other. The edge points to the coupling point between them, not to either subsystem individually.</p>
 
-    <p>The aperiodic label says: the system's response has structure but no repeating pattern. The current decomposition cannot resolve it into periodic components. The next question: is there a different decomposition that would reveal structure? The edge points to the analyst's modeling choices, not to the system itself.</p>
+    <p><strong>Aperiodic:</strong> the response has structure but no repeating pattern. The current decomposition can't resolve it into periodic components. The edge points to the analyst's modeling choices, not to the system itself.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>The hypothesis graph</h2>
 
-    <p>The kill-condition tree, applied iteratively, builds a graph. Each node is an observation: the result of running an experiment and classifying the trajectory. Each edge is a hypothesis: generated by the classification or the misfire, pointing to the next experiment.</p>
+    <p>Apply the kill-condition tree iteratively and it builds a graph. Each node is an observation (experiment + classification). Each edge is a hypothesis (generated by the classification or misfire, pointing to the next experiment).</p>
 
     <p>The algorithm:</p>
 
@@ -145,43 +145,39 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li class="mb-1">Repeat until the frontier stops expanding.</li>
     </ol>
 
-    <p>This is the loop that has been implicit since Chapter 1. The three modes &mdash; abduction, deduction, induction &mdash; are phases of one cycle. Abduction generates the hypothesis (step 4). Deduction derives a prediction from the hypothesis ("if this is oscillatory, testing the interface should show the coupling"). Induction tests the prediction (step 2). The kill-condition tree is the mechanism that closes the loop: observation produces hypothesis produces experiment produces observation.</p>
+    <p>This loop has been implicit since Chapter 1. Abduction, deduction, induction are phases of one cycle. Abduction generates the hypothesis (step 4). Deduction derives a prediction ("if this is oscillatory, testing the interface should show the coupling"). Induction tests it (step 2). The kill-condition tree closes the loop: observation produces hypothesis produces experiment produces observation.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Parallels</h2>
+    <h2>The same mechanism in four fields</h2>
 
     <h3>Lakatos: the guilty lemma (1976)</h3>
 
-    <p>In <em>Proofs and Refutations</em>, Lakatos describes a pattern in mathematical discovery. A proof is proposed. A counterexample is found. The counterexample does not kill the theorem &mdash; it reveals which step of the proof was wrong. Lakatos calls this the "guilty lemma." The counterexample points to the specific assumption that fails, and that assumption is the site of the next revision.</p>
+    <p>In <em>Proofs and Refutations</em>, Lakatos describes a recurring pattern: a proof is proposed, a counterexample appears, but the counterexample does not kill the theorem. It reveals which step of the proof was wrong. Lakatos calls this the "guilty lemma." The counterexample points to the specific assumption that fails, and that assumption is the site of the next revision.</p>
 
-    <p>This is the same mechanism. A classification test fires but the result is ambiguous. The ambiguity reveals which assumption of the test was insufficient. That assumption is the guilty lemma. The next experiment targets it.</p>
-
-    <p>Lakatos was describing mathematics, not empirical science. But the structure is identical: a test fails in a way that names the point of failure, and the failure generates the next move. The kill condition is the guilty lemma of the decision tree.</p>
+    <p>Kill conditions work the same way. A classification test fires but the result is ambiguous. The ambiguity reveals which assumption was insufficient. That assumption is the guilty lemma. The next experiment targets it. Lakatos was describing mathematics, not empirical science, but the structure is identical: a test fails in a way that names the point of failure, and the failure generates the next move.</p>
 
     <h3>Reiter: model-based diagnosis (1987)</h3>
 
-    <p>Reiter formalized diagnosis as hitting sets over conflicts. A conflict is a set of components that cannot all be working, given the observations. A diagnosis is a minimal set of components whose failure explains all conflicts. The key insight: each observation generates conflicts, and each conflict constrains the diagnoses.</p>
+    <p>Reiter formalized diagnosis as hitting sets over conflicts. A conflict is a set of components that cannot all be working given the observations. A diagnosis is a minimal set whose failure explains all conflicts.</p>
 
-    <p>In kill-condition terms: each test that misfires is a conflict &mdash; a set of hypotheses that cannot all hold given the data. The next experiment is chosen to resolve the conflict: to determine which member of the conflict set is the faulty one. Reiter's hitting-set algorithm is a systematic way to generate the edges.</p>
+    <p>In kill-condition terms: each misfire is a conflict, a set of hypotheses that cannot all hold given the data. The next experiment resolves the conflict by determining which member is faulty. Reiter's hitting-set algorithm is a systematic way to generate the edges.</p>
 
     <h3>De Kleer &amp; Williams: GDE (1987)</h3>
 
-    <p>The General Diagnostic Engine (Chapter 7) computes which measurement maximally discriminates among remaining candidate diagnoses. GDE selects the experiment; kill conditions generate the candidates. The two mechanisms are complementary. Kill conditions produce the edges; GDE ranks them by information gain per cost.</p>
-
-    <p>Together, they form a complete loop: observe &rarr; classify (kill-condition tree) &rarr; generate edges &rarr; rank edges (GDE) &rarr; run the best one &rarr; observe again.</p>
+    <p>The General Diagnostic Engine (Chapter 7) computes which measurement maximally discriminates among remaining diagnoses. Kill conditions produce the edges; GDE ranks them by information gain per cost. Together: observe &rarr; classify &rarr; generate edges &rarr; rank edges (GDE) &rarr; run the best one &rarr; observe again.</p>
 
     <h3>Schoenfeld: the proof manual (1985)</h3>
 
-    <p>Schoenfeld filmed undergraduates solving math problems. When they got stuck, the stuck pattern was diagnostic. Trying induction repeatedly on the same base case means the base case is wrong. Trying to prove the contrapositive and failing on a specific step means that step's assumption is the weak point.</p>
+    <p>Schoenfeld filmed undergraduates solving math problems. The stuck pattern was diagnostic. Trying induction repeatedly on the same base case means the base case is wrong. Failing on a specific step of the contrapositive means that step's assumption is the weak point. The failure mode names the escalation technique.</p>
 
-    <p>The failure mode names the escalation technique. This is the same mechanism operating on proof strategies instead of empirical trajectories. When induction fails because the residual loses structure, the shape of the lost structure tells you which technique to try next. Kill conditions in the proof manual are the same as kill conditions in the classification tree: the shape of failure is the edge.</p>
+    <p>When induction fails because the residual loses structure, the shape of the lost structure tells you which technique to try next. The shape of failure is the edge.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Code: the kill-condition decision tree</h2>
 
-    <p>Given a trajectory (a sequence of e-values over time), classify it AND output the next experiment suggestion. The classifier returns both a label and an edge.</p>
+    <p>The classifier takes a trajectory (e-values over time) and returns both a label and an edge.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`import numpy as np
 from dataclasses import dataclass
@@ -374,13 +370,13 @@ Trajectory: flat noise
   Edge:       Test a different perturbation site.
   Misfire:    No structure detected. Null response or wrong perturbation site.</code></pre>
 
-    <p>The second trajectory is the key case. The trend test fires (the trajectory is monotone, confidence 0.89) but the curvature test misfires (SNR = 0.38, below threshold). The classifier does not guess. It reports the misfire and generates the edge: "run longer." A system that compressed this trajectory to a p-value would report "significant trend, p &lt; 0.01" and stop. The kill condition says: significant trend, yes, but the <em>type</em> of trend is unresolved. The resolution requires more data. That is the edge.</p>
+    <p>The second trajectory is the key case. The trend test fires (monotone, confidence 0.89) but the curvature test misfires (SNR = 0.38, below threshold). The classifier does not guess. It reports the misfire and generates the edge: "run longer." A p-value system would report "significant trend, p &lt; 0.01" and stop. The kill condition says: significant trend, yes, but the <em>type</em> of trend is unresolved. More data is the edge.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Building the graph</h2>
 
-    <p>One classification produces one or two edges. Iterating the loop &mdash; classify, follow the edge, classify again &mdash; builds a graph.</p>
+    <p>One classification produces one or two edges. Iterate the loop (classify, follow, classify again) and it builds a graph.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`from dataclasses import dataclass, field
 
@@ -467,21 +463,19 @@ graph.summary()`} /></pre>
   [2] Stabilized. Test a different node. (oscillatory)
     -&gt; [3] Two subsystems fighting. Test the interface.</code></pre>
 
-    <p>Three rounds, three edges. The first classification misfired (curvature indeterminate), which generated an edge ("run longer"). The second classification succeeded (convergent), which redirected ("test a different node"). The third classification succeeded (oscillatory), which targeted the coupling point ("test the interface"). Each step followed from the previous result. The graph grew by one node and one edge per round.</p>
+    <p>Three rounds, three edges. The first classification misfired (curvature indeterminate) and generated "run longer." The second succeeded (convergent) and redirected: "test a different node." The third succeeded (oscillatory) and targeted the coupling point. Each step followed from the previous result.</p>
 
-    <p>The frontier has three open nodes &mdash; three experiments suggested but not yet run. Each is a specific action generated by a specific kill condition. This is the hypothesis graph: a growing structure where each node is an observation and each edge is a hypothesis generated by classifying the trajectory shape.</p>
+    <p>The frontier has three open nodes: three experiments suggested but not yet run. Each is a specific action generated by a specific kill condition.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>What this chapter does not solve</h2>
+    <h2>Convergence is not guaranteed</h2>
 
-    <p>Each kill condition generates one edge. Three rounds produced three edges and three open frontier nodes. Ten rounds would produce ten edges and up to ten new frontier nodes. The graph grows.</p>
+    <p>Each kill condition generates one edge. Three rounds produced three edges and three frontier nodes. Ten rounds produce ten edges and up to ten new frontier nodes. The graph grows. Does it close?</p>
 
-    <p>Does it converge?</p>
+    <p>Convergence means every frontier edge points to a node already tested and stably classified. With finite structure and stable classifications, the graph should close. But "should" is not a proof. Feedback can create cycles: convergent at node A points to node B, which oscillates, which points back to A with new data that changes A's classification. Classifications are data-dependent.</p>
 
-    <p>The graph converges when every frontier edge points to a node already tested and stably classified &mdash; no new questions. Under ideal conditions — finite structure, stable classifications, no revisits under new contexts — the graph would close. But "should" is not a proof. A graph with feedback could cycle: convergent at node A, which points to node B, which oscillates, which points back to node A with new data that changes its classification. The classifications are data-dependent. New data can change them.</p>
-
-    <p>Multiple cycles of observe &rarr; classify &rarr; generate produce a growing graph. Whether it converges &mdash; whether the frontier eventually empties &mdash; depends on properties this chapter cannot establish. The pieces exist independently: Chernoff (1959) proved adaptive experiment selection converges; Gr&uuml;nwald (2024) proved e-values compose across adaptive experiments. Connecting them to the hypothesis graph is open. That is Chapter 11.</p>
+    <p>The pieces for a convergence proof exist independently: Chernoff (1959) proved adaptive experiment selection converges; Gr&uuml;nwald (2024) proved e-values compose across adaptive experiments. Connecting them to the hypothesis graph is open. That is Chapter 11.</p>
 
     <Neighbors>
     <ul class="neighbors">
