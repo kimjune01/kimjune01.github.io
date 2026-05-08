@@ -76,7 +76,16 @@ print("diff() defined")
 
     <p>Apply it to the mechanic's engine:</p>
 
-    <Repl client:load initialCode={`before = {
+    <Repl client:load initialCode={`def diff(before, after):
+    all_keys = set(before) | set(after)
+    figure, ground = {}, {}
+    for key in all_keys:
+        b, a = before.get(key), after.get(key)
+        if b == a: ground[key] = a
+        else: figure[key] = (b, a)
+    return figure, ground
+
+before = {
     "engine":     "running",
     "alternator": "untouched",
     "battery":    "12.6V",
@@ -343,7 +352,16 @@ for h in hypotheses:
 
     <p>Return to the mechanic. She checked six variables but not the serpentine belt tension. If the real cause is a worn belt that slipped when she tapped the alternator, the diff cannot find it. The belt isn't in either snapshot. Not in the figure, not in the ground. Absent.</p>
 
-    <Repl client:load initialCode={`# The variable that matters isn't in the snapshot.
+    <Repl client:load initialCode={`def diff(before, after):
+    all_keys = set(before) | set(after)
+    figure, ground = {}, {}
+    for key in all_keys:
+        b, a = before.get(key), after.get(key)
+        if b == a: ground[key] = a
+        else: figure[key] = (b, a)
+    return figure, ground
+
+# The variable that matters isn't in the snapshot.
 before = {
     "engine": "running", "alternator": "untouched",
     "battery": "12.6V", "fuel_pump": "on",
