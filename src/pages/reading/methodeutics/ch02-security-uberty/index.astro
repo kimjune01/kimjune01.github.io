@@ -11,26 +11,26 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p class="text-gray-400 text-sm mb-6">Chapter 2 · Peirce 1913, Popper 1934, Dewey 1938, Hanson 1958, Hintikka 1999</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
-      <p class="text-lg" style="max-width:none">Every mode of reasoning trades certainty for fertility. Deduction is perfectly secure and does not add information beyond the premises. Abduction is maximally fertile and guarantees nothing. The tradeoff is not a defect — it is the structure of inquiry itself.</p>
+      <p class="text-lg" style="max-width:none">Every mode of reasoning trades certainty for fertility. Deduction is perfectly secure and adds no information beyond the premises. Abduction is maximally fertile and guarantees nothing. This tradeoff structures inquiry itself.</p>
     </div>
 
-    <h2>The Popper challenge</h2>
+    <h2>Discovery needs no logic?</h2>
 
-    <p>Karl Popper drew a hard line in 1934. Science, he argued, has two contexts: discovery and justification. Justification is logical — you deduce predictions from a theory, test them, and either corroborate or falsify. Discovery is psychological — where hypotheses come from is irrelevant to their scientific status. "The initial stage, the act of conceiving or inventing a theory, seems to me neither to call for logical analysis nor to be susceptible of it" (<em>The Logic of Scientific Discovery</em>, &sect;2).</p>
+    <p>In 1934, Karl Popper split science in two. Discovery and justification. Justification is logical — deduce predictions, test them, corroborate or falsify. Discovery is psychological, and where hypotheses come from is irrelevant to their scientific status. "The initial stage, the act of conceiving or inventing a theory, seems to me neither to call for logical analysis nor to be susceptible of it" (<em>The Logic of Scientific Discovery</em>, &sect;2).</p>
 
-    <p>Peirce would have agreed with half of this. He accepted that abductive conclusions are insecure — a hypothesis can explain the data perfectly and still be wrong. But he rejected the move from "insecure" to "illogical." The question is not whether abduction guarantees truth. No one claims it does. The question is whether there are better and worse ways to generate hypotheses, and whether those ways have describable structure. Peirce said yes. Popper said it doesn't matter.</p>
+    <p>Peirce would have granted half of this. Abductive conclusions are insecure — a hypothesis can explain the data perfectly and still be wrong. But he refused the leap from "insecure" to "illogical." Are there better and worse ways to generate hypotheses, ways with describable structure? Peirce said yes. Popper said discovery lies outside logic.</p>
 
-    <p>It matters. Popper's position does not imply that hypothesis generation is random — psychology, heuristics, and scientific taste all constrain it. A doctor who sees chest pain, shortness of breath, and elevated troponin does not hypothesize sunburn. The constraints are structural: background knowledge, the shape of the surprise, what would render the observation unsurprising. But if those constraints have no formal account, they cannot be taught, compared, or automated.</p>
+    <p>It matters. Even Popper admitted that psychology, heuristics, and scientific taste constrain hypothesis generation. A doctor who sees chest pain, shortness of breath, and elevated <a href="https://en.wikipedia.org/wiki/Troponin">troponin</a> doesn't hypothesize sunburn. The constraints are structural: background knowledge, the shape of the surprise, what would render the observation unsurprising. But without a formal account, you can't give them the same explicit treatment we give deduction and induction.</p>
 
-    <h2>Peirce's tradeoff</h2>
+    <h2>Certainty costs fertility</h2>
 
-    <p>In his 1913 essay "An Essay Toward Improving Our Reasoning in Security and in Uberty" — one of his last writings — Peirce made the tradeoff explicit. Every inference mode has two properties that vary inversely:</p>
+    <p>Peirce made the tradeoff explicit in one of his last writings, "An Essay Toward Improving Our Reasoning in Security and in Uberty" (1913). Every inference mode has two properties that vary inversely:</p>
 
     <p><strong>Security</strong> — how certain is the conclusion, given the premises? Can the conclusion be false when the premises are true?</p>
 
     <p><strong>Uberty</strong> — how much new knowledge does the mode produce? Does the conclusion go beyond what the premises already contain?</p>
 
-    <p>The word <em>uberty</em> comes from Latin <em>ubertas</em> — fruitfulness, richness, fertility. Peirce chose it deliberately. The question is not which mode is "best" but which mode is most productive for the current stage of inquiry.</p>
+    <p>The word <em>uberty</em> comes from Latin <em>ubertas</em>: fruitfulness, richness, fertility. Peirce chose it deliberately. The right mode depends on which stage of inquiry you occupy.</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -65,7 +65,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The inverse relationship is not accidental. Security and uberty are <em>structurally</em> opposed. To be secure, a conclusion must not exceed the premises. To be fertile, it must. You cannot have both. Deduction achieves perfect security by deriving only what was already implicit. Abduction achieves maximal fertility by proposing something that goes far beyond the evidence. Induction sits between — it extends the data but stays in the same conceptual frame.</p>
+    <p>The tradeoff runs deep. To be secure, a conclusion must not exceed the premises; to be fertile, it must. You can't have both. Deduction buys perfect security by deriving only what was already implicit. Abduction pays for maximal fertility by proposing something beyond the evidence. Between them, induction extends the data while staying in the same conceptual frame.</p>
 
     <!-- SVG: Security-Uberty tradeoff diagram -->
     <div class="flex justify-center my-8">
@@ -90,9 +90,9 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </svg>
     </div>
 
-    <h2>The code</h2>
+    <h2>Three modes, one dataset</h2>
 
-    <p>The tradeoff is easier to see in action than in description. Given the same observations, each mode produces a different kind of conclusion at a different level of certainty.</p>
+    <p>Feed the same observations to each mode and watch them produce different conclusions at different levels of security.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# Three modes applied to the same observations.
 # A server's response times over 10 requests (ms):
@@ -135,23 +135,33 @@ for h in hypotheses:
 # explain the observation if true.
 # Security: minimal. Uberty: maximal.`} /></pre>
 
-    <p>Deduction applies a rule and tells you what you already decided counts as anomalous. Induction computes a summary and tells you what future observations to expect. Abduction asks <em>why</em> the anomaly happened and proposes explanations that go beyond anything in the data. The explanations might be wrong. That's the price of fertility.</p>
+    <p>Deduction applies a rule and tells you what you already decided counts as anomalous. From the same data, induction computes a summary and tells you what to expect next. Only abduction asks <em>why</em>, and proposes explanations beyond anything in the data. The explanations might be wrong. That's the price of fertility.</p>
 
-    <h2>The false dichotomy</h2>
+    <h2>Inhaling is also respiration</h2>
 
-    <p>Popper's discovery/justification split dominated philosophy of science for decades: discovery is psychological, justification is logical, and only justification matters. Hanson (1958) and Hintikka (1999) challenged it from opposite ends. Hanson showed that observation is theory-laden — what you see depends on what you know, so discovery already has logical structure. Hintikka showed that justification presupposes discovery — you can't test a hypothesis you haven't selected, and selection is itself an inference. Peirce had said the same thing a century earlier: the three modes form a cycle (abduction proposes, deduction derives, induction tests), and separating discovery from justification is like separating inhaling from exhaling and claiming only exhaling is respiration.</p>
+    <p>Popper's discovery/justification split dominated philosophy of science for decades. Discovery is psychological, justification is logical, only justification matters. Hanson (1958) and Hintikka (1999) attacked it from opposite ends.</p>
 
-    <h2>Dewey's extension</h2>
+    <p>Hanson showed that observation is theory-laden — what you see depends on what you know, so discovery already has logical structure. Hintikka showed that justification presupposes discovery: you can't test a hypothesis you haven't selected, and selection is itself an inference. Peirce had said the same a century earlier.</p>
 
-    <p>Dewey's <em>Logic: The Theory of Inquiry</em> (1938) carried this forward with a single claim: logical forms are not prior to inquiry but arise <em>within</em> it. A mode of inference earns its status by reliably producing results. Abduction is insecure, but it is not random — if hypothesis generation were random, the hit rate would be negligible and science would be impossible. That plausible hypotheses emerge at rates above chance is evidence abduction has structure — distinct from the institutional filters (replication, peer review, instruments) that catch bad guesses downstream.</p>
+    <p>The three modes form a cycle: abduction proposes, deduction derives, induction tests. Separating discovery from justification is like separating inhaling from exhaling and calling only exhaling respiration.</p>
 
-    <h2>Musement</h2>
+    <h2>Abduction earns its logic</h2>
 
-    <p>In "A Neglected Argument for the Reality of God" (1908), Peirce called the pre-logical ground of abduction <em>musement</em> — "Pure Play" that is "antipodal to vacancy and dreaminess." The muser is engaged and alert but has no target; attention is wide, not narrow. This is where the space of candidate explanations gets populated. Directed search works within an existing frame. Musement is what happens before the frame exists — you cannot search a space you haven't constructed, and you cannot construct it by searching. The modern analogy is explore-exploit: exploitation is induction within the current best model; musement is structured exploration outside it, guided by aesthetic and analogical affinity rather than formal rules.</p>
+    <p>Dewey's <em>Logic: The Theory of Inquiry</em> (1938) sharpened this into one claim: logical forms arise <em>within</em> inquiry, not prior to it. A mode of inference earns its status by reliably producing results.</p>
 
-    <h2>The bitter lesson and the missing mode</h2>
+    <p>Abduction is insecure but not random. If hypothesis generation were random, the hit rate would be negligible and science impossible. That plausible hypotheses emerge above chance means abduction has structure, distinct from the institutional filters (replication, peer review, instruments) that catch bad guesses downstream.</p>
 
-    <p>Rich Sutton's "The Bitter Lesson" (2019) is about induction: general methods that leverage computation beat hand-crafted knowledge. Chess, Go, speech, vision — all involve systems that generalize from data within a fixed task. But induction operates <em>within</em> a research program. The decision to frame language as next-token prediction, or vision as hierarchical feature extraction — those are abductive moves. Someone proposed a frame, and that frame determined which inductive methods would work. The bitter lesson says: once you have the frame, let computation do the rest. It is silent on where the frame comes from.</p>
+    <h2>Thinking before the frame</h2>
+
+    <p>In "A Neglected Argument for the Reality of God" (1908), Peirce called the pre-logical ground of abduction <em>musement</em>: "Pure Play" that is "antipodal to vacancy and dreaminess." The muser stays engaged and alert but holds no target — attention widens instead of narrowing. Musement is not abduction's conclusion; it is the condition under which candidate hypotheses become available.</p>
+
+    <p>Directed search works within an existing frame. Musement is what happens before the frame exists. You can't search a space you haven't constructed, and you can't construct it by searching. This is <a href="https://en.wikipedia.org/wiki/Exploration%E2%80%93exploitation_dilemma">explore-exploit</a>: exploitation is induction within the current best model; musement is exploration outside it, guided by aesthetic and analogical affinity rather than formal rules.</p>
+
+    <h2>Scaling needs a frame first</h2>
+
+    <p>Rich Sutton's "The Bitter Lesson" (2019) argues for induction at scale: general methods that leverage computation beat hand-crafted knowledge. Chess, Go, speech, vision. Each system generalizes from data within a fixed task.</p>
+
+    <p>But induction operates <em>within</em> a research program. Framing language as next-token prediction, or vision as hierarchical feature extraction: those are abductive moves. Someone proposed a frame, and that frame determined which inductive methods would work. The bitter lesson says: once you have the frame, let computation do the rest. It stays silent on where the frame comes from. (Modern ML systems discover representations, but representation learning still occurs inside a chosen objective, architecture, and data regime — the frame is upstream.)</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -182,15 +192,15 @@ for h in hypotheses:
       </table>
     </div>
 
-    <p>Induction scales within a research program. Abduction generates research programs. The bitter lesson works because someone already did the abductive step right. When the abductive step is wrong — when the frame doesn't fit the problem — scaling within a bad frame usually amplifies the frame's limits rather than escaping them.</p>
+    <p>Induction scales within a research program. Abduction generates research programs. The bitter lesson works because someone already got the abductive step right. When the abductive step is wrong, scaling amplifies the frame's limits instead of escaping them.</p>
 
-    <h2>What breaks</h2>
+    <h2>A name without a primitive</h2>
 
-    <p>We now have a vocabulary for the tradeoff: security and uberty are inversely related, and both are necessary. We know that abduction is the fertile mode, that it is insecure but not illogical, that it operates before the frame exists, and that it generates the research programs within which induction does its work.</p>
+    <p>So now we have a vocabulary for the tradeoff. Security and uberty vary inversely, both necessary. Abduction is the fertile mode — insecure but not illogical, operating before the frame exists, generating the research programs within which induction does its work.</p>
 
-    <p>But we cannot <em>formalize</em> it. We can say abduction is "inference to the best explanation" and wave at the tradeoff curve, but we cannot write down the operation the way we can write modus ponens for deduction or mature probabilistic formalisms for induction. We have a name and a ranking. We do not have a primitive.</p>
+    <p>What we lack is a <em>formalization</em>. We can say abduction is "inference to the best explanation" and wave at the tradeoff curve, but we can't write down the operation the way we write <a href="https://en.wikipedia.org/wiki/Modus_ponens">modus ponens</a> for deduction or <a href="https://en.wikipedia.org/wiki/Bayesian_inference">Bayesian update</a> for induction. We have a name and a ranking, not a primitive.</p>
 
-    <p>The problem is that abduction appears under different names in different fields — and nobody cross-cites. Computer scientists call it bi-abduction. Gestalt psychologists call it figure-ground reversal. Piaget called it equilibration. Pearl called it intervention. The next chapter collects these and other names — at least eight across six fields — and looks for the common structure underneath.</p>
+    <p>Worse, related operations appear under different names in different fields, and nobody cross-cites. <a href="https://dl.acm.org/doi/10.1145/2049697.2049700">Bi-abduction</a> in program analysis, <a href="https://en.wikipedia.org/wiki/Figure%E2%80%93ground_(perception)">figure-ground reversal</a> in Gestalt psychology, equilibration in <a href="https://en.wikipedia.org/wiki/Piaget%27s_theory_of_cognitive_development#Equilibration">Piaget</a>, <a href="https://en.wikipedia.org/wiki/Judea_Pearl">Pearl</a>'s do-calculus in causal inference. The next chapter collects at least eight such names across six fields and asks whether they are analogies or instances of a common deeper operation.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
