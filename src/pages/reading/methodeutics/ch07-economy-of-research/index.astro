@@ -11,37 +11,37 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p class="text-gray-400 text-sm mb-6">Chapter 7 · Peirce 1879, Chamberlin 1890, Platt 1964, de Kleer 1987, Hintikka 1999</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
-      <p class="text-lg" style="max-width:none">You have ten hypotheses and budget for three experiments. Which three? Chapters 4&ndash;6 formalized the abductive primitive &mdash; diff, bi-abduction, tri-abduction. The primitive generates hypotheses. This chapter selects among them.</p>
+      <p class="text-lg" style="max-width:none">Ten hypotheses, budget for three experiments. Which three? Chapters 4&ndash;6 formalized the abductive primitive (diff, bi-abduction, tri-abduction). The primitive generates hypotheses. This chapter selects among them.</p>
     </div>
 
-    <p>Hypothesis generation is cheap. Testing is expensive. Every experiment costs time, compute, reagents, or attention. The abductive primitive can produce dozens of candidate explanations from a single surprising observation. Running all of them is rarely feasible. The question is which subset to test, in what order, and when to stop.</p>
+    <p>Hypothesis generation is cheap. Testing is expensive. Every experiment costs time, compute, reagents, or attention. A single surprising observation can spawn dozens of candidate explanations. Running all of them is never feasible. Which subset do you test, in what order, and when do you stop?</p>
 
-    <p>This problem has a 150-year history. Peirce formalized it first, in 1879. Chamberlin addressed the cognitive prerequisite in 1890. Platt operationalized it in 1964. De Kleer and Williams automated it in 1987. Hintikka gave it game-theoretic foundations in the 1990s. The modern machine-learning literature often develops similar criteria without foregrounding the abductive context.</p>
+    <p>Peirce formalized this in 1879. Chamberlin addressed the cognitive prerequisite in 1890. Platt operationalized it in 1964. De Kleer and Williams automated it in 1987. Hintikka gave it game-theoretic foundations in the 1990s. The machine-learning literature keeps reinventing the same criteria without connecting back to abduction.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Peirce: marginal return on research investment (1879)</h2>
 
-    <p>In "Note on the Theory of the Economy of Research," Peirce made the allocation problem explicit: given a fixed budget, how should you allocate it across experiments to maximize what you learn?</p>
+    <p>In "Note on the Theory of the Economy of Research," Peirce made the allocation problem explicit: given a fixed budget, how do you distribute it across experiments to maximize what you learn?</p>
 
-    <p>His answer used the language of marginal analysis. Each additional dollar spent on an experiment yields some increment of knowledge. That increment diminishes as you pour more resources into the same line of inquiry. The optimal allocation equalizes the marginal return per dollar across all active experiments. If experiment A yields more information per dollar than experiment B, shift budget from B to A until the marginals equalize.</p>
+    <p>His answer used marginal analysis. Each dollar spent on an experiment yields some increment of knowledge. That increment diminishes as you pour more into the same line of inquiry. The optimal allocation equalizes marginal return per dollar across all active experiments. If A yields more information per dollar than B, shift budget from B to A until the marginals equalize.</p>
 
-    <p>Peirce derived a specific result: the optimal sample size for an experiment depends on the ratio of the utility of the information to the cost of each observation. High-utility, low-cost experiments should get large samples. Low-utility, high-cost experiments should get small samples or be skipped entirely. This is obvious in retrospect, but Peirce was among the first to formalize it.</p>
+    <p>Peirce derived a specific result: optimal sample size depends on the ratio of information utility to observation cost. High-utility, low-cost experiments get large samples. Low-utility, high-cost experiments get small samples or none. Obvious in retrospect, but Peirce formalized it 68 years before Wald.</p>
 
     <blockquote>
       <p>"The doctrine of economy, in general, treats of the relations between utility and cost. The economy of research is that particular application of it which gives the rules for the expenditure of money, energy, and time upon the different elements of an investigation."</p>
       <p class="text-sm text-gray-500">&mdash; Peirce, "Note on the Theory of the Economy of Research" (1879)</p>
     </blockquote>
 
-    <p>This predates Wald's sequential analysis (1947) by 68 years. Wald asked: given a stream of data, when should you stop collecting and make a decision? Peirce asked the prior question: given multiple possible experiments, which stream should you open? Wald's work became a field. Peirce's note received little attention until historians of science highlighted it in the 1960s.</p>
+    <p>Wald (1947) asked: given a stream of data, when should you stop collecting? Peirce asked the prior question: which stream should you open? Wald's work became a field. Peirce's note was ignored until historians rediscovered it in the 1960s.</p>
 
     <h2>Chamberlin: breadth before depth (1890)</h2>
 
-    <p><a href="/reading/scientific-method/chamberlin-1890/">Chamberlin's "Method of Multiple Working Hypotheses"</a> addresses the cognitive prerequisite for economy of research. You cannot select optimally among hypotheses you haven't generated. And you will not generate hypotheses that compete with your favorite if you have a favorite.</p>
+    <p><a href="/reading/scientific-method/chamberlin-1890/">Chamberlin's "Method of Multiple Working Hypotheses"</a> addresses the cognitive prerequisite. You cannot select optimally among hypotheses you haven't generated. And you won't generate competitors to your favorite if you have one.</p>
 
-    <p>Chamberlin's argument is structural, not statistical. A scientist who holds one ruling theory will unconsciously steer experiments toward confirmation. The data that fits is amplified; the data that doesn't is explained away. The remedy is to hold multiple hypotheses simultaneously, without ranking, and let the data sort the field.</p>
+    <p>His argument is structural. A scientist holding one ruling theory unconsciously steers experiments toward confirmation. Fitting data is amplified; contradicting data is explained away. The remedy: hold multiple hypotheses simultaneously, without ranking, and let data sort the field.</p>
 
-    <p>For economy of research, Chamberlin supplies the input. Before you can ask "which experiment next?" you need a set of candidate hypotheses broad enough that the true explanation is likely among them. Chamberlin's method generates that set. Peirce's economy selects from it.</p>
+    <p>Chamberlin supplies the input to Peirce's economy. Before you can ask "which experiment next?" you need a hypothesis set broad enough that the true explanation is likely among them.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -62,17 +62,17 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <h2>Platt: strong inference as a selection protocol (1964)</h2>
 
-    <p><a href="/reading/scientific-method/platt-1964/">Platt</a> operationalized Chamberlin into a loop: enumerate alternative hypotheses, design a crucial experiment that excludes at least one, run it, repeat. His contribution to economy of research is the concept of the <em>crucial experiment</em> &mdash; an experiment whose outcome eliminates one or more hypotheses regardless of which way it goes.</p>
+    <p><a href="/reading/scientific-method/platt-1964/">Platt</a> operationalized Chamberlin into a loop: enumerate alternative hypotheses, design a crucial experiment that excludes at least one, run it, repeat. His contribution is the <em>crucial experiment</em>: one whose outcome eliminates hypotheses regardless of which way it goes.</p>
 
-    <p>Crucial experiments are maximally economical. A non-crucial experiment can confirm a hypothesis without eliminating any alternatives. It spends budget without shrinking the hypothesis space. A crucial experiment guarantees that the hypothesis space shrinks with every run. Platt observed that fields practicing strong inference &mdash; molecular biology, particle physics &mdash; moved faster than fields that didn't &mdash; psychology, ecology. The rate difference tracks the fraction of experiments that are crucial.</p>
+    <p>Crucial experiments are maximally economical. A non-crucial experiment can confirm a hypothesis without eliminating alternatives; it spends budget without shrinking the hypothesis space. A crucial experiment guarantees the space shrinks every round. Platt observed that fields practicing strong inference (molecular biology, particle physics) moved faster than fields that didn't (psychology, ecology). The rate difference tracks the fraction of experiments that are crucial.</p>
 
-    <p>Platt's framework is qualitative. He tells you what a good experiment looks like (crucial) but not how to find the best one among several crucial alternatives. For that, you need de Kleer.</p>
+    <p>But Platt's framework is qualitative. He tells you what a good experiment looks like, not how to rank several crucial alternatives. For ranking, you need de Kleer.</p>
 
     <h2>De Kleer &amp; Williams: GDE and computed experiment selection (1987)</h2>
 
-    <p>The General Diagnostic Engine (GDE) was an influential early system that computed which measurement to take next from the structure of remaining hypotheses. The context was circuit diagnosis. A chip has a fault. Multiple components could be responsible. Each measurement (probing a node) has a cost and yields information about which components are healthy or faulty.</p>
+    <p>The General Diagnostic Engine (GDE) computed which measurement to take next from the structure of remaining hypotheses. The context was circuit diagnosis: a chip has a fault, multiple components could be responsible, and each probe has a cost.</p>
 
-    <p>GDE maintains a set of <em>candidate diagnoses</em> &mdash; minimal sets of faulty components consistent with all observations so far. Given this set, it computes the information-theoretic value of each possible measurement: how much does probing node X reduce the entropy of the diagnosis distribution? It then selects the measurement with the highest information gain per unit cost.</p>
+    <p>GDE maintains <em>candidate diagnoses</em>: minimal sets of faulty components consistent with all observations so far. For each possible measurement, it computes how much probing that node reduces the entropy of the diagnosis distribution, then selects the measurement with the highest information gain per unit cost.</p>
 
     <p>The algorithm is straightforward:</p>
 
@@ -83,15 +83,15 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li class="mb-1">Divide by measurement cost. Select the measurement with the highest ratio.</li>
     </ol>
 
-    <p>GDE connected Peirce's economy (marginal information per dollar) to Platt's crucial experiments (maximize elimination) to Shannon's information theory (entropy reduction). It did this for a specific domain &mdash; circuit diagnosis &mdash; but the architecture generalizes. Replace "circuit component" with "hypothesis" and "probe node" with "experiment" and you have the economy of research, automated.</p>
+    <p>GDE realizes the same structure as Peirce's economy (marginal information per dollar), Platt's crucial experiments (maximize elimination), and Shannon's information theory (entropy reduction) in a single algorithm. The domain was circuit diagnosis, but the architecture generalizes. Replace "component" with "hypothesis" and "probe" with "experiment" and you have economy of research, automated.</p>
 
     <h2>Hintikka: inquiry as a game (1988/1999)</h2>
 
-    <p>Jaakko Hintikka recast investigation as a two-player game between the Inquirer and Nature. The Inquirer asks questions (runs experiments). Nature answers (provides data). The Inquirer's strategy determines which question to ask next based on previous answers. The goal is to reach a definite conclusion with minimum total cost.</p>
+    <p>Hintikka recast investigation as a two-player game between the Inquirer and Nature. The Inquirer asks questions (runs experiments). Nature answers (provides data). The goal: reach a definite conclusion at minimum total cost.</p>
 
-    <p>Hintikka's interrogative model connects directly to Peirce's abduction. Each question the Inquirer poses is an abductive act: "If hypothesis H were true, what would I observe at measurement point X?" The answer either supports H or eliminates it. The Inquirer's optimal strategy is the economy of research expressed as a game tree.</p>
+    <p>Each question is an abductive act: "If H were true, what would I observe at point X?" The answer supports H or eliminates it. The optimal strategy is economy of research expressed as a game tree.</p>
 
-    <p>The game-theoretic framing adds something the information-theoretic framing misses: the next question depends on previous answers. GDE recomputes from scratch after each measurement. Hintikka's model encodes the dependency structure. The Inquirer's strategy is not a ranking of experiments but a policy &mdash; a function from the history of observations to the next question. This is the difference between a sorted list and a decision tree.</p>
+    <p>The game-theoretic framing captures what information theory misses: the next question depends on previous answers. GDE recomputes from scratch after each measurement. Hintikka encodes the dependency structure. The Inquirer's strategy is a policy (a function from observation history to the next question), not a ranking. This is the difference between a sorted list and a decision tree.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -117,15 +117,15 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <h2>Modern connections</h2>
 
-    <p>The machine learning literature has reinvented economy of research under several names, each formalizing "which experiment next?" without connecting back to Peirce or Hintikka.</p>
+    <p>Machine learning has reinvented economy of research under several names, each formalizing "which experiment next?" without citing Peirce or Hintikka.</p>
 
-    <p><strong>Active learning.</strong> Given a pool of unlabeled data, which point should an oracle label next? The standard criterion is uncertainty sampling or query-by-committee &mdash; select the point the model is most uncertain about. This is GDE's entropy-reduction criterion restricted to a single model class.</p>
+    <p><strong>Active learning.</strong> Which unlabeled point should an oracle label next? The standard criterion (uncertainty sampling, query-by-committee) selects the point the model is most uncertain about. This is GDE's entropy-reduction criterion restricted to a single model class.</p>
 
-    <p><strong>Bayesian experimental design.</strong> Choose the experiment that maximizes the expected information gain about model parameters. Lindley (1956) formalized this; Chaloner and Verdinelli (1995) surveyed the field. The criterion is identical to GDE's but applied to continuous parameter spaces rather than discrete diagnostic candidates.</p>
+    <p><strong>Bayesian experimental design.</strong> Choose the experiment that maximizes expected information gain about model parameters. Lindley (1956) formalized this; Chaloner and Verdinelli (1995) surveyed the field. The criterion is GDE's, applied to continuous parameter spaces instead of discrete diagnostic candidates.</p>
 
-    <p><strong>Multi-armed bandits.</strong> Allocate trials across K arms to maximize cumulative reward (exploration-exploitation) or to identify the best arm (pure exploration). The pure-exploration variant is Peirce's economy of research: fixed budget, maximize what you learn. Thompson sampling, UCB, and successive elimination are all strategies for this problem.</p>
+    <p><strong>Multi-armed bandits.</strong> Allocate trials across K arms to maximize cumulative reward (exploration-exploitation) or identify the best arm (pure exploration). The pure-exploration variant is Peirce's economy of research: fixed budget, maximize what you learn.</p>
 
-    <p>None of these literatures cites Peirce 1879. None connects experiment selection back to abduction. The hypothesis that generated the candidate experiments is invisible in the formalism. This matters because the quality of the hypothesis set determines the ceiling of any selection strategy. GDE, active learning, and Bayesian design all assume the hypothesis set is given. Abduction is where it comes from.</p>
+    <p>None of these literatures connects experiment selection back to abduction. The hypothesis set is taken as given. This matters because the quality of the hypothesis set determines the ceiling of any selection strategy. Abduction is where that set comes from.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -232,15 +232,15 @@ A: probe signal line                   0.386    1.0      0.386
 C: thermal imaging                     0.319    2.0      0.160
 B: full spectrum analysis              0.706    5.0      0.141</code></pre>
 
-    <p>Experiment B has the highest absolute information gain (0.706 bits). A naive strategy that tests "the most informative experiment first" would pick B. But B costs five times as much as A. Per unit cost, A delivers 2.7x more information than B. The economy of research says: run A first.</p>
+    <p>Experiment B has the highest absolute information gain (0.706 bits). A naive strategy picks B. But B costs five times as much as A, and per unit cost A delivers 2.7x more information. Run A first.</p>
 
-    <p>After running A and updating posteriors, the ranking may change. If A's outcome concentrates probability on H2 and H3, experiment C &mdash; which sharply discriminates between exactly those two &mdash; jumps to the top. The optimal sequence is adaptive. This is Hintikka's point: the next question depends on the previous answer.</p>
+    <p>After running A and updating posteriors, the ranking changes. If A's outcome concentrates probability on H2 and H3, experiment C (which sharply discriminates exactly those two) jumps to the top. The optimal sequence is adaptive. This is Hintikka's point: the next question depends on the previous answer.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The ordering matters</h2>
+    <h2>Three orderings, three failure modes</h2>
 
-    <p>Three natural strategies for experiment selection. Each gives a different order.</p>
+    <p>Three natural strategies for experiment selection, each producing a different sequence.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -259,17 +259,17 @@ B: full spectrum analysis              0.706    5.0      0.141</code></pre>
       </table>
     </div>
 
-    <p>The third strategy is the best single-step heuristic. GDE uses it. But it is still myopic &mdash; it optimizes one step ahead without considering the trajectory. Hintikka's game tree optimizes the full sequence, but computing the optimal policy is exponential in the number of experiments. In practice, GDE's greedy approach works well because under independence and uniform costs, information gain is submodular and greedy selection is within a constant factor of optimal. In practice, correlated outcomes and variable costs weaken this guarantee, but the greedy approach remains a strong heuristic.</p>
+    <p>The third strategy is the best single-step heuristic. GDE uses it. It is still myopic: it optimizes one step ahead without considering the trajectory. Hintikka's game tree optimizes the full sequence, but computing the optimal policy is exponential in the number of experiments. Under independence and uniform costs, information gain is submodular and greedy selection stays within a constant factor of optimal. Correlated outcomes and variable costs weaken this guarantee, but greedy remains hard to beat in practice.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>What this chapter does not solve</h2>
+    <h2>The gap: evidence trajectory</h2>
 
-    <p>Economy of research selects which experiment to run. It does not tell you what to do with the evidence once it arrives. After running experiment A and observing the outcome, you update your beliefs. But how do you know the update is accumulating toward a conclusion rather than oscillating between hypotheses?</p>
+    <p>Economy of research selects which experiment to run. It says nothing about what to do with the evidence once it arrives. You run experiment A, observe the outcome, update your beliefs. But how do you know the update is accumulating toward a conclusion rather than oscillating between hypotheses?</p>
 
-    <p>A sequence of experiments might produce: evidence for H1, then against H1, then for H1 again. The posterior oscillates. Are you converging or are you chasing noise? The economy of research has no answer. It selects the next experiment but cannot read the trajectory of evidence across experiments.</p>
+    <p>A sequence of experiments might produce: evidence for H1, then against H1, then for H1 again. The posterior oscillates. Are you converging or chasing noise? Economy of research cannot answer this. It selects the next experiment but cannot read the trajectory of evidence across experiments.</p>
 
-    <p>That gap &mdash; the inability to classify whether evidence is accumulating, oscillating, or diverging &mdash; is what motivates Chapter 8. Evidence has a trajectory, and you need tools to read its shape.</p>
+    <p>That gap motivates Chapter 8. Evidence has a trajectory, and you need tools to read its shape.</p>
 
     <Neighbors>
     <ul class="neighbors">
