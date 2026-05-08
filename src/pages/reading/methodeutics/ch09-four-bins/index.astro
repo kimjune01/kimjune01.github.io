@@ -1,0 +1,372 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 9: Four Bins — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Four Bins</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 9 &middot; Milnor 1985, Strogatz 2014, Ramdas 2023</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">You have the trajectory. It oscillates. Is the system fighting itself, or is your measurement noisy? <a href="/evidence-has-a-trajectory">Chapter 8</a> gave you e-values &mdash; evidence that accumulates over time instead of compressing to a scalar. You can watch the trajectory now. This chapter tells you how to read it.</p>
+    </div>
+
+    <p>An e-value stream is a time series. It goes up, down, sideways, or nowhere in particular. "Goes up" is not a diagnosis. "Goes up then down then up" is not a diagnosis either. You need a classification &mdash; a finite set of shapes, each mapping to a different kind of system and a different next move. Dynamical systems theory provides exactly four.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Why four and not more</h2>
+
+    <p>Perturb a system. Watch the response over time. The trajectory does one of four things:</p>
+
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.5em; max-width: 500px; margin: 1em auto;">
+      <img src="/assets/trajectory-convergence.svg" alt="Convergence: perturbation settles back to baseline" />
+      <img src="/assets/trajectory-divergence.svg" alt="Divergence: perturbation accelerates away" />
+      <img src="/assets/trajectory-oscillation.svg" alt="Oscillation: perturbation cycles periodically" />
+      <img src="/assets/trajectory-chaos.svg" alt="Chaos: bounded but aperiodic trajectory" />
+    </div>
+
+    <ol class="list-decimal pl-5 mb-4">
+      <li class="mb-2"><strong>Convergent.</strong> The perturbation decays. The system returns to its previous state. Something absorbed the shock.</li>
+      <li class="mb-2"><strong>Divergent.</strong> The perturbation grows. The system moves away from its previous state and keeps going. Nothing stopped the cascade.</li>
+      <li class="mb-2"><strong>Oscillatory.</strong> The perturbation neither decays nor grows &mdash; it cycles. The system swings between two states. Two subsystems are pushing against each other.</li>
+      <li class="mb-2"><strong>Chaotic.</strong> The trajectory stays bounded but never repeats. It is sensitive to initial conditions &mdash; two nearby starting points diverge exponentially. The system is deterministic but unpredictable past a short horizon.</li>
+    </ol>
+
+    <p>These four patterns cover the common cases for perturbation traces from engineered systems. The classification is inspired by dynamical systems theory — Milnor (1985) and Strogatz (2014) show that fixed points, limit cycles, and strange attractors exhaust the attractors of smooth systems — but applied to finite observed trajectories, the bins classify <em>evidence behavior</em>, not the true underlying system. A finite trace cannot prove chaos; it can only rule out settling and periodicity within the observed window.</p>
+
+    <h2>The eigenstructure argument</h2>
+
+    <p>For linear systems, the classification falls directly out of eigenvalues. Linearize the system around an equilibrium point. The Jacobian matrix <em>J</em> has eigenvalues &lambda;. The eigenvalues determine the trajectory shape:</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Eigenvalue type</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Trajectory</th>
+            <th class="text-left py-2 text-gray-400">Mechanism</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">All real, all negative</td><td class="pr-3 text-gray-400">Convergent</td><td class="text-gray-400">Each mode decays exponentially. e<sup>&lambda;t</sup> &rarr; 0.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Any real, positive</td><td class="pr-3 text-gray-400">Divergent</td><td class="text-gray-400">At least one mode grows exponentially. e<sup>&lambda;t</sup> &rarr; &infin;.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Complex, negative real part</td><td class="pr-3 text-gray-400">Damped oscillation (convergent)</td><td class="text-gray-400">Spirals inward. Oscillation decays.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Complex, zero real part</td><td class="pr-3 text-gray-400">Sustained oscillation</td><td class="text-gray-400">Pure rotation. Neither grows nor decays.</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Complex, positive real part</td><td class="pr-3 text-gray-400">Divergent oscillation</td><td class="text-gray-400">Spirals outward. Oscillation grows.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The eigenvalue table has five rows but only three bins: convergent (decay), divergent (growth), and oscillatory (rotation). That covers the linear case completely. Chaos requires nonlinearity &mdash; it cannot appear in linear systems. For the fourth bin, you need Lyapunov exponents.</p>
+
+    <h3>Lyapunov exponents for the nonlinear case</h3>
+
+    <p>A Lyapunov exponent measures the rate at which two infinitesimally close trajectories diverge or converge. For an <em>n</em>-dimensional system, there are <em>n</em> Lyapunov exponents, one per dimension, ordered largest to smallest: &lambda;<sub>1</sub> &ge; &lambda;<sub>2</sub> &ge; &hellip; &ge; &lambda;<sub>n</sub>.</p>
+
+    <p>The largest Lyapunov exponent &lambda;<sub>1</sub> determines the bin:</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">&lambda;<sub>1</sub></th>
+            <th class="text-left py-2 pr-3 text-gray-400">Bin</th>
+            <th class="text-left py-2 text-gray-400">Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">&lt; 0</td><td class="pr-3 text-gray-400">Convergent</td><td class="text-gray-400">Nearby trajectories collapse together. Fixed point.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">= 0</td><td class="pr-3 text-gray-400">Oscillatory</td><td class="text-gray-400">Nearby trajectories stay at constant distance. Limit cycle.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">&gt; 0, bounded</td><td class="pr-3 text-gray-400">Chaotic</td><td class="text-gray-400">Nearby trajectories diverge but stay bounded. Strange attractor.</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">&gt; 0, unbounded</td><td class="pr-3 text-gray-400">Divergent</td><td class="text-gray-400">Trajectories escape to infinity.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Eigenvalues are the linear case. Lyapunov exponents are the general case. For linear systems they coincide &mdash; the Lyapunov exponents are the real parts of the eigenvalues. For nonlinear systems, Lyapunov exponents are the only game in town. The four bins hold regardless.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The classification table</h2>
+
+    <p>Each bin tells you something different about the system. The trajectory shape is a diagnosis. The diagnosis implies a next experiment.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Bin</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Shape</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Diagnosis</th>
+            <th class="text-left py-2 text-gray-400">Next experiment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Convergent</td><td class="pr-3 text-gray-400">Decays to baseline</td><td class="pr-3 text-gray-400">Something absorbed the perturbation. Redundancy or compensation.</td><td class="text-gray-400">Test a different node. This one is not load-bearing.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td><td class="pr-3 text-gray-400">Grows without bound</td><td class="pr-3 text-gray-400">Load-bearing. No backup. The perturbation cascaded.</td><td class="text-gray-400">Test what depends on it. Map the blast radius.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Oscillatory</td><td class="pr-3 text-gray-400">Periodic cycles</td><td class="pr-3 text-gray-400">Two subsystems fighting. One pushes, the other pushes back.</td><td class="text-gray-400">Test the interface between them.</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Chaotic</td><td class="pr-3 text-gray-400">Bounded, aperiodic</td><td class="pr-3 text-gray-400">Input exceeds architecture capacity. Too many interacting components for stable behavior.</td><td class="text-gray-400">Decompose differently. Your current partition is too coarse.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The table is a decision tree: observe the trajectory, match the shape, read the diagnosis, run the next experiment. The bins triage the response. Convergent means "this perturbation was absorbed under these conditions — try a different node." Divergent means "this node matters, dig deeper." Oscillatory means "two things are coupled, find the coupling." Chaotic means "your decomposition is wrong, start over."</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The decision tree</h2>
+
+    <p>Given a time series from a perturbation experiment, classify it. The tree has three questions:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto text-sm"><code>1. Is the trajectory bounded?
+   &boxur;&mdash; NO  &rarr; <strong>DIVERGENT</strong>
+   &boxur;&mdash; YES &rarr; go to 2.
+
+2. Does the trajectory settle to a fixed value?
+   &boxur;&mdash; YES &rarr; <strong>CONVERGENT</strong>
+   &boxur;&mdash; NO  &rarr; go to 3.
+
+3. Does the trajectory repeat periodically?
+   &boxur;&mdash; YES &rarr; <strong>OSCILLATORY</strong>
+   &boxur;&mdash; NO  &rarr; <strong>CHAOTIC</strong></code></pre>
+
+    <p>"Bounded" means: does the variance stabilize or does it grow without limit? A monotone trend test (Mann-Kendall or Cox-Stuart) on the absolute values answers this. If the trend is significantly increasing and shows no sign of flattening, classify as divergent.</p>
+
+    <p>"Settles" means: does the trajectory approach a constant? Check whether the variance of the last third of the series is significantly smaller than the variance of the first third. If it is, convergent.</p>
+
+    <p>"Repeats periodically" means: is there a dominant frequency in the spectrum? Compute the power spectral density. If a single frequency contains more than (say) 40% of the total power, oscillatory. If the power is spread across many frequencies with no dominant peak, chaotic.</p>
+
+    <p>Each question has a clean statistical test. The decision tree is implementable.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Examples</h2>
+
+    <h3>Web server under load</h3>
+
+    <p>A web server handles 1,000 requests per second normally. You increase the load to 1,500 rps and watch response time over the next hour. All four bins can appear:</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Observation</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Bin</th>
+            <th class="text-left py-2 text-gray-400">What it means</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Latency spikes to 200ms, falls back to 50ms in 10 minutes</td><td class="pr-3 text-gray-400">Convergent</td><td class="text-gray-400">Autoscaler added capacity. The system absorbed it.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Latency climbs to 500ms, 2s, 10s, timeout</td><td class="pr-3 text-gray-400">Divergent</td><td class="text-gray-400">No autoscaler. Thread pool exhausted. Cascade failure.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Latency oscillates: 50ms, 300ms, 50ms, 300ms, period ~5 min</td><td class="pr-3 text-gray-400">Oscillatory</td><td class="text-gray-400">Autoscaler fights load balancer. One adds capacity, the other redistributes, load concentrates again.</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Latency bounded between 40ms and 400ms, no pattern, no repeat</td><td class="pr-3 text-gray-400">Chaotic</td><td class="text-gray-400">Too many interacting caches, queues, and retry loops. No single cause.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Same system, same perturbation, four possible responses depending on the architecture. The bin tells you what to look at next. Convergent: the autoscaler handled it, test something else. Divergent: no backup exists, find the bottleneck. Oscillatory: two controllers are coupled, test the interface between them. Chaotic: your decomposition is wrong &mdash; you're treating the whole server stack as one component when it's actually several interacting loops.</p>
+
+    <h3>Automobile diagnostics</h3>
+
+    <p>A mechanic suspects the alternator. She disconnects it briefly and watches the electrical system:</p>
+
+    <ul class="list-disc pl-5 mb-4">
+      <li class="mb-1"><strong>Convergent:</strong> Battery voltage dips to 11.8V, recovers to 12.6V when the alternator reconnects. The battery absorbed the perturbation. The alternator is not load-bearing at current draw.</li>
+      <li class="mb-1"><strong>Divergent:</strong> Voltage drops steadily. The radio dims, the dashboard flickers, the engine stalls. The alternator was the only power source at this draw level. Everything downstream cascaded.</li>
+      <li class="mb-1"><strong>Oscillatory:</strong> Voltage swings between 11V and 14V with a 2-second period. The voltage regulator and the alternator are fighting &mdash; one compensates, the other overcompensates, back and forth. The fault is in the interface (the regulator), not the alternator itself.</li>
+    </ul>
+
+    <p>Chaos is rare in simple electrical circuits &mdash; three bins cover most automotive faults. But it appears in engine management systems with enough interacting control loops (fuel injection, ignition timing, variable valve timing, turbo boost) where a single sensor failure produces bounded but aperiodic behavior that no single root cause explains.</p>
+
+    <h3>Clinical trial</h3>
+
+    <p>A drug trial measures blood pressure over 18 months. The perturbation is the drug. The trajectory is the patient's BP over time:</p>
+
+    <ul class="list-disc pl-5 mb-4">
+      <li class="mb-1"><strong>Convergent:</strong> BP drops from 150 to 130 in the first month, stabilizes. The drug works and the effect is stable.</li>
+      <li class="mb-1"><strong>Divergent:</strong> BP drops to 130, then creeps back to 145, then 155, then 160. The body is adapting. The drug works in the snapshot window but the compensatory response overwhelms it. This is Vioxx &mdash; <a href="/evidence-has-a-trajectory">chapter 8's opening example</a>.</li>
+      <li class="mb-1"><strong>Oscillatory:</strong> BP swings between 125 and 155 with a monthly period. The drug suppresses BP for two weeks, then the body overshoots for two weeks, then the drug wins again. Two subsystems fighting. The interface is the feedback loop between the drug and the body's compensatory mechanism.</li>
+      <li class="mb-1"><strong>Chaotic:</strong> BP stays between 120 and 160 but follows no pattern. The drug interacts with diet, exercise, stress, sleep, and other medications in ways that produce bounded but unpredictable responses. A single drug-response model is the wrong decomposition. You need to factor out the other variables before the drug's effect is visible.</li>
+    </ul>
+
+    <p>A 9-month snapshot of the divergent case would show "BP dropped, drug works." An e-value trajectory over 18 months would show the evidence reversing. The bin classification tells you why: the system is divergent, the drug is load-bearing in the wrong direction, and the compensatory response is the mechanism to investigate.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Code: trajectory classifier</h2>
+
+    <p>Given a time series from a perturbation experiment, classify it into one of the four bins. The implementation follows the decision tree: check boundedness, then settling, then periodicity.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`<span class="hl-keyword">import</span> numpy <span class="hl-keyword">as</span> np
+<span class="hl-keyword">from</span> scipy <span class="hl-keyword">import</span> stats, signal
+
+<span class="hl-keyword">def</span> <span class="hl-builtin">classify_trajectory</span>(ts, alpha=<span class="hl-number">0.05</span>):
+    <span class="hl-string">"""Classify a perturbation-response time series into four bins."""</span>
+    ts = np.asarray(ts, dtype=float)
+    n = <span class="hl-builtin">len</span>(ts)
+
+    <span class="hl-keyword">if</span> n &lt; <span class="hl-number">30</span>:
+        <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'indeterminate'</span>, <span class="hl-string">'evidence'</span>: &#123;<span class="hl-string">'reason'</span>: <span class="hl-string">'too few observations'</span>&#125;&#125;
+
+    evidence = &#123;&#125;
+
+    <span class="hl-comment"># Step 1: Is it bounded? (Mann-Kendall trend on |x|)</span>
+    abs_ts = np.abs(ts - np.mean(ts[:n // <span class="hl-number">10</span>]))
+    mk_tau, mk_p = stats.kendalltau(np.arange(n), abs_ts)
+    evidence[<span class="hl-string">'trend_tau'</span>] = mk_tau
+    evidence[<span class="hl-string">'trend_p'</span>] = mk_p
+
+    late_start = <span class="hl-number">3</span> * n // <span class="hl-number">4</span>
+    late_tau, late_p = stats.kendalltau(
+        np.arange(n - late_start), abs_ts[late_start:]
+    )
+
+    <span class="hl-keyword">if</span> mk_tau &gt; <span class="hl-number">0</span> <span class="hl-keyword">and</span> mk_p &lt; alpha <span class="hl-keyword">and</span> late_tau &gt; <span class="hl-number">0</span> <span class="hl-keyword">and</span> late_p &lt; alpha:
+        <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'divergent'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+
+    <span class="hl-comment"># Step 2: Does it settle? (variance ratio, Levene's test)</span>
+    third = n // <span class="hl-number">3</span>
+    var_early = np.var(ts[:third])
+    var_late = np.var(ts[-third:])
+
+    <span class="hl-keyword">if</span> var_early &gt; <span class="hl-number">0</span>:
+        lev_stat, lev_p = stats.levene(ts[:third], ts[-third:])
+        var_ratio = var_late / var_early
+        <span class="hl-keyword">if</span> var_ratio &lt; <span class="hl-number">0.25</span> <span class="hl-keyword">and</span> lev_p &lt; alpha:
+            <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'convergent'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+
+    <span class="hl-comment"># Step 3: Is it periodic? (Welch PSD, peak fraction)</span>
+    freqs, psd = signal.welch(ts - np.mean(ts), nperseg=min(<span class="hl-number">256</span>, n // <span class="hl-number">2</span>))
+    total_power = np.sum(psd)
+    <span class="hl-keyword">if</span> total_power &gt; <span class="hl-number">0</span>:
+        peak_idx = np.argmax(psd[<span class="hl-number">1</span>:]) + <span class="hl-number">1</span>
+        peak_fraction = psd[peak_idx] / total_power
+        <span class="hl-keyword">if</span> peak_fraction &gt; <span class="hl-number">0.40</span>:
+            <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'oscillatory'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+
+    <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'chaotic'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+
+
+<span class="hl-comment"># Demo: one of each</span>
+np.random.seed(<span class="hl-number">42</span>)
+t = np.linspace(<span class="hl-number">0</span>, <span class="hl-number">10</span>, <span class="hl-number">500</span>)
+
+conv = <span class="hl-number">5.0</span> * np.exp(-<span class="hl-number">0.5</span> * t) + np.random.normal(<span class="hl-number">0</span>, <span class="hl-number">0.1</span>, len(t))
+div  = <span class="hl-number">0.1</span> * np.exp(<span class="hl-number">0.3</span> * t)  + np.random.normal(<span class="hl-number">0</span>, <span class="hl-number">0.1</span>, len(t))
+osc  = <span class="hl-number">3.0</span> * np.sin(<span class="hl-number">2</span> * np.pi * <span class="hl-number">0.5</span> * t) + np.random.normal(<span class="hl-number">0</span>, <span class="hl-number">0.3</span>, len(t))
+
+<span class="hl-keyword">def</span> <span class="hl-builtin">lorenz_x</span>(n_steps=<span class="hl-number">500</span>, dt=<span class="hl-number">0.02</span>, sigma=<span class="hl-number">10</span>, rho=<span class="hl-number">28</span>, beta=<span class="hl-number">8</span>/<span class="hl-number">3</span>):
+    x, y, z = <span class="hl-number">1.0</span>, <span class="hl-number">1.0</span>, <span class="hl-number">1.0</span>
+    xs = []
+    <span class="hl-keyword">for</span> _ <span class="hl-keyword">in</span> range(n_steps):
+        dx = sigma*(y-x); dy = x*(rho-z)-y; dz = x*y-beta*z
+        x += dx*dt; y += dy*dt; z += dz*dt
+        xs.append(x)
+    <span class="hl-keyword">return</span> np.array(xs)
+
+chaos = lorenz_x()
+
+<span class="hl-keyword">for</span> name, series <span class="hl-keyword">in</span> [(<span class="hl-string">"convergent"</span>, conv), (<span class="hl-string">"divergent"</span>, div),
+                       (<span class="hl-string">"oscillatory"</span>, osc), (<span class="hl-string">"chaotic"</span>, chaos)]:
+    result = classify_trajectory(series)
+    print(f"&#123;name:&lt;12&#125; → &#123;result['bin']&#125;")`} /></pre>
+
+    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>convergent  &rarr; convergent
+divergent   &rarr; divergent
+oscillatory &rarr; oscillatory
+chaotic     &rarr; chaotic</code></pre>
+
+    <p>The classifier is simple &mdash; three statistical tests in sequence. The simplicity is deliberate. A trajectory classifier that requires tuning 20 parameters would be useless in practice because you'd spend more time calibrating the classifier than reading the trajectory. Three tests, three thresholds, four bins.</p>
+
+    <h3>Where the classifier fails</h3>
+
+    <p>Two failure modes are worth noting. First, <strong>transient classification</strong>: a system that is divergent in the first 100 observations may converge by observation 500. The classifier sees whatever window you give it. Run it on a short window and you may classify a convergent system as divergent (or vice versa). The fix is simple: run the classifier on a rolling window and watch whether the classification itself changes over time. If the bin flips, you're in the transient regime and need more data.</p>
+
+    <p>Second, <strong>oscillatory vs. chaotic at the boundary</strong>: a system with a dominant frequency that also has significant broadband noise will be classified as oscillatory or chaotic depending on the 40% threshold. In practice, this boundary is the least important one. Both oscillatory and chaotic trajectories indicate coupling between subsystems. The difference matters for prediction (oscillatory is predictable, chaotic is not) but not for the next experimental step (both say "test the interface" or "decompose").</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Connecting to e-values</h2>
+
+    <p>Chapter 8 introduced e-values as a trajectory-preserving alternative to p-values. The e-value stream is itself a time series. Apply the four-bin classifier to it.</p>
+
+    <p>An e-value that <strong>converges</strong> to a high value means: the evidence for the hypothesis accumulated and stabilized. Under the chosen betting strategy, the evidence has stabilized in favor of the hypothesis. Consider redirecting budget elsewhere.</p>
+
+    <p>An e-value that <strong>diverges</strong> (grows without bound) means: the evidence is piling up monotonically. A correctly specified alternative hypothesis against a true null produces unbounded e-value growth. This is the normal "success" mode for anytime-valid inference.</p>
+
+    <p>An e-value that <strong>oscillates</strong> means: the evidence for the hypothesis swings back and forth. Sometimes it looks true, sometimes false, periodically. This is the signature of <a href="/evidence-has-a-trajectory">Boeing's MCAS</a> &mdash; two subsystems fighting. The oscillation in your evidence reflects the oscillation in the system. The hypothesis isn't wrong. It's incomplete. It captures one half of a coupled pair.</p>
+
+    <p>An e-value that looks <strong>chaotic</strong> means: the evidence is bounded but never settles and never repeats. Your betting strategy is poorly matched to the system's dynamics. The hypothesis may be about the wrong level of abstraction &mdash; like testing "does the server have a latency problem?" when the real question requires decomposing into cache, queue, and retry-loop subproblems.</p>
+
+    <p>The four bins applied to e-value trajectories are a diagnostic tool, not a decision rule. They tell you what kind of evidence you have. They do not tell you what to do with it.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>What this chapter does not solve</h2>
+
+    <p>The classification table has a column labeled "Next experiment." Convergent &rarr; test a different node. Divergent &rarr; test its dependencies. Oscillatory &rarr; test the interface. Chaotic &rarr; decompose differently.</p>
+
+    <p>These are sensible defaults, not derivations. Nothing in the eigenstructure or the Lyapunov exponent tells you <em>which</em> different node to test, <em>which</em> dependency to probe, or <em>how</em> to decompose differently. The four bins tell you what KIND of response you got. They don't tell you what to DO next.</p>
+
+    <p>The mapping from shape to next experiment is the claim of chapter 10. Each bin produces a <em>kill condition</em> &mdash; a specific, testable statement about what would have to be true for the diagnosis to be wrong. The kill condition generates the next edge in the hypothesis graph. The four bins classify the node. The kill conditions generate the edges.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Sources</h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Milnor 1985</td>
+            <td class="text-gray-400"><a href="https://doi.org/10.1007/BF01217730">"On the concept of attractor."</a> <em>Communications in Mathematical Physics</em> 99(2). Proves the classification of attractors: fixed points, limit cycles, strange attractors.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Strogatz 2014</td>
+            <td class="text-gray-400"><em><a href="https://www.westviewpress.com/books/nonlinear-dynamics-and-chaos/">Nonlinear Dynamics and Chaos</a></em> (2nd ed.). The standard textbook. Eigenvalue classification in ch 5&ndash;6, Lyapunov exponents in ch 9, Lorenz system in ch 9.2.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Lorenz 1963</td>
+            <td class="text-gray-400"><a href="https://doi.org/10.1175/1520-0469(1963)020%3C0130:DNF%3E2.0.CO;2">"Deterministic Nonperiodic Flow."</a> <em>Journal of the Atmospheric Sciences</em> 20(2). The discovery of deterministic chaos.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Oseledets 1968</td>
+            <td class="text-gray-400">"A multiplicative ergodic theorem." <em>Trans. Moscow Math. Soc.</em> 19. Proves existence and properties of Lyapunov exponents for arbitrary dynamical systems.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Ramdas et al. 2023</td>
+            <td class="text-gray-400"><a href="https://arxiv.org/abs/2103.06476">"Testing by Betting."</a> <em>JRSS-B</em>. E-values and anytime-valid inference. The evidence trajectory framework from Chapter 8.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Mann 1945 / Kendall 1975</td>
+            <td class="text-gray-400">The Mann-Kendall trend test. Non-parametric test for monotone trends in time series. Used in the decision tree for boundedness.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">Methodeutics</a></li>
+      <li><a href="/evidence-has-a-trajectory">Ch 8: Evidence has a trajectory</a> &mdash; e-values and the case for watching evidence over time</li>
+      <li><a href="/reading/methodeutics/ch07-economy-of-research/">Ch 7: Economy of Research</a> &mdash; which experiment to run next</li>
+      <li><a href="/the-hypothesis-graph">Ch 10: Kill conditions generate edges</a> &mdash; from shape classification to next experiment</li>
+    </ul>
+
+    <p class="text-sm text-gray-500 mb-2 mt-4">External</p>
+    <ul>
+      <li><a href="https://doi.org/10.1007/BF01217730">Milnor 1985, "On the concept of attractor" (Springer)</a></li>
+      <li><a href="https://www.westviewpress.com/books/nonlinear-dynamics-and-chaos/">Strogatz, <em>Nonlinear Dynamics and Chaos</em> (Westview Press)</a></li>
+      <li><a href="https://arxiv.org/abs/2103.06476">Ramdas et al. 2023, "Testing by Betting" (arXiv)</a></li>
+      <li><a href="https://doi.org/10.1175/1520-0469(1963)020%3C0130:DNF%3E2.0.CO;2">Lorenz 1963, "Deterministic Nonperiodic Flow" (AMS)</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

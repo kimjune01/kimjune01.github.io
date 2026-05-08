@@ -1,0 +1,243 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 2: Security and Uberty — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Security and Uberty</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 2 · Peirce 1913, Popper 1934, Dewey 1938, Hanson 1958, Hintikka 1999</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">Every mode of reasoning trades certainty for fertility. Deduction is perfectly secure and does not add information beyond the premises. Abduction is maximally fertile and guarantees nothing. The tradeoff is not a defect — it is the structure of inquiry itself.</p>
+    </div>
+
+    <h2>The Popper challenge</h2>
+
+    <p>Karl Popper drew a hard line in 1934. Science, he argued, has two contexts: discovery and justification. Justification is logical — you deduce predictions from a theory, test them, and either corroborate or falsify. Discovery is psychological — where hypotheses come from is irrelevant to their scientific status. "The initial stage, the act of conceiving or inventing a theory, seems to me neither to call for logical analysis nor to be susceptible of it" (<em>The Logic of Scientific Discovery</em>, &sect;2).</p>
+
+    <p>Peirce would have agreed with half of this. He accepted that abductive conclusions are insecure — a hypothesis can explain the data perfectly and still be wrong. But he rejected the move from "insecure" to "illogical." The question is not whether abduction guarantees truth. No one claims it does. The question is whether there are better and worse ways to generate hypotheses, and whether those ways have describable structure. Peirce said yes. Popper said it doesn't matter.</p>
+
+    <p>It matters. Popper's position does not imply that hypothesis generation is random — psychology, heuristics, and scientific taste all constrain it. A doctor who sees chest pain, shortness of breath, and elevated troponin does not hypothesize sunburn. The constraints are structural: background knowledge, the shape of the surprise, what would render the observation unsurprising. But if those constraints have no formal account, they cannot be taught, compared, or automated.</p>
+
+    <h2>Peirce's tradeoff</h2>
+
+    <p>In his 1913 essay "An Essay Toward Improving Our Reasoning in Security and in Uberty" — one of his last writings — Peirce made the tradeoff explicit. Every inference mode has two properties that vary inversely:</p>
+
+    <p><strong>Security</strong> — how certain is the conclusion, given the premises? Can the conclusion be false when the premises are true?</p>
+
+    <p><strong>Uberty</strong> — how much new knowledge does the mode produce? Does the conclusion go beyond what the premises already contain?</p>
+
+    <p>The word <em>uberty</em> comes from Latin <em>ubertas</em> — fruitfulness, richness, fertility. Peirce chose it deliberately. The question is not which mode is "best" but which mode is most productive for the current stage of inquiry.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Mode</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Security</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Uberty</th>
+            <th class="text-left py-2 text-gray-400">What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Deduction</td>
+            <td class="pr-3 text-gray-300">Maximal</td>
+            <td class="pr-3 text-gray-300">Zero</td>
+            <td class="text-gray-400">Conclusion is already contained in the premises. No added information.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Induction</td>
+            <td class="pr-3 text-gray-300">Moderate</td>
+            <td class="pr-3 text-gray-300">Moderate</td>
+            <td class="text-gray-400">Generalizes from observed cases. Extends, but doesn't invent.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Abduction</td>
+            <td class="pr-3 text-gray-300">Minimal</td>
+            <td class="pr-3 text-gray-300">Maximal</td>
+            <td class="text-gray-400">Proposes an explanation that wasn't in the data. The only mode in Peirce's triad that introduces explanatory hypotheses.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The inverse relationship is not accidental. Security and uberty are <em>structurally</em> opposed. To be secure, a conclusion must not exceed the premises. To be fertile, it must. You cannot have both. Deduction achieves perfect security by deriving only what was already implicit. Abduction achieves maximal fertility by proposing something that goes far beyond the evidence. Induction sits between — it extends the data but stays in the same conceptual frame.</p>
+
+    <!-- SVG: Security-Uberty tradeoff diagram -->
+    <div class="flex justify-center my-8">
+      <svg viewBox="0 0 420 220" class="w-full max-w-md" style="font-family: ui-monospace, monospace;">
+        <!-- Axes -->
+        <line x1="60" y1="180" x2="380" y2="180" stroke="currentColor" stroke-width="1" stroke-opacity="0.3"/>
+        <line x1="60" y1="180" x2="60" y2="30" stroke="currentColor" stroke-width="1" stroke-opacity="0.3"/>
+        <!-- Axis labels -->
+        <text x="220" y="210" text-anchor="middle" fill="currentColor" font-size="10" fill-opacity="0.5">Uberty (fertility)</text>
+        <text x="20" y="105" text-anchor="middle" fill="currentColor" font-size="10" fill-opacity="0.5" transform="rotate(-90, 20, 105)">Security (certainty)</text>
+        <!-- Curve: hyperbola-like -->
+        <path d="M 85 45 Q 140 48 180 80 Q 220 120 280 145 Q 330 162 370 168" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4,3"/>
+        <!-- Points -->
+        <circle cx="90" cy="50" r="5" fill="#60a5fa" fill-opacity="0.7"/>
+        <text x="100" y="42" fill="currentColor" font-size="10" fill-opacity="0.7">Deduction</text>
+        <circle cx="210" cy="105" r="5" fill="#60a5fa" fill-opacity="0.7"/>
+        <text x="220" y="97" fill="currentColor" font-size="10" fill-opacity="0.7">Induction</text>
+        <circle cx="355" cy="165" r="5" fill="#60a5fa" fill-opacity="0.7"/>
+        <text x="315" y="157" fill="currentColor" font-size="10" fill-opacity="0.7">Abduction</text>
+        <!-- Annotation -->
+        <text x="220" y="30" text-anchor="middle" fill="currentColor" font-size="9" fill-opacity="0.3">schematic, not metric</text>
+      </svg>
+    </div>
+
+    <h2>The code</h2>
+
+    <p>The tradeoff is easier to see in action than in description. Given the same observations, each mode produces a different kind of conclusion at a different level of certainty.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# Three modes applied to the same observations.
+# A server's response times over 10 requests (ms):
+times = [120, 118, 125, 122, 119, 980, 115, 121, 117, 123]
+
+# --- DEDUCTION ---
+# Given: "If latency &gt; 500ms, the request is anomalous."
+# Certain, but adds nothing you didn't already know.
+threshold = 500
+anomalies = [t for t in times if t &gt; threshold]
+print(f"Deduction: {len(anomalies)} anomalous request(s).")
+# → 1 anomalous request(s).
+# Security: maximal. Uberty: zero.
+
+# --- INDUCTION ---
+# Generalize from the data: what's the typical range?
+import statistics
+mu = statistics.mean(times)
+sigma = statistics.stdev(times)
+print(f"Induction: mean={mu:.0f}ms, stdev={sigma:.0f}ms")
+print(f"  Normal range: [{mu - 2*sigma:.0f}, {mu + 2*sigma:.0f}]ms")
+# → mean=186ms, stdev=265ms, normal range: [-344, 716]ms
+# The outlier inflates the estimate. Induction extends but stays
+# inside the data's frame — it doesn't ask *why*.
+# Security: moderate. Uberty: moderate.
+
+# --- ABDUCTION ---
+# The surprising fact: one request is 8x slower than the rest.
+# What would make this unsurprising?
+hypotheses = [
+    "GC pause — the JVM stopped the world",
+    "Cache miss — cold key after eviction",
+    "Network retry — first packet dropped, TCP retransmit",
+    "Noisy neighbor — co-tenant CPU spike",
+]
+print(f"Abduction: {len(hypotheses)} candidate explanations.")
+for h in hypotheses:
+    print(f"  - {h}")
+# None of these are in the data. Each is a *new idea* that would
+# explain the observation if true.
+# Security: minimal. Uberty: maximal.`} /></pre>
+
+    <p>Deduction applies a rule and tells you what you already decided counts as anomalous. Induction computes a summary and tells you what future observations to expect. Abduction asks <em>why</em> the anomaly happened and proposes explanations that go beyond anything in the data. The explanations might be wrong. That's the price of fertility.</p>
+
+    <h2>The false dichotomy</h2>
+
+    <p>Popper's discovery/justification split dominated philosophy of science for decades: discovery is psychological, justification is logical, and only justification matters. Hanson (1958) and Hintikka (1999) challenged it from opposite ends. Hanson showed that observation is theory-laden — what you see depends on what you know, so discovery already has logical structure. Hintikka showed that justification presupposes discovery — you can't test a hypothesis you haven't selected, and selection is itself an inference. Peirce had said the same thing a century earlier: the three modes form a cycle (abduction proposes, deduction derives, induction tests), and separating discovery from justification is like separating inhaling from exhaling and claiming only exhaling is respiration.</p>
+
+    <h2>Dewey's extension</h2>
+
+    <p>Dewey's <em>Logic: The Theory of Inquiry</em> (1938) carried this forward with a single claim: logical forms are not prior to inquiry but arise <em>within</em> it. A mode of inference earns its status by reliably producing results. Abduction is insecure, but it is not random — if hypothesis generation were random, the hit rate would be negligible and science would be impossible. That plausible hypotheses emerge at rates above chance is evidence abduction has structure — distinct from the institutional filters (replication, peer review, instruments) that catch bad guesses downstream.</p>
+
+    <h2>Musement</h2>
+
+    <p>In "A Neglected Argument for the Reality of God" (1908), Peirce called the pre-logical ground of abduction <em>musement</em> — "Pure Play" that is "antipodal to vacancy and dreaminess." The muser is engaged and alert but has no target; attention is wide, not narrow. This is where the space of candidate explanations gets populated. Directed search works within an existing frame. Musement is what happens before the frame exists — you cannot search a space you haven't constructed, and you cannot construct it by searching. The modern analogy is explore-exploit: exploitation is induction within the current best model; musement is structured exploration outside it, guided by aesthetic and analogical affinity rather than formal rules.</p>
+
+    <h2>The bitter lesson and the missing mode</h2>
+
+    <p>Rich Sutton's "The Bitter Lesson" (2019) is about induction: general methods that leverage computation beat hand-crafted knowledge. Chess, Go, speech, vision — all involve systems that generalize from data within a fixed task. But induction operates <em>within</em> a research program. The decision to frame language as next-token prediction, or vision as hierarchical feature extraction — those are abductive moves. Someone proposed a frame, and that frame determined which inductive methods would work. The bitter lesson says: once you have the frame, let computation do the rest. It is silent on where the frame comes from.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Question</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Mode</th>
+            <th class="text-left py-2 text-gray-400">Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">What frame should we use?</td>
+            <td class="pr-3 text-gray-300">Abduction</td>
+            <td class="text-gray-400">"Language is next-token prediction" (the hypothesis)</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">What parameters within this frame?</td>
+            <td class="pr-3 text-gray-300">Induction</td>
+            <td class="text-gray-400">Train a transformer on internet text (the bitter lesson)</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">What follows from these parameters?</td>
+            <td class="pr-3 text-gray-300">Deduction</td>
+            <td class="text-gray-400">Given weights + prompt, compute the next token (inference)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Induction scales within a research program. Abduction generates research programs. The bitter lesson works because someone already did the abductive step right. When the abductive step is wrong — when the frame doesn't fit the problem — scaling within a bad frame usually amplifies the frame's limits rather than escaping them.</p>
+
+    <h2>What breaks</h2>
+
+    <p>We now have a vocabulary for the tradeoff: security and uberty are inversely related, and both are necessary. We know that abduction is the fertile mode, that it is insecure but not illogical, that it operates before the frame exists, and that it generates the research programs within which induction does its work.</p>
+
+    <p>But we cannot <em>formalize</em> it. We can say abduction is "inference to the best explanation" and wave at the tradeoff curve, but we cannot write down the operation the way we can write modus ponens for deduction or mature probabilistic formalisms for induction. We have a name and a ranking. We do not have a primitive.</p>
+
+    <p>The problem is that abduction appears under different names in different fields — and nobody cross-cites. Computer scientists call it bi-abduction. Gestalt psychologists call it figure-ground reversal. Piaget called it equilibration. Pearl called it intervention. The next chapter collects these and other names — at least eight across six fields — and looks for the common structure underneath.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Sources</h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Peirce 1908</td>
+            <td class="text-gray-400">"A Neglected Argument for the Reality of God." <em>Hibbert Journal</em> 7(1). Introduces musement as the pre-logical ground of abduction.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Peirce 1913</td>
+            <td class="text-gray-400">"An Essay Toward Improving Our Reasoning in Security and in Uberty." Unpublished MS, <a href="https://arisbe.sitehost.iu.edu/">Arisbe</a>. The explicit security-uberty tradeoff.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Popper 1934</td>
+            <td class="text-gray-400"><em><a href="/reading/scientific-method/popper-1934/">Logik der Forschung</a></em>. English translation: <em>The Logic of Scientific Discovery</em> (1959). Discovery has no logic; only falsification does.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Dewey 1938</td>
+            <td class="text-gray-400"><em>Logic: The Theory of Inquiry</em>. Logical forms arise within inquiry, not prior to it.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Hanson 1958</td>
+            <td class="text-gray-400"><em>Patterns of Discovery</em>. Observation is theory-laden; the context of discovery has logical structure.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Hintikka 1999</td>
+            <td class="text-gray-400">"What Is Abduction? The Fundamental Problem of Contemporary Epistemology." <em>Transactions of the Charles S. Peirce Society</em> 34(3). The discovery/justification dichotomy is incoherent.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Sutton 2019</td>
+            <td class="text-gray-400"><a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">"The Bitter Lesson."</a> General methods that leverage computation beat methods that leverage human knowledge. An argument for induction at scale — silent on abduction.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">Methodeutics</a></li>
+      <li><a href="/reading/scientific-method/peirce-1878/">Peirce 1878 — How to Make Our Ideas Clear</a></li>
+      <li><a href="/reading/scientific-method/popper-1934/">Popper 1934 — The Logic of Scientific Discovery</a></li>
+      <li><a href="/modes-of-reason">Modes of Reason</a> — Chapter 1 of this textbook</li>
+    </ul>
+    </Neighbors>
+  </main>
+</Layout>

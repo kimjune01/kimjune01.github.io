@@ -1,0 +1,461 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 4: Diff — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Diff</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 4 · Part II begins · Calcagno 2009, O'Hearn 2019, Arjovsky 2019, Rubin 1915</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">Chapter 3 showed the same abstract schema under eight names. This chapter defines the primitive: snapshot before, snapshot after, XOR. What flipped is figure; what held is ground. Diff is the contrast that abduction operates over.</p>
+    </div>
+
+    <h2>The mechanic</h2>
+
+    <p>A mechanic taps the alternator and the engine stalls. Two hypotheses fire: test the battery, test the voltage regulator. Nobody taught the mechanic a hypothesis-generation algorithm. The shape of the failure named the next experiment.</p>
+
+    <p>Where did the hypotheses come from? Not from induction &mdash; she didn't generalize from a thousand stalled engines. Not from deduction &mdash; she didn't derive them from axioms. She compared two states: engine running, engine stalled. She noted what changed (alternator tapped) and what didn't (fuel, spark, coolant). The change pointed at the electrical subsystem. The hypotheses followed from the diff.</p>
+
+    <p>Diff is computable. The mechanic performed it in her head. OBD-II performs it in silicon. Facebook Infer performs it on code. The representation changes; the contrast operation does not.</p>
+
+    <h2>The formal object</h2>
+
+    <p>Chapter 3 showed eight fields performing the same abstract schema under different names. Before we implement it, we need to say what the primitive is. Diff is the substrate of abduction, not abduction entire. It produces the contrast that abduction operates over:</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-6">
+      <p class="text-gray-300" style="max-width:none">Given expected state <strong>E</strong>, observed state <strong>O</strong>, and background frame <strong>B</strong>, partition what differs from what remains invariant.</p>
+    </div>
+
+    <p>Abduction then uses that partition to generate candidate causes <strong>H</strong> — minimal revisions to <strong>B</strong> that would make <strong>O</strong> unsurprising. But the partition itself is the primitive this chapter defines.</p>
+    </div>
+
+    <p>The expected state is what you thought would happen. The observed state is what actually happened. The background frame is everything you're not currently questioning. The output — the hypothesis — is the smallest change to your understanding that reconciles expectation with observation. This is the formal object that all eight names in Chapter 3 instantiate.</p>
+
+    <h2>The primitive</h2>
+
+    <p>The simplest encoding of that formal object is the diff. Take two snapshots of a system's state: one before an event, one after. Compare them. The comparison partitions state into two sets:</p>
+
+    <p><strong>Figure</strong> &mdash; what changed. The variables whose values differ between snapshots. This is where the action happened. In Gestalt terms, the figure is what pops out against a stable background.</p>
+
+    <p><strong>Ground</strong> &mdash; what held. The variables whose values stayed the same. This is the frame &mdash; the context that remained invariant while the figure shifted. In separation logic, this is the frame that bi-abduction infers.</p>
+
+    <p>Formally:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">diff(state_before, state_after) &rarr; (figure, ground)</code></pre>
+
+    <p>The operation is symmetric in a narrow sense &mdash; it doesn't matter which snapshot is &ldquo;first&rdquo; for computing the partition &mdash; but asymmetric in use. Temporality matters. The before-state is the baseline; the after-state is the perturbation. The diff tells you what the perturbation touched.</p>
+
+    <h2>The XOR</h2>
+
+    <p>The simplest instantiation: state is a set of key-value pairs. The figure is every key whose value changed. The ground is every key whose value didn't.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def diff(before: dict, after: dict) -&gt; tuple[dict, dict]:
+    """Compute figure (what changed) and ground (what held).
+
+    Returns (figure, ground).
+    figure: keys present in both with different values,
+            plus keys added or removed.
+    ground: keys present in both with identical values.
+    """
+    all_keys = set(before) | set(after)
+    figure = &#123;&#125;
+    ground = &#123;&#125;
+
+    for key in all_keys:
+        b = before.get(key)
+        a = after.get(key)
+        if b == a:
+            ground[key] = a
+        else:
+            figure[key] = (b, a)   # (was, now)
+
+    return figure, ground`} /></pre>
+
+    <p>Apply it to the mechanic's engine:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`before = &#123;
+    "engine":     "running",
+    "alternator": "untouched",
+    "battery":    "12.6V",
+    "fuel_pump":  "on",
+    "spark":      "firing",
+    "coolant":    "92C",
+&#125;
+
+after = &#123;
+    "engine":     "stalled",
+    "alternator": "tapped",
+    "battery":    "12.6V",
+    "fuel_pump":  "on",
+    "spark":      "firing",
+    "coolant":    "92C",
+&#125;
+
+figure, ground = diff(before, after)
+
+print("FIGURE (what changed):")
+for k, (was, now) in figure.items():
+    print(f"  &#123;k&#125;: &#123;was&#125; -> &#123;now&#125;")
+
+print("\\nGROUND (what held):")
+for k, v in ground.items():
+    print(f"  &#123;k&#125;: &#123;v&#125;")
+
+# Output:
+# FIGURE (what changed):
+#   engine: running -> stalled
+#   alternator: untouched -> tapped
+#
+# GROUND (what held):
+#   battery: 12.6V
+#   fuel_pump: on
+#   spark: firing
+#   coolant: 92C`} /></pre>
+
+    <p>The figure contains two entries: the alternator (input &mdash; what the mechanic did) and the engine state (output &mdash; what changed as a result). The ground contains four entries: battery, fuel pump, spark, coolant &mdash; all unchanged.</p>
+
+    <p>The hypotheses follow from the figure. The alternator was tapped and the engine stalled. What connects them? The electrical subsystem. The battery supplies power. The voltage regulator manages alternator output. Both are upstream of the engine in the electrical path, and both are consistent with a tap-induced failure. The ground tells the mechanic what to rule out: the measured fuel-pump and spark variables are unchanged, which deprioritizes those paths — though it does not eliminate them unless the measurement set is complete.</p>
+
+    <p>This is the contrast primitive. Hypothesis generation, ranking, and testing build on top of it.</p>
+
+    <h2>Degrees of freedom</h2>
+
+    <p>The diff as defined above is the minimal case: one before, one after, one partition. The prefixes that appear across the literature are degrees of freedom added to this primitive:</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Variant</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Inputs</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Outputs</th>
+            <th class="text-left py-2 text-gray-400">What it adds</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Unary diff</td>
+            <td class="pr-3 text-gray-400">One before, one after</td>
+            <td class="pr-3 text-gray-400">Figure + ground</td>
+            <td class="text-gray-400">The primitive. This chapter.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Bi-abduction</td>
+            <td class="pr-3 text-gray-400">Partial before, partial after</td>
+            <td class="pr-3 text-gray-400">Inferred frame + inferred anti-frame</td>
+            <td class="text-gray-400">Infers the ground autonomously. Ch 5.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Incorrectness</td>
+            <td class="pr-3 text-gray-400">One before, one after</td>
+            <td class="pr-3 text-gray-400">Under-approximation of bugs</td>
+            <td class="text-gray-400">Flip polarity: attend to failure, not success.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Tri-abduction</td>
+            <td class="pr-3 text-gray-400">Fork: shared start, two branches</td>
+            <td class="pr-3 text-gray-400">Causal edge (what the branch changed)</td>
+            <td class="text-gray-400">Diff across branches, not just time. Ch 6.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Each step adds an operand. One snapshot pair gives one frame. Two pairs (actual and counterfactual) give one causal edge. N pairs across N branches give a typed subgraph. The pattern stays diff; the arity grows.</p>
+
+    <h2>Three witnesses</h2>
+
+    <p>Three systems, three decades, three fields. Each encodes the diff. They are usually not presented as instances of one operation.</p>
+
+    <h3>OBD-II (1996) &mdash; hardcoded diff</h3>
+
+    <p><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II">OBD-II</a> reads sensor states, diffs against expected values, and generates fault codes. The mechanic's intuition, mechanized. OBD-II-compliant vehicles have run a version of this since 1996.</p>
+
+    <p>But OBD-II is hardcoded. The fault tree is hand-authored, the hypotheses enumerated in advance. An engineer at a desk decided which sensor deviations map to which fault codes. If a failure mode wasn't anticipated, no code fires. The primitive works; it just runs on a fixed table.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# OBD-II style: hardcoded fault table
+FAULT_TABLE = &#123;
+    "alternator_voltage": &#123;
+        "low":  ["P0562 - System Voltage Low",
+                 "Check battery", "Check voltage regulator"],
+        "high": ["P0563 - System Voltage High",
+                 "Check voltage regulator", "Check wiring"],
+    &#125;,
+    "coolant_temp": &#123;
+        "high": ["P0217 - Engine Overtemp",
+                 "Check thermostat", "Check coolant level"],
+    &#125;,
+&#125;
+
+def obd_diff(expected: dict, observed: dict) -&gt; list[str]:
+    """Hardcoded diff: look up deviations in the fault table."""
+    codes = []
+    for sensor, exp_val in expected.items():
+        obs_val = observed.get(sensor)
+        if obs_val != exp_val and sensor in FAULT_TABLE:
+            if obs_val in FAULT_TABLE[sensor]:
+                codes.extend(FAULT_TABLE[sensor][obs_val])
+    return codes
+
+expected = &#123;"alternator_voltage": "normal", "coolant_temp": "normal"&#125;
+observed = &#123;"alternator_voltage": "low",    "coolant_temp": "normal"&#125;
+
+for code in obd_diff(expected, observed):
+    print(code)
+
+# Output:
+# P0562 - System Voltage Low
+# Check battery
+# Check voltage regulator`} /></pre>
+
+    <p>The limitation is the table. Every hypothesis must be written down before the system ships. No table entry, no hypothesis. The diff is there; the inference is manual.</p>
+
+    <h3>Facebook Infer (2009) &mdash; automated diff</h3>
+
+    <p><a href="https://fbinfer.com/">Infer</a> (<a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009</a>) runs bi-abduction on millions of lines of code in production. Given a function's precondition and postcondition, Infer infers the <em>frame</em> &mdash; the heap region the function didn't touch &mdash; and the <em>anti-frame</em> &mdash; the heap region that must exist for the function to be safe.</p>
+
+    <p>The diff is between precondition and postcondition. The figure is what the function modifies. The ground is what it leaves alone. But Infer doesn't require the programmer to specify the ground. It infers it. That's the &ldquo;bi&rdquo; &mdash; abduction in both directions, computing both what must hold before and what the function preserves.</p>
+
+    <p>Infer moved the diff from a hand-authored table (OBD-II) to an automated inference engine. The primitive is the same. The degree of automation jumped.</p>
+
+    <h3>IRM (2019) &mdash; learned diff</h3>
+
+    <p><a href="https://arxiv.org/abs/1907.02893">Invariant Risk Minimization</a> (Arjovsky et al. 2019) uses environment variation as the lever to force figure/ground separation. Train a model across multiple environments. Features that predict the outcome in all environments are invariant &mdash; ground. Features that predict in some environments but not others are spurious &mdash; figure.</p>
+
+    <p>IRM performs the diff across environments rather than across time. The before/after pair is replaced by environment A / environment B. The structural role is analogous: partition state into what changed and what held. But instead of comparing two snapshots of one system, IRM compares the same learning task under different conditions. The invariant features are the ground; the environment-specific features are the figure.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">System</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Year</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Diff over</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Figure</th>
+            <th class="text-left py-2 text-gray-400">Ground</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">OBD-II</td>
+            <td class="pr-3 text-gray-400">1996</td>
+            <td class="pr-3 text-gray-400">Expected vs. observed sensor values</td>
+            <td class="pr-3 text-gray-400">Fault codes (hand-authored)</td>
+            <td class="text-gray-400">Normal operating range (hand-authored)</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Infer</td>
+            <td class="pr-3 text-gray-400">2009</td>
+            <td class="pr-3 text-gray-400">Precondition vs. postcondition</td>
+            <td class="pr-3 text-gray-400">Modified heap (automated)</td>
+            <td class="text-gray-400">Frame: untouched heap (inferred)</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">IRM</td>
+            <td class="pr-3 text-gray-400">2019</td>
+            <td class="pr-3 text-gray-400">Environment A vs. environment B</td>
+            <td class="pr-3 text-gray-400">Spurious features (learned)</td>
+            <td class="text-gray-400">Invariant features (learned)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Three fields, three encodings. The representation evolves from handcoded table (OBD-II) to automated inference (Infer) to learned separation (IRM). IRM is the loosest analogue — it seeks invariant representations rather than literally diffing states — but the structural role is the same: partition observations into signal and noise.</p>
+
+    <h2>Code: the full loop</h2>
+
+    <p>Combine the primitive with hypothesis generation. Given a diff, produce candidate explanations by examining what the figure touches in a dependency graph.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`from dataclasses import dataclass
+
+@dataclass
+class Hypothesis:
+    component: str
+    reason: str
+    testable: bool = True
+
+def diff(before: dict, after: dict) -&gt; tuple[dict, dict]:
+    """Partition state into figure (changed) and ground (held)."""
+    all_keys = set(before) | set(after)
+    figure, ground = &#123;&#125;, &#123;&#125;
+    for key in all_keys:
+        b, a = before.get(key), after.get(key)
+        if b == a:
+            ground[key] = a
+        else:
+            figure[key] = (b, a)
+    return figure, ground
+
+def abduct(figure: dict, dependencies: dict) -&gt; list[Hypothesis]:
+    """Generate hypotheses from the diff.
+
+    dependencies: maps each state variable to components
+    that could cause it to change.
+    """
+    candidates = []
+    seen = set()
+    for key in figure:
+        for component in dependencies.get(key, []):
+            if component not in seen:
+                seen.add(component)
+                was, now = figure[key]
+                candidates.append(Hypothesis(
+                    component=component,
+                    reason=f"&#123;key&#125; changed (&#123;was&#125; -> &#123;now&#125;)",
+                ))
+    return candidates
+
+
+# --- The mechanic scenario ---
+
+before = &#123;
+    "engine": "running", "alternator": "untouched",
+    "battery": "12.6V", "fuel_pump": "on",
+    "spark": "firing",  "coolant": "92C",
+&#125;
+
+after = &#123;
+    "engine": "stalled", "alternator": "tapped",
+    "battery": "12.6V",  "fuel_pump": "on",
+    "spark": "firing",   "coolant": "92C",
+&#125;
+
+# Which components can cause each state variable to change?
+dependencies = &#123;
+    "engine":     ["battery", "voltage_regulator", "ECU"],
+    "alternator": ["alternator_belt", "alternator_bearing"],
+    "battery":    ["alternator", "parasitic_drain"],
+    "fuel_pump":  ["fuel_relay", "fuel_filter"],
+    "spark":      ["ignition_coil", "spark_plug"],
+    "coolant":    ["thermostat", "water_pump"],
+&#125;
+
+figure, ground = diff(before, after)
+hypotheses = abduct(figure, dependencies)
+
+print("Diff result:")
+print(f"  Figure: &#123;list(figure.keys())&#125;")
+print(f"  Ground: &#123;list(ground.keys())&#125;")
+print(f"\\n&#123;len(hypotheses)&#125; hypotheses generated:")
+for h in hypotheses:
+    print(f"  [{h.component}] &#123;h.reason&#125;")
+
+# Output:
+# Diff result:
+#   Figure: ['engine', 'alternator']
+#   Ground: ['battery', 'fuel_pump', 'spark', 'coolant']
+#
+# 5 hypotheses generated:
+#   [battery] engine changed (running -> stalled)
+#   [voltage_regulator] engine changed (running -> stalled)
+#   [ECU] engine changed (running -> stalled)
+#   [alternator_belt] alternator changed (untouched -> tapped)
+#   [alternator_bearing] alternator changed (untouched -> tapped)`} /></pre>
+
+    <p>Five hypotheses from a two-variable diff. The dependency graph constrains which components are candidates. The ground &mdash; fuel pump, spark, coolant &mdash; eliminates their upstream components from consideration. Battery, voltage regulator, ECU, alternator belt, alternator bearing. Those are the five things to check.</p>
+
+    <p>Notice what the code does <em>not</em> do: it does not test the hypotheses. It does not rank them. It does not estimate their probability. It generates them. The diff is a hypothesis-generation primitive, not a testing primitive. Testing is induction. Ranking is economy of research (ch 7). The diff is the first step: name the candidates.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>What breaks</h2>
+
+    <p>The diff requires you to know what to observe. Every variable in the before-state and after-state was chosen by someone &mdash; the mechanic who checked six gauges, the engineer who wired six sensors, the programmer who logged six fields. If the relevant state lives in a variable nobody snapshotted, the diff misses it.</p>
+
+    <p>Return to the mechanic. She checked engine state, alternator, battery voltage, fuel pump, spark, and coolant. She did not check the serpentine belt tension. If the real cause is a worn belt that slipped when she tapped the alternator, the diff cannot find it. The belt isn't in either snapshot. It is not in the figure, and it is not in the ground. It is absent.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# The variable that matters isn't in the snapshot.
+before = &#123;
+    "engine": "running", "alternator": "untouched",
+    "battery": "12.6V", "fuel_pump": "on",
+    "spark": "firing",  "coolant": "92C",
+    # "belt_tension": "4.2" — not measured!
+&#125;
+
+after = &#123;
+    "engine": "stalled", "alternator": "tapped",
+    "battery": "12.6V", "fuel_pump": "on",
+    "spark": "firing",  "coolant": "92C",
+    # "belt_tension": "1.1" — would have been figure, but we missed it
+&#125;
+
+figure, ground = diff(before, after)
+
+# The diff correctly reports what changed among observed variables.
+# But the real cause (belt_tension: 4.2 -> 1.1) is invisible.
+# The diff cannot find what it wasn't told to look at.
+print("Figure:", list(figure.keys()))
+print("Ground:", list(ground.keys()))
+print("Belt tension: not in snapshot. Hypothesis space is incomplete.")
+
+# Output:
+# Figure: ['engine', 'alternator']
+# Ground: ['battery', 'fuel_pump', 'spark', 'coolant']
+# Belt tension: not in snapshot. Hypothesis space is incomplete.`} /></pre>
+
+    <p>This is the structural limitation of the unary diff. It partitions observed state into figure and ground. It cannot reason about unobserved state. The hypothesis space is bounded by what you chose to measure.</p>
+
+    <p>OBD-II has this problem in concrete form: if a failure involves a sensor the ECU doesn't monitor, no code fires. The fault is real; the system is blind to it. Engineers work around this by adding more sensors. But you can never instrument everything. Some state will always be unmeasured.</p>
+
+    <p>Bi-abduction addresses this. Instead of requiring the programmer to specify the full state, bi-abduction infers the frame &mdash; the state the operation <em>must not have touched</em> for the result to be valid. It reasons backward from the postcondition to discover what must have been true before, including state that was never explicitly observed. The diff goes from "compare what you measured" to "infer what you must have missed."</p>
+
+    <p>That is Chapter 5.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Sources</h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Rubin 1915</td>
+            <td class="text-gray-400"><em>Synsoplevede Figurer</em>. Figure-ground segregation in visual perception. The partition into what pops out and what recedes &mdash; the perceptual ancestor of diff.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">SAE J1962 (1996)</td>
+            <td class="text-gray-400"><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II">OBD-II standard</a>. Standardizes diagnostic connector, protocol, and trouble code conventions for OBD-II-compliant vehicles. The diff, hardcoded since 1996.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Calcagno et al. 2009</td>
+            <td class="text-gray-400"><a href="https://dl.acm.org/doi/10.1145/1480881.1480917">"Compositional Shape Analysis by Means of Bi-Abduction."</a> <em>POPL</em>. The frame inference engine behind Facebook Infer. Automated figure/ground from separation logic.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Arjovsky et al. 2019</td>
+            <td class="text-gray-400"><a href="https://arxiv.org/abs/1907.02893">"Invariant Risk Minimization."</a> Environment variation as the lever for figure/ground separation. Learned diff across training conditions.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">O'Hearn 2019</td>
+            <td class="text-gray-400"><a href="https://dl.acm.org/doi/10.1145/3371078">"Incorrectness Logic."</a> <em>POPL</em>. Flip the polarity of the diff: under-approximate bugs instead of over-approximating correctness.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Ernst et al. 2001</td>
+            <td class="text-gray-400"><a href="https://dl.acm.org/doi/10.1145/302405.302467">"Dynamically Discovering Likely Program Invariants to Support Program Evolution."</a> Daikon: infer invariants (ground) from observed execution traces. More samples, sharper ground.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">Methodeutics</a></li>
+      <li><a href="/reading/methodeutics/ch02-security-uberty/">Ch 2: Security and Uberty</a> &mdash; the tradeoff that makes abduction fertile</li>
+      <li><a href="/reading/methodeutics/ch07-economy-of-research/">Ch 7: Economy of Research</a> &mdash; selecting among the hypotheses this chapter generates</li>
+      <li><a href="/abduction">Abduction</a> &mdash; the blog post this chapter formalizes</li>
+    </ul>
+
+    <p class="text-sm text-gray-500 mb-2 mt-4">External</p>
+    <ul>
+      <li><a href="https://fbinfer.com/">Facebook Infer</a> &mdash; bi-abduction in production</li>
+      <li><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II"><img src="/reading/wikipedia.svg" alt="wp" style="display:inline;height:1em;vertical-align:-0.1em;margin-right:0.2em;"/>OBD-II (Wikipedia)</a></li>
+      <li><a href="https://arxiv.org/abs/1907.02893">Arjovsky et al. 2019 &mdash; Invariant Risk Minimization (arXiv)</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

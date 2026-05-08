@@ -1,0 +1,293 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 7: Economy of Research — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Economy of Research</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 7 · Peirce 1879, Chamberlin 1890, Platt 1964, de Kleer 1987, Hintikka 1999</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">You have ten hypotheses and budget for three experiments. Which three? Chapters 4&ndash;6 formalized the abductive primitive &mdash; diff, bi-abduction, tri-abduction. The primitive generates hypotheses. This chapter selects among them.</p>
+    </div>
+
+    <p>Hypothesis generation is cheap. Testing is expensive. Every experiment costs time, compute, reagents, or attention. The abductive primitive can produce dozens of candidate explanations from a single surprising observation. Running all of them is rarely feasible. The question is which subset to test, in what order, and when to stop.</p>
+
+    <p>This problem has a 150-year history. Peirce formalized it first, in 1879. Chamberlin addressed the cognitive prerequisite in 1890. Platt operationalized it in 1964. De Kleer and Williams automated it in 1987. Hintikka gave it game-theoretic foundations in the 1990s. The modern machine-learning literature often develops similar criteria without foregrounding the abductive context.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Peirce: marginal return on research investment (1879)</h2>
+
+    <p>In "Note on the Theory of the Economy of Research," Peirce made the allocation problem explicit: given a fixed budget, how should you allocate it across experiments to maximize what you learn?</p>
+
+    <p>His answer used the language of marginal analysis. Each additional dollar spent on an experiment yields some increment of knowledge. That increment diminishes as you pour more resources into the same line of inquiry. The optimal allocation equalizes the marginal return per dollar across all active experiments. If experiment A yields more information per dollar than experiment B, shift budget from B to A until the marginals equalize.</p>
+
+    <p>Peirce derived a specific result: the optimal sample size for an experiment depends on the ratio of the utility of the information to the cost of each observation. High-utility, low-cost experiments should get large samples. Low-utility, high-cost experiments should get small samples or be skipped entirely. This is obvious in retrospect, but Peirce was among the first to formalize it.</p>
+
+    <blockquote>
+      <p>"The doctrine of economy, in general, treats of the relations between utility and cost. The economy of research is that particular application of it which gives the rules for the expenditure of money, energy, and time upon the different elements of an investigation."</p>
+      <p class="text-sm text-gray-500">&mdash; Peirce, "Note on the Theory of the Economy of Research" (1879)</p>
+    </blockquote>
+
+    <p>This predates Wald's sequential analysis (1947) by 68 years. Wald asked: given a stream of data, when should you stop collecting and make a decision? Peirce asked the prior question: given multiple possible experiments, which stream should you open? Wald's work became a field. Peirce's note received little attention until historians of science highlighted it in the 1960s.</p>
+
+    <h2>Chamberlin: breadth before depth (1890)</h2>
+
+    <p><a href="/reading/scientific-method/chamberlin-1890/">Chamberlin's "Method of Multiple Working Hypotheses"</a> addresses the cognitive prerequisite for economy of research. You cannot select optimally among hypotheses you haven't generated. And you will not generate hypotheses that compete with your favorite if you have a favorite.</p>
+
+    <p>Chamberlin's argument is structural, not statistical. A scientist who holds one ruling theory will unconsciously steer experiments toward confirmation. The data that fits is amplified; the data that doesn't is explained away. The remedy is to hold multiple hypotheses simultaneously, without ranking, and let the data sort the field.</p>
+
+    <p>For economy of research, Chamberlin supplies the input. Before you can ask "which experiment next?" you need a set of candidate hypotheses broad enough that the true explanation is likely among them. Chamberlin's method generates that set. Peirce's economy selects from it.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Step</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Who</th>
+            <th class="text-left py-2 text-gray-400">Contribution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Generate</td><td class="pr-3 text-gray-400">Abductive primitive (Ch 4&ndash;6)</td><td class="text-gray-400">Produce candidate hypotheses from the diff between expected and observed</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Diversify</td><td class="pr-3 text-gray-400">Chamberlin 1890</td><td class="text-gray-400">Hold all candidates without ranking; prevent premature convergence on a favorite</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Select</td><td class="pr-3 text-gray-400">Peirce 1879</td><td class="text-gray-400">Allocate budget to maximize information gain per unit cost</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Platt: strong inference as a selection protocol (1964)</h2>
+
+    <p><a href="/reading/scientific-method/platt-1964/">Platt</a> operationalized Chamberlin into a loop: enumerate alternative hypotheses, design a crucial experiment that excludes at least one, run it, repeat. His contribution to economy of research is the concept of the <em>crucial experiment</em> &mdash; an experiment whose outcome eliminates one or more hypotheses regardless of which way it goes.</p>
+
+    <p>Crucial experiments are maximally economical. A non-crucial experiment can confirm a hypothesis without eliminating any alternatives. It spends budget without shrinking the hypothesis space. A crucial experiment guarantees that the hypothesis space shrinks with every run. Platt observed that fields practicing strong inference &mdash; molecular biology, particle physics &mdash; moved faster than fields that didn't &mdash; psychology, ecology. The rate difference tracks the fraction of experiments that are crucial.</p>
+
+    <p>Platt's framework is qualitative. He tells you what a good experiment looks like (crucial) but not how to find the best one among several crucial alternatives. For that, you need de Kleer.</p>
+
+    <h2>De Kleer &amp; Williams: GDE and computed experiment selection (1987)</h2>
+
+    <p>The General Diagnostic Engine (GDE) was an influential early system that computed which measurement to take next from the structure of remaining hypotheses. The context was circuit diagnosis. A chip has a fault. Multiple components could be responsible. Each measurement (probing a node) has a cost and yields information about which components are healthy or faulty.</p>
+
+    <p>GDE maintains a set of <em>candidate diagnoses</em> &mdash; minimal sets of faulty components consistent with all observations so far. Given this set, it computes the information-theoretic value of each possible measurement: how much does probing node X reduce the entropy of the diagnosis distribution? It then selects the measurement with the highest information gain per unit cost.</p>
+
+    <p>The algorithm is straightforward:</p>
+
+    <ol class="list-decimal pl-5 mb-4">
+      <li class="mb-1">Enumerate remaining candidate diagnoses, each with a probability.</li>
+      <li class="mb-1">For each possible measurement, compute the expected posterior entropy over diagnoses.</li>
+      <li class="mb-1">Subtract from the current entropy to get expected information gain.</li>
+      <li class="mb-1">Divide by measurement cost. Select the measurement with the highest ratio.</li>
+    </ol>
+
+    <p>GDE connected Peirce's economy (marginal information per dollar) to Platt's crucial experiments (maximize elimination) to Shannon's information theory (entropy reduction). It did this for a specific domain &mdash; circuit diagnosis &mdash; but the architecture generalizes. Replace "circuit component" with "hypothesis" and "probe node" with "experiment" and you have the economy of research, automated.</p>
+
+    <h2>Hintikka: inquiry as a game (1988/1999)</h2>
+
+    <p>Jaakko Hintikka recast investigation as a two-player game between the Inquirer and Nature. The Inquirer asks questions (runs experiments). Nature answers (provides data). The Inquirer's strategy determines which question to ask next based on previous answers. The goal is to reach a definite conclusion with minimum total cost.</p>
+
+    <p>Hintikka's interrogative model connects directly to Peirce's abduction. Each question the Inquirer poses is an abductive act: "If hypothesis H were true, what would I observe at measurement point X?" The answer either supports H or eliminates it. The Inquirer's optimal strategy is the economy of research expressed as a game tree.</p>
+
+    <p>The game-theoretic framing adds something the information-theoretic framing misses: the next question depends on previous answers. GDE recomputes from scratch after each measurement. Hintikka's model encodes the dependency structure. The Inquirer's strategy is not a ranking of experiments but a policy &mdash; a function from the history of observations to the next question. This is the difference between a sorted list and a decision tree.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Framework</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Selection criterion</th>
+            <th class="text-left py-2 pr-3 text-gray-400">What it adds</th>
+            <th class="text-left py-2 text-gray-400">Limitation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Peirce 1879</td><td class="pr-3 text-gray-400">Marginal utility / cost</td><td class="pr-3 text-gray-400">Budget allocation across experiments</td><td class="text-gray-400">No formal measure of "utility of information"</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Chamberlin 1890</td><td class="pr-3 text-gray-400">Breadth of hypothesis set</td><td class="pr-3 text-gray-400">Cognitive debiasing; improves coverage and reduces fixation</td><td class="text-gray-400">No selection criterion; all hypotheses held equally</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Platt 1964</td><td class="pr-3 text-gray-400">Crucial experiment (must eliminate &ge;1)</td><td class="pr-3 text-gray-400">Guarantees hypothesis space shrinks each round</td><td class="text-gray-400">Qualitative; no ranking among crucial experiments</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">GDE 1987</td><td class="pr-3 text-gray-400">Max entropy reduction / cost</td><td class="pr-3 text-gray-400">Computable, information-theoretic, automated</td><td class="text-gray-400">Myopic (one step lookahead); no sequential dependency</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Hintikka 1999</td><td class="pr-3 text-gray-400">Optimal game-tree strategy</td><td class="pr-3 text-gray-400">Sequential dependency; next question depends on previous answers</td><td class="text-gray-400">Computationally intractable for large hypothesis spaces</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Modern connections</h2>
+
+    <p>The machine learning literature has reinvented economy of research under several names, each formalizing "which experiment next?" without connecting back to Peirce or Hintikka.</p>
+
+    <p><strong>Active learning.</strong> Given a pool of unlabeled data, which point should an oracle label next? The standard criterion is uncertainty sampling or query-by-committee &mdash; select the point the model is most uncertain about. This is GDE's entropy-reduction criterion restricted to a single model class.</p>
+
+    <p><strong>Bayesian experimental design.</strong> Choose the experiment that maximizes the expected information gain about model parameters. Lindley (1956) formalized this; Chaloner and Verdinelli (1995) surveyed the field. The criterion is identical to GDE's but applied to continuous parameter spaces rather than discrete diagnostic candidates.</p>
+
+    <p><strong>Multi-armed bandits.</strong> Allocate trials across K arms to maximize cumulative reward (exploration-exploitation) or to identify the best arm (pure exploration). The pure-exploration variant is Peirce's economy of research: fixed budget, maximize what you learn. Thompson sampling, UCB, and successive elimination are all strategies for this problem.</p>
+
+    <p>None of these literatures cites Peirce 1879. None connects experiment selection back to abduction. The hypothesis that generated the candidate experiments is invisible in the formalism. This matters because the quality of the hypothesis set determines the ceiling of any selection strategy. GDE, active learning, and Bayesian design all assume the hypothesis set is given. Abduction is where it comes from.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Code: information gain per unit cost</h2>
+
+    <p>Given N hypotheses with prior probabilities and a set of possible experiments, each with a cost and a likelihood of each outcome under each hypothesis, compute which experiment maximally reduces uncertainty per dollar spent.</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code><span class="hl-keyword">import</span> math
+
+<span class="hl-keyword">def</span> <span class="hl-builtin">entropy</span>(probs):
+    <span class="hl-string">"""Shannon entropy of a probability distribution."""</span>
+    <span class="hl-keyword">return</span> -<span class="hl-builtin">sum</span>(p * math.log2(p) <span class="hl-keyword">for</span> p <span class="hl-keyword">in</span> probs <span class="hl-keyword">if</span> p > <span class="hl-number">0</span>)
+
+<span class="hl-keyword">def</span> <span class="hl-builtin">expected_posterior_entropy</span>(priors, likelihoods):
+    <span class="hl-string">"""Expected entropy after running an experiment.
+
+    likelihoods[i][k] = P(outcome_k | hypothesis_i)
+    """</span>
+    n_hypotheses = <span class="hl-builtin">len</span>(priors)
+    n_outcomes = <span class="hl-builtin">len</span>(likelihoods[<span class="hl-number">0</span>])
+
+    <span class="hl-comment"># P(outcome_k) = sum_i P(outcome_k | H_i) * P(H_i)</span>
+    p_outcomes = []
+    <span class="hl-keyword">for</span> k <span class="hl-keyword">in</span> <span class="hl-builtin">range</span>(n_outcomes):
+        p_k = <span class="hl-builtin">sum</span>(likelihoods[i][k] * priors[i] <span class="hl-keyword">for</span> i <span class="hl-keyword">in</span> <span class="hl-builtin">range</span>(n_hypotheses))
+        p_outcomes.append(p_k)
+
+    <span class="hl-comment"># For each outcome, compute posterior entropy</span>
+    expected_H = <span class="hl-number">0.0</span>
+    <span class="hl-keyword">for</span> k <span class="hl-keyword">in</span> <span class="hl-builtin">range</span>(n_outcomes):
+        <span class="hl-keyword">if</span> p_outcomes[k] == <span class="hl-number">0</span>:
+            <span class="hl-keyword">continue</span>
+        <span class="hl-comment"># Posterior: P(H_i | outcome_k) = P(outcome_k | H_i) * P(H_i) / P(outcome_k)</span>
+        posterior = [
+            likelihoods[i][k] * priors[i] / p_outcomes[k]
+            <span class="hl-keyword">for</span> i <span class="hl-keyword">in</span> <span class="hl-builtin">range</span>(n_hypotheses)
+        ]
+        expected_H += p_outcomes[k] * entropy(posterior)
+
+    <span class="hl-keyword">return</span> expected_H
+
+<span class="hl-keyword">def</span> <span class="hl-builtin">select_experiment</span>(priors, experiments):
+    <span class="hl-string">"""Select the experiment with highest information gain per unit cost.
+
+    experiments: list of (name, cost, likelihoods) tuples
+    Returns sorted ranking.
+    """</span>
+    current_H = entropy(priors)
+    results = []
+
+    <span class="hl-keyword">for</span> name, cost, likelihoods <span class="hl-keyword">in</span> experiments:
+        post_H = expected_posterior_entropy(priors, likelihoods)
+        info_gain = current_H - post_H
+        ratio = info_gain / cost
+        results.append((name, info_gain, cost, ratio))
+
+    results.sort(key=<span class="hl-keyword">lambda</span> x: x[<span class="hl-number">3</span>], reverse=<span class="hl-bool">True</span>)
+    <span class="hl-keyword">return</span> results
+
+
+<span class="hl-comment"># --- Example: 4 hypotheses, 3 possible experiments ---</span>
+
+priors = [<span class="hl-number">0.50</span>, <span class="hl-number">0.25</span>, <span class="hl-number">0.15</span>, <span class="hl-number">0.10</span>]
+
+experiments = [
+    <span class="hl-comment"># (name, cost, likelihoods[hypothesis][outcome])</span>
+    <span class="hl-comment"># Experiment A: cheap but only discriminates H1 vs rest</span>
+    (<span class="hl-string">"A: probe signal line"</span>, <span class="hl-number">1.0</span>, [
+        [<span class="hl-number">0.9</span>, <span class="hl-number">0.1</span>],   <span class="hl-comment"># H1: 90% positive</span>
+        [<span class="hl-number">0.2</span>, <span class="hl-number">0.8</span>],   <span class="hl-comment"># H2: 20% positive</span>
+        [<span class="hl-number">0.3</span>, <span class="hl-number">0.7</span>],   <span class="hl-comment"># H3: 30% positive</span>
+        [<span class="hl-number">0.25</span>, <span class="hl-number">0.75</span>],  <span class="hl-comment"># H4: 25% positive</span>
+    ]),
+    <span class="hl-comment"># Experiment B: expensive but discriminates all four</span>
+    (<span class="hl-string">"B: full spectrum analysis"</span>, <span class="hl-number">5.0</span>, [
+        [<span class="hl-number">0.8</span>, <span class="hl-number">0.1</span>, <span class="hl-number">0.1</span>],  <span class="hl-comment"># H1</span>
+        [<span class="hl-number">0.1</span>, <span class="hl-number">0.8</span>, <span class="hl-number">0.1</span>],  <span class="hl-comment"># H2</span>
+        [<span class="hl-number">0.1</span>, <span class="hl-number">0.1</span>, <span class="hl-number">0.8</span>],  <span class="hl-comment"># H3</span>
+        [<span class="hl-number">0.05</span>, <span class="hl-number">0.05</span>, <span class="hl-number">0.9</span>], <span class="hl-comment"># H4</span>
+    ]),
+    <span class="hl-comment"># Experiment C: moderate cost, sharp on H2 vs H3</span>
+    (<span class="hl-string">"C: thermal imaging"</span>, <span class="hl-number">2.0</span>, [
+        [<span class="hl-number">0.5</span>, <span class="hl-number">0.5</span>],   <span class="hl-comment"># H1: uninformative</span>
+        [<span class="hl-number">0.95</span>, <span class="hl-number">0.05</span>], <span class="hl-comment"># H2: hot</span>
+        [<span class="hl-number">0.05</span>, <span class="hl-number">0.95</span>], <span class="hl-comment"># H3: cold</span>
+        [<span class="hl-number">0.5</span>, <span class="hl-number">0.5</span>],   <span class="hl-comment"># H4: uninformative</span>
+    ]),
+]
+
+<span class="hl-builtin">print</span>(<span class="hl-string">f"Prior entropy: &#123;entropy(priors):.3f&#125; bits\n"</span>)
+<span class="hl-builtin">print</span>(<span class="hl-string">f"&#123;'Experiment':&lt;30&#125; &#123;'IG (bits)':&gt;10&#125; &#123;'Cost':&gt;6&#125; &#123;'IG/Cost':&gt;10&#125;"</span>)
+<span class="hl-builtin">print</span>(<span class="hl-string">"─"</span> * <span class="hl-number">60</span>)
+
+<span class="hl-keyword">for</span> name, ig, cost, ratio <span class="hl-keyword">in</span> select_experiment(priors, experiments):
+    <span class="hl-builtin">print</span>(<span class="hl-string">f"&#123;name:&lt;30&#125; &#123;ig:&gt;10.3f&#125; &#123;cost:&gt;6.1f&#125; &#123;ratio:&gt;10.3f&#125;"</span>)</code></pre>
+
+    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>Prior entropy: 1.749 bits
+
+Experiment                         IG (bits)   Cost    IG/Cost
+────────────────────────────────────────────────────────────────
+A: probe signal line                   0.386    1.0      0.386
+C: thermal imaging                     0.319    2.0      0.160
+B: full spectrum analysis              0.706    5.0      0.141</code></pre>
+
+    <p>Experiment B has the highest absolute information gain (0.706 bits). A naive strategy that tests "the most informative experiment first" would pick B. But B costs five times as much as A. Per unit cost, A delivers 2.7x more information than B. The economy of research says: run A first.</p>
+
+    <p>After running A and updating posteriors, the ranking may change. If A's outcome concentrates probability on H2 and H3, experiment C &mdash; which sharply discriminates between exactly those two &mdash; jumps to the top. The optimal sequence is adaptive. This is Hintikka's point: the next question depends on the previous answer.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The ordering matters</h2>
+
+    <p>Three natural strategies for experiment selection. Each gives a different order.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Strategy</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Order</th>
+            <th class="text-left py-2 text-gray-400">Problem</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Test most likely first</td><td class="pr-3 text-gray-400">H1, H2, H3, H4</td><td class="text-gray-400">Confirms the favorite without eliminating alternatives; Chamberlin's failure mode</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Max information gain</td><td class="pr-3 text-gray-400">B, A, C</td><td class="text-gray-400">Ignores cost; burns budget on expensive experiments when cheap ones suffice</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Max information gain / cost</td><td class="pr-3 text-gray-400">A, C, B</td><td class="text-gray-400">Myopic; does not account for how the first result changes the value of later experiments</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The third strategy is the best single-step heuristic. GDE uses it. But it is still myopic &mdash; it optimizes one step ahead without considering the trajectory. Hintikka's game tree optimizes the full sequence, but computing the optimal policy is exponential in the number of experiments. In practice, GDE's greedy approach works well because under independence and uniform costs, information gain is submodular and greedy selection is within a constant factor of optimal. In practice, correlated outcomes and variable costs weaken this guarantee, but the greedy approach remains a strong heuristic.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>What this chapter does not solve</h2>
+
+    <p>Economy of research selects which experiment to run. It does not tell you what to do with the evidence once it arrives. After running experiment A and observing the outcome, you update your beliefs. But how do you know the update is accumulating toward a conclusion rather than oscillating between hypotheses?</p>
+
+    <p>A sequence of experiments might produce: evidence for H1, then against H1, then for H1 again. The posterior oscillates. Are you converging or are you chasing noise? The economy of research has no answer. It selects the next experiment but cannot read the trajectory of evidence across experiments.</p>
+
+    <p>That gap &mdash; the inability to classify whether evidence is accumulating, oscillating, or diverging &mdash; is what motivates Chapter 8. Evidence has a trajectory, and you need tools to read its shape.</p>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">🔭 Methodeutics</a></li>
+      <li><a href="/reading/scientific-method/chamberlin-1890/">🔬 Chamberlin 1890</a> &mdash; multiple working hypotheses: the cognitive prerequisite</li>
+      <li><a href="/reading/scientific-method/platt-1964/">🔬 Platt 1964</a> &mdash; strong inference: the elimination loop</li>
+      <li><a href="/reading/scientific-method/peirce-1878/">🔬 Peirce 1878</a> &mdash; abduction and pragmatism</li>
+      <li><a href="/evidence-has-a-trajectory">Ch 8: Evidence has a trajectory</a> &mdash; what happens after you select the experiment</li>
+    </ul>
+
+    <p class="text-sm text-gray-500 mb-2 mt-4">External</p>
+    <ul>
+      <li><a href="https://www.jstor.org/stable/25138602">Peirce 1879, "Note on the Theory of the Economy of Research" (JSTOR)</a></li>
+      <li><a href="https://doi.org/10.1016/0004-3702(87)90063-4">de Kleer &amp; Williams 1987, "Diagnosing Multiple Faults" (Artificial Intelligence)</a></li>
+      <li><a href="https://doi.org/10.1126/science.146.3642.347">Platt 1964, "Strong Inference" (Science)</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Jaakko_Hintikka"><img src="/reading/wikipedia.svg" alt="wp" style="display:inline;height:1em;vertical-align:-0.1em;margin-right:0.2em;"/>Jaakko Hintikka (Wikipedia)</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

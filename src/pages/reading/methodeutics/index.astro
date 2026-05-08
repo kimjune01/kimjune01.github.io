@@ -1,0 +1,301 @@
+---
+import Layout from '../../../layouts/Base.astro';
+import Neighbors from "../../../components/Neighbors.astro";
+---
+
+<Layout title="Methodeutics" favicon="🔭">
+  <main>
+
+    <a href="/reading/" class="text-sm mb-4 inline-block">&larr; back to reading</a>
+
+    <h1>🔭 Methodeutics</h1>
+
+    <p class="text-lg text-gray-300 mb-6">The logic of inquiry. Statistics formalizes induction — how to generalize from observations. Methodeutics formalizes abduction — how to generate the next question. Peirce named both the mode (1878) and the field (1902). Nobody wrote the textbook.</p>
+
+    <h2>The gap</h2>
+
+    <p>Three modes of reasoning, two formalized:</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Mode</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Edge</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Field</th>
+            <th class="text-left py-2 text-gray-400">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Deduction</td><td class="pr-3 text-gray-400">Theory → Experiment</td><td class="pr-3 text-gray-400">Logic, mathematics</td><td class="text-gray-400">Formalized (Aristotle → Frege → Gödel)</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Induction</td><td class="pr-3 text-gray-400">Experiment → Observation</td><td class="pr-3 text-gray-400"><a href="/reading/statistics/">Statistics</a></td><td class="text-gray-400">Formalized (Fisher → Neyman → Ramdas)</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Abduction</td><td class="pr-3 text-gray-400">Observation → Theory</td><td class="pr-3 text-gray-400">Methodeutics</td><td class="text-yellow-400">Named but unfilled</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Everyone does abduction. Doctors call it diagnosis. Engineers call it debugging. Detectives call it deduction (wrong, but Doyle didn't read Peirce). Nobody teaches it as a method because nobody has written down how it works. The pieces exist — scattered across philosophy, cognitive science, program analysis, causal inference, and sequential testing — but no textbook connects them.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Arc</h2>
+
+    <p>The textbook builds in four parts. Each part answers one question with increasing precision.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Part</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Question</th>
+            <th class="text-left py-2 text-gray-400">Chapters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">I. The trichotomy</td>
+            <td class="pr-3 text-gray-400">What are the three modes and why is one missing?</td>
+            <td class="text-gray-400">1–3</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">II. The primitive</td>
+            <td class="pr-3 text-gray-400">What is the operation, formally?</td>
+            <td class="text-gray-400">4–7</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">III. The evidence</td>
+            <td class="pr-3 text-gray-400">How does evidence reshape the hypothesis graph?</td>
+            <td class="text-gray-400">8–11</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">IV. The machine</td>
+            <td class="pr-3 text-gray-400">Can it run without a human?</td>
+            <td class="text-gray-400">12–15</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The central chain</h2>
+
+    <ol class="text-gray-300 text-sm space-y-1 mb-6">
+      <li>Abduction starts from <strong>surprise</strong> — a diff between expectation and observation.</li>
+      <li>The diff generates minimal <strong>repairs</strong> to the background frame or candidate causes.</li>
+      <li>Multiple repairs form a <strong>hypothesis graph</strong>.</li>
+      <li><strong>Economy</strong> chooses which edge to test next.</li>
+      <li>Evidence <strong>trajectories</strong> update the graph.</li>
+      <li><strong>Kill conditions</strong> generate new edges from failures.</li>
+      <li><strong>Convergence</strong> licenses action.</li>
+      <li>Automation requires <strong>protecting</strong> the loop from self-confirmation.</li>
+    </ol>
+
+    <h2>Chapters</h2>
+
+    <p class="text-gray-400 mb-4 text-sm">Each chapter opens with a system that breaks under the previous chapter's tools. The breakage motivates the new concept. The textbook's structure embodies the method it teaches: the shape of the failure names the next chapter.</p>
+
+    <h3 class="text-gray-400 text-sm uppercase tracking-wider mt-6 mb-3">Part I: The trichotomy</h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">#</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Chapter</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Opens with</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Breaks because</th>
+            <th class="text-left py-2 text-gray-400">Draft</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">1</td>
+            <td class="pr-3 text-gray-300">Three modes</td>
+            <td class="pr-3 text-gray-400">Holmes and the dog that didn't bark. Doyle called it deduction. It isn't.</td>
+            <td class="pr-3 text-gray-400">We can name the mode but not measure it.</td>
+            <td class="text-gray-400"><a href="/modes-of-reason" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">2</td>
+            <td class="pr-3 text-gray-300">Security and uberty</td>
+            <td class="pr-3 text-gray-400">Popper says discovery has no logic. Peirce says it does — but admits it's insecure.</td>
+            <td class="pr-3 text-gray-400">We can rank modes by fertility and certainty but can't formalize the operation.</td>
+            <td class="text-gray-400"><a href="/reading/methodeutics/ch02-security-uberty/" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">3</td>
+            <td class="pr-3 text-gray-300">Eight names, one operation</td>
+            <td class="pr-3 text-gray-400">Bi-abduction, figure-ground, equilibration, intervention — six fields, zero cross-citation.</td>
+            <td class="pr-3 text-gray-400">Everyone does it. Nobody agrees what "it" is. Need a primitive.</td>
+            <td class="text-gray-400"><a href="/reading/methodeutics/ch03-eight-names/" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-gray-500 text-xs mt-2 mb-1">Sources: <a href="/reading/scientific-method/peirce-1878/">Peirce 1878</a>, Peirce 1903/1913, <a href="/reading/scientific-method/popper-1934/">Popper 1934</a>, Hanson 1958, Harman 1965, <a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno 2009</a>, <a href="https://en.wikipedia.org/wiki/Principles_of_Gestalt_Psychology">Koffka 1935</a>, <a href="https://en.wikipedia.org/wiki/Equilibration">Piaget 1975</a>, <a href="https://www.cambridge.org/core/books/causality/B0046844FAE10CBF274D4ACBDAEB5F5B">Pearl 2009</a></p>
+
+    <h3 class="text-gray-400 text-sm uppercase tracking-wider mt-6 mb-3">Part II: The primitive</h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">4</td>
+            <td class="pr-3 text-gray-300">Diff</td>
+            <td class="pr-3 text-gray-400">A mechanic taps the alternator. The engine stalls. Two hypotheses fire. Where did they come from?</td>
+            <td class="pr-3 text-gray-400">The diff works at two samples but can't infer what it doesn't see.</td>
+            <td class="text-gray-400"><a href="/reading/methodeutics/ch04-diff/" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">5</td>
+            <td class="pr-3 text-gray-300">Bi-abduction</td>
+            <td class="pr-3 text-gray-400">Facebook runs Infer on millions of lines. It infers the frame — what the diff <em>didn't</em> touch — automatically.</td>
+            <td class="pr-3 text-gray-400">Bi-abduction is one path. What if execution branches?</td>
+            <td class="text-gray-400"><a href="/abduction" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">6</td>
+            <td class="pr-3 text-gray-300">Tri-abduction</td>
+            <td class="pr-3 text-gray-400">The program branches on a condition. Each branch changes different state. Bi-abduction can't handle the fork.</td>
+            <td class="pr-3 text-gray-400">We can formalize the operation at any arity, but which hypotheses are worth testing?</td>
+            <td class="text-gray-400"><a href="/abduction" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">7</td>
+            <td class="pr-3 text-gray-300">Economy of research</td>
+            <td class="pr-3 text-gray-400">You have ten hypotheses and budget for three experiments. Which three?</td>
+            <td class="pr-3 text-gray-400">Economy treats evidence as a payoff. In real inquiry, evidence arrives as a path — it can reverse, oscillate, stall, or bifurcate.</td>
+            <td class="text-gray-400"><a href="/reading/methodeutics/ch07-economy-of-research/" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-gray-500 text-xs mt-2 mb-1">Sources: Rubin 1915, <a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno 2009</a>, <a href="https://fbinfer.com/">Facebook Infer</a>, <a href="https://arxiv.org/abs/2305.04842">Zilberstein 2024</a>, Peirce 1879, <a href="/reading/scientific-method/chamberlin-1890/">Chamberlin 1890</a>, <a href="/reading/scientific-method/platt-1964/">Platt 1964</a>, de Kleer &amp; Williams 1987</p>
+
+    <h3 class="text-gray-400 text-sm uppercase tracking-wider mt-6 mb-3">Part III: The evidence</h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">8</td>
+            <td class="pr-3 text-gray-300">Evidence has a trajectory</td>
+            <td class="pr-3 text-gray-400">An A/B test says B is better. You ship. Six months later, B is worse. The snapshot lied.</td>
+            <td class="pr-3 text-gray-400">E-values preserve the trajectory, but the shape doesn't yet tell you which edges of the hypothesis graph to update.</td>
+            <td class="text-gray-400"><a href="/reading/methodeutics/ch08-evidence-trajectory/" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">9</td>
+            <td class="pr-3 text-gray-300">Four bins</td>
+            <td class="pr-3 text-gray-400">You have the trajectory. It oscillates. Is the system fighting itself, or is your measurement noisy?</td>
+            <td class="pr-3 text-gray-400">The bins classify shape but don't yet map to graph operations — which edges to split, freeze, or deepen.</td>
+            <td class="text-gray-400"><a href="/evidence-has-a-trajectory" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">10</td>
+            <td class="pr-3 text-gray-300">The hypothesis graph</td>
+            <td class="pr-3 text-gray-400">A monotone trend test fires but curvature is indeterminate. The failure mode is the next hypothesis.</td>
+            <td class="pr-3 text-gray-400">Each kill condition generates one edge. But do the edges converge?</td>
+            <td class="text-gray-400"><a href="/the-hypothesis-graph" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">11</td>
+            <td class="pr-3 text-gray-300">Convergence</td>
+            <td class="pr-3 text-gray-400">Five sensor streams, each individually undetectable. Composed e-values classify the forcing pattern at F1 = 0.996.</td>
+            <td class="pr-3 text-gray-400">The math composes. But a human can't run this loop at scale.</td>
+            <td class="text-gray-400"><a href="/the-hypothesis-graph" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-gray-500 text-xs mt-2 mb-1">Sources: de Finetti 1937, Ville 1939, Wald 1947, Robbins &amp; Darling 1967, Lai 1976, <a href="/reading/scientific-method/shafer-2021/">Shafer 2021</a>, <a href="/reading/scientific-method/ramdas-2023/">Ramdas 2023</a>, <a href="https://academic.oup.com/jrsssb/article/86/5/1091/7623686">Grünwald 2024</a>, <a href="https://global.oup.com/academic/product/the-logic-of-reliable-inquiry-9780195091953">Kelly 1996</a>, Milnor 1985, Strogatz 2014, Chernoff 1959</p>
+
+    <h3 class="text-gray-400 text-sm uppercase tracking-wider mt-6 mb-3">Part IV: The machine</h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">12</td>
+            <td class="pr-3 text-gray-300">Protecting the loop</td>
+            <td class="pr-3 text-gray-400">An agent runs the hypothesis graph and "confirms" every hypothesis. It abduced from the data and tested on the same data.</td>
+            <td class="pr-3 text-gray-400">The checklist catches self-deception but doesn't tell you how to validate claims structurally.</td>
+            <td class="text-gray-400"><a href="/the-prereg-checklist" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">13</td>
+            <td class="pr-3 text-gray-300">Validators</td>
+            <td class="pr-3 text-gray-400">Some claims need empirical validation, others structural, others proof, others counterexample. Four validator types, one interface.</td>
+            <td class="pr-3 text-gray-400">The manual maps failure modes to techniques. Missing: claim representation, validators, search policy, memory — the machinery to wire it together.</td>
+            <td class="text-gray-400"><a href="/the-proof-manual" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">14</td>
+            <td class="pr-3 text-gray-300">The pipeline</td>
+            <td class="pr-3 text-gray-400">Three witnesses — Infer, Voyager, IRM — each closing the loop in a different domain. None cite each other.</td>
+            <td class="pr-3 text-gray-400">The pipeline is assembled. Now prove it on a hard case.</td>
+            <td class="text-gray-400"><a href="/investigate" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">15</td>
+            <td class="pr-3 text-gray-300">Case study</td>
+            <td class="pr-3 text-gray-400">A system that searches without reasoning. It can perturb and observe but never asks why. Apply the full pipeline.</td>
+            <td class="pr-3 text-gray-400">—</td>
+            <td class="text-gray-400"><a href="/reading/methodeutics/ch15-case-study/" class="text-yellow-300 hover:text-yellow-200">✓</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-gray-500 text-xs mt-2 mb-1">Sources: <a href="/reading/scientific-method/">22-source prereg checklist</a>, Schoenfeld 1985, Lakatos 1976, <a href="https://fbinfer.com/">Infer</a>, <a href="https://arxiv.org/abs/2305.16291">Voyager</a>, <a href="https://arxiv.org/abs/1907.02893">IRM</a>, Reiter 1987, Josephson 1994, <a href="https://global.oup.com/academic/product/the-logic-of-reliable-inquiry-9780195091953">Kelly 1996</a></p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Peirce's vocabulary</h2>
+
+    <p>Terms coined or repurposed by <a href="/reading/scientific-method/peirce-1878/">Charles Sanders Peirce</a> (1839–1914) that are load-bearing in this textbook.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Term</th>
+            <th class="text-left py-2 text-gray-400">Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Abduction</td><td class="text-gray-400">Inference from a surprising fact to an explanatory hypothesis. The only mode that introduces new ideas.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Retroduction</td><td class="text-gray-400">Synonym. Leading backward — from effect to cause.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Methodeutic</td><td class="text-gray-400">The third branch of logic: the study of methods of inquiry. (After speculative grammar and critical logic.)</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Uberty</td><td class="text-gray-400">The productive richness of a reasoning mode. Abduction: highest. Deduction: lowest. From Latin <em>ubertas</em> (fruitfulness).</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Security</td><td class="text-gray-400">The certainty of a reasoning mode. Inverse of uberty. Deduction: highest. Abduction: lowest.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Economy of research</td><td class="text-gray-400">Hypothesis selection guided by cost-benefit: which experiment gives the most information per dollar?</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Musement</td><td class="text-gray-400">Free, purposeless contemplation — "antipodal to vacancy and dreaminess." The pre-logical state from which abductive hypotheses emerge.</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Pragmaticism</td><td class="text-gray-400">The meaning of a concept is its conceivable practical effects. Renamed from pragmatism — "ugly enough to be safe from kidnappers."</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Status</h2>
+
+    <p>All 15 chapters have first drafts. Under revision.</p>
+
+    <Neighbors>
+
+    <ul class="neighbors">
+      <li><a href="/reading/scientific-method/">🔬 Scientific Method</a></li>
+      <li><a href="/reading/statistics/">📊 Statistics</a></li>
+      <li><a href="/reading/probability/">🎰 Probability</a></li>
+      <li><a href="/reading/cognitive-architecture/">🏛️ Cognitive Architectures</a></li>
+      <li><a href="/reading/logic/">🔑 Logic</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

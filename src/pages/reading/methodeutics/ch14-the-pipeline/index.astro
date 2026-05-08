@@ -1,0 +1,352 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 14: The Pipeline — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>The Pipeline</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 14 &middot; Calcagno et al. 2009, Wang et al. 2023, Arjovsky et al. 2019</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">Chapter 12 protected the loop from self-deception. Chapter 13 gave escalation rules for validating claims. Now: wire every tool from the textbook into an autonomous pipeline. Five stations, one outer loop, and a contract that makes the stations compose.</p>
+    </div>
+
+    <h2>Three witnesses</h2>
+
+    <p>Three systems close the abduction loop in production. They come from different fields, solve different problems, and share zero citations. The convergence is the evidence.</p>
+
+    <h3>Facebook Infer (Calcagno et al. 2009)</h3>
+
+    <p>Infer takes a code diff and produces bug reports. The pipeline is: observe the change (diff, Ch 4), infer the anti-frame and frame (bi-abduction, Ch 5), compose contracts across call boundaries, report where the inferred precondition conflicts with the calling context. The observation is formal (a code diff). The goal is formal (memory safety). The hypothesis is formal (the anti-frame). Every component is mechanized. No human intervenes between input and output.</p>
+
+    <p>Infer runs on every diff submitted to the Facebook codebase. Millions of lines, every day. The abduction primitive &mdash; "what must have been true for this function to succeed?" &mdash; executes at industrial scale because the decomposition is compositional (Ch 5): each function is analyzed once, in isolation, and the results compose linearly.</p>
+
+    <h3>Voyager (Wang et al. 2023)</h3>
+
+    <p>Voyager is a Minecraft agent. It observes failure (a task it cannot complete), proposes a fix (a new skill program), self-verifies (executes and checks the postcondition), and commits the result to a skill library. The loop is: observe &rarr; hypothesize &rarr; test &rarr; commit. It produced 180 verified skills without human intervention.</p>
+
+    <p>The structure maps onto the textbook. Observation: the agent fails to craft an item. Diff (Ch 4): the gap between the current skill library and the task requirement. Hypothesis: a new code snippet that fills the gap. Test: execute in the environment. Kill condition (Ch 10): if execution fails, the error message names the next hypothesis. Convergence (Ch 11): the skill is added to the library only when it passes verification. The agent has no theory of Minecraft physics. It has a theory of its own capabilities, maintained as a growing library, and that theory guides which tasks to attempt next.</p>
+
+    <h3>Invariant Risk Minimization (Arjovsky et al. 2019)</h3>
+
+    <p>IRM observes that a classifier trained on one environment fails on another. Standard training minimizes loss. IRM minimizes loss subject to a constraint: the learned features must be invariant across training environments. Features that correlate with the label in environment A but not environment B are discarded. Only features that predict in all environments survive.</p>
+
+    <p>The environment variation is the lever for figure-ground separation (Ch 4). The invariant features are the figure &mdash; what is structurally load-bearing. The spurious correlations are the ground &mdash; what holds in one environment but not another. IRM automates the tri-abductive split (Ch 6): when a feature helps in one environment and hurts in another (oscillatory, Ch 9), the branching condition is the environment itself. The system splits the hypothesis without a human identifying the confound.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The common structure</h2>
+
+    <p>Three witnesses, three domains, one pattern.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Step</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Infer</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Voyager</th>
+            <th class="text-left py-2 text-gray-400">IRM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Observe</td><td class="pr-3 text-gray-400">Code diff</td><td class="pr-3 text-gray-400">Task failure</td><td class="text-gray-400">Cross-environment loss gap</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Hypothesize</td><td class="pr-3 text-gray-400">Infer anti-frame</td><td class="pr-3 text-gray-400">Generate skill code</td><td class="text-gray-400">Propose invariant features</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Test</td><td class="pr-3 text-gray-400">Check precondition vs. context</td><td class="pr-3 text-gray-400">Execute in Minecraft</td><td class="text-gray-400">Evaluate across environments</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Kill / commit</td><td class="pr-3 text-gray-400">Report bug or pass</td><td class="pr-3 text-gray-400">Reject or add to library</td><td class="text-gray-400">Discard spurious or keep invariant</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Loop</td><td class="pr-3 text-gray-400">Next function in call graph</td><td class="pr-3 text-gray-400">Next task</td><td class="text-gray-400">Next gradient step</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Each system embeds Peirce's three modes (Ch 1). Observation produces theory (abduction). Theory produces prediction (deduction). Prediction is tested (induction). The triangle closes. None of the three papers names the triangle. All three implement it.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Five stations</h2>
+
+    <p>The textbook's tools assemble into five stations. Each station produces a self-contained artifact. Any station can stop and the output stands alone: a diagnosis, an experiment repo, a measurement, a convergence report, a PR.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Station</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Artifact</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Tools from the textbook</th>
+            <th class="text-left py-2 text-gray-400">Kill condition</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">1. Hypothesize</td>
+            <td class="pr-3 text-gray-400">Hypothesis graph</td>
+            <td class="pr-3 text-gray-400">Diff (Ch 4), bi-abduction (Ch 5), economy of research (Ch 7)</td>
+            <td class="text-gray-400">No surviving hypothesis &rarr; stop</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">2. Prework</td>
+            <td class="pr-3 text-gray-400">Experiment repo</td>
+            <td class="pr-3 text-gray-400">Prereg checklist (Ch 12), proof manual (Ch 13)</td>
+            <td class="text-gray-400">Extraction script fails to confirm bug &rarr; re-enter station 1</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">3. Benchmark</td>
+            <td class="pr-3 text-gray-400">Measurement table</td>
+            <td class="pr-3 text-gray-400">E-values (Ch 8), four bins (Ch 9), kill conditions (Ch 10)</td>
+            <td class="text-gray-400">Oscillatory &rarr; split hypothesis, re-enter station 1</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">4. Bug hunt</td>
+            <td class="pr-3 text-gray-400">Convergence report</td>
+            <td class="pr-3 text-gray-400">Convergence (Ch 11), proof manual (Ch 13)</td>
+            <td class="text-gray-400">New bug found &rarr; classify and re-enter station 1</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">5. Ship</td>
+            <td class="pr-3 text-gray-400">PR</td>
+            <td class="pr-3 text-gray-400">Prereg checklist (Ch 12)</td>
+            <td class="text-gray-400">Conflicts with project vision &rarr; re-enter station 1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Every kill condition re-enters station 1. This is the outer loop. The pipeline does not branch midstream. It returns to the hypothesis graph, classifies the new observation using the four bins (Ch 9), and the trajectory shape names what happens next: divergent follows the edge (Ch 10), convergent refines the hypothesis (Ch 11), oscillatory splits it (Ch 6), chaotic redesigns the experiment.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The contract</h2>
+
+    <p>Each station writes everything the next station needs. No hidden state. The contract is explicit:</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">From</th>
+            <th class="text-left py-2 pr-3 text-gray-400">To</th>
+            <th class="text-left py-2 text-gray-400">Contract artifact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Hypothesize</td><td class="pr-3 text-gray-300">Prework</td><td class="text-gray-400">HYPOTHESIS_GRAPH.md &mdash; ranked hypotheses with evidence trails, predicted outcomes, and falsification conditions</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Prework</td><td class="pr-3 text-gray-300">Benchmark</td><td class="text-gray-400">Experiment repo &mdash; reference implementation, candidate fix, compatibility suite, extraction script</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Benchmark</td><td class="pr-3 text-gray-300">Bug hunt</td><td class="text-gray-400">Measurement table &mdash; before/after numbers, trajectory classification, environment specs</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Bug hunt</td><td class="pr-3 text-gray-300">Ship</td><td class="text-gray-400">Convergence report &mdash; two independent reviewers, iterated to zero new findings</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Ship (kill)</td><td class="pr-3 text-gray-300">Hypothesize</td><td class="text-gray-400">Kill condition &mdash; classified observation re-entering the graph as a new edge</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The contract is monoidal. Station A's output is Station B's input. Station B's output is Station C's input. The composition is associative: (A ; B) ; C = A ; (B ; C). No station needs to know about any station except its immediate predecessor and successor. This is separation logic's frame rule (Ch 5), applied to the pipeline itself: each station has a footprint (what it reads and writes) and a frame (everything else). The frame passes through untouched.</p>
+
+    <p>The consequence: stations can be replaced, reordered, or run by different agents. The contract is the interface. The implementation is local.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The outer loop</h2>
+
+    <p>The five stations form the inner pass. The outer loop handles re-entry. When any station produces a kill condition, the pipeline does not retry the failed station. It returns to station 1, adds a new edge to the hypothesis graph, and starts a fresh inner pass.</p>
+
+    <p>The outer loop terminates when one of three conditions holds:</p>
+
+    <ol class="list-decimal pl-5 mb-4">
+      <li class="mb-2"><strong>Station 5 succeeds.</strong> The PR ships. The hypothesis graph is closed. Every open edge has been resolved (Ch 11).</li>
+      <li class="mb-2"><strong>No surviving hypothesis.</strong> Station 1 cannot generate a hypothesis that survives the prereg checklist (Ch 12). The investigation concludes: the system is not broken, or the breakage is outside the investigation's scope.</li>
+      <li class="mb-2"><strong>Budget exhausted.</strong> The economy of research (Ch 7) says the marginal information gain per experiment has dropped below threshold. Further investigation costs more than it returns.</li>
+    </ol>
+
+    <p>Condition 2 is the most informative termination. A pipeline that reports "no surviving hypothesis after three rounds" has taught you something: the initial observation was misleading, the system's behavior is within spec, or the hypothesis space was too narrow. Each of these diagnoses is itself a classified observation that can re-enter a higher-level investigation.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Code: the five-station loop</h2>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto"><code class="text-gray-300"><span class="hl-keyword">def</span> <span class="hl-builtin">pipeline</span>(system, observation, vision, max_rounds=<span class="hl-number">5</span>):
+    <span class="hl-string">"""Five stations, one outer loop.
+
+    system:      the target under investigation
+    observation: the surprising fact that started the inquiry
+    vision:      VISION.md — project philosophy, not tool configuration
+    max_rounds:  budget for outer-loop iterations
+    """</span>
+    graph = HypothesisGraph(observation)
+
+    <span class="hl-keyword">for</span> round <span class="hl-keyword">in</span> <span class="hl-builtin">range</span>(max_rounds):
+
+        <span class="hl-comment"># ── Station 1: Hypothesize ──────────────────────────</span>
+        <span class="hl-comment"># Diff (Ch 4), bi-abduction (Ch 5), economy (Ch 7)</span>
+        hypotheses = graph.fan_out()
+        hypotheses = rank_by_info_gain(hypotheses)   <span class="hl-comment"># Ch 7</span>
+        best = hypotheses[<span class="hl-number">0</span>]
+
+        <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> prereg_check(best):                   <span class="hl-comment"># Ch 12</span>
+            graph.kill(best, reason=<span class="hl-string">"failed prereg"</span>)
+            <span class="hl-keyword">continue</span>
+
+        <span class="hl-comment"># ── Station 2: Prework ──────────────────────────────</span>
+        <span class="hl-comment"># Build experiment repo before touching production</span>
+        repo = build_experiment_repo(best, system)
+        confirmed = repo.extraction_script.run()
+
+        <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> confirmed:
+            graph.kill(best, reason=<span class="hl-string">"bug not confirmed"</span>)
+            <span class="hl-keyword">continue</span>                                    <span class="hl-comment"># re-enter station 1</span>
+
+        <span class="hl-comment"># ── Station 3: Benchmark ────────────────────────────</span>
+        <span class="hl-comment"># E-values (Ch 8), four bins (Ch 9), kills (Ch 10)</span>
+        before = measure(system, baseline_config)
+        after  = measure(system, repo.candidate_fix)
+        shape  = classify_trajectory(before, after)  <span class="hl-comment"># Ch 9</span>
+
+        <span class="hl-keyword">if</span> shape == OSCILLATORY:
+            <span class="hl-comment"># Split the hypothesis (Ch 6). Two constraints fighting.</span>
+            h1, h2 = graph.split(best, branching_condition)
+            <span class="hl-keyword">continue</span>                                    <span class="hl-comment"># re-enter station 1</span>
+        <span class="hl-keyword">if</span> shape == FLAT:
+            graph.kill(best, reason=<span class="hl-string">"no improvement"</span>)
+            <span class="hl-keyword">continue</span>
+
+        <span class="hl-comment"># ── Station 4: Bug hunt ─────────────────────────────</span>
+        <span class="hl-comment"># Convergence (Ch 11), proof manual (Ch 13)</span>
+        findings = adversarial_review(repo.candidate_fix)
+
+        <span class="hl-keyword">while</span> findings:
+            <span class="hl-keyword">for</span> bug <span class="hl-keyword">in</span> findings:
+                shape = classify_trajectory(bug)     <span class="hl-comment"># Ch 9</span>
+                graph.add_edge(best, bug, shape)     <span class="hl-comment"># Ch 10</span>
+                repo.fix(bug)
+            findings = adversarial_review(repo.candidate_fix)
+            <span class="hl-comment"># Zero new findings = converged (Ch 11)</span>
+
+        <span class="hl-comment"># ── Station 5: Ship ─────────────────────────────────</span>
+        <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> aligns_with_vision(repo.candidate_fix, vision):
+            graph.kill(best, reason=<span class="hl-string">"conflicts with VISION.md"</span>)
+            <span class="hl-keyword">continue</span>
+
+        <span class="hl-keyword">return</span> ship(repo)                            <span class="hl-comment"># PR</span>
+
+    <span class="hl-comment"># Budget exhausted. Report what was learned.</span>
+    <span class="hl-keyword">return</span> graph.summary()</code></pre>
+
+    <p>The <code>continue</code> statements are the outer loop. Every kill re-enters station 1. The hypothesis graph accumulates across rounds: a hypothesis killed in round 2 is not re-proposed in round 3. The graph is the memory. The kills are the edges. The trajectory shape (Ch 9) classifies each edge, and the classification determines whether the next round follows, splits, refines, or stops.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The kill-condition circuit</h2>
+
+    <p>Kill conditions from downstream stations do not simply discard the hypothesis. They re-enter the hypothesis graph as new observations. The four-bin classification (Ch 9) names what happens next:</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Kill source</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Trajectory shape</th>
+            <th class="text-left py-2 text-gray-400">Graph operation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Prework: extraction fails</td><td class="pr-3 text-gray-400">Flat</td><td class="text-gray-400">Kill hypothesis. The diagnosis was wrong. Prune the branch.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Benchmark: helps A, hurts B</td><td class="pr-3 text-gray-400">Oscillatory</td><td class="text-gray-400">Split hypothesis (Ch 6). Two constraints fighting. Find the branching condition.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Benchmark: no improvement</td><td class="pr-3 text-gray-400">Flat</td><td class="text-gray-400">Kill hypothesis. The lever doesn't move this system.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Bug hunt: structural flaw</td><td class="pr-3 text-gray-400">Divergent</td><td class="text-gray-400">Follow the edge (Ch 10). The flaw names a deeper problem.</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Ship: conflicts with vision</td><td class="pr-3 text-gray-400">Convergent (wrong direction)</td><td class="text-gray-400">Reject. The fix is correct but philosophically wrong. Adjust the heuristic's defaults, don't add a special case.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The oscillatory case is the most valuable. It means the investigation found a real lever but applied it too broadly. The split produces a simpler, more targeted hypothesis. An investigation that passes through the oscillatory case once almost always converges on the second pass, because the branching condition narrows the scope to where the lever actually works.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Scale</h2>
+
+    <p>One agent, one system, one fix. Ten agents, ten systems, ten fixes. No shared state between runs.</p>
+
+    <p>The monoidal contract makes this possible. Each pipeline run is independent. Agent A investigating system X cannot corrupt agent B investigating system Y, because the contract artifacts &mdash; hypothesis graph, experiment repo, measurement table, convergence report &mdash; are local to each run. The pipeline's footprint is the system under investigation. Its frame is everything else. The frame rule (Ch 5) guarantees non-interference.</p>
+
+    <p>This is not parallelism as an optimization. It is parallelism as a structural property. The pipeline scales because the contract forces isolation. The same property that makes individual stations composable (no hidden state) makes entire pipeline runs composable (no shared state).</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>VISION.md</h2>
+
+    <p>The pipeline has one human input: VISION.md. Not tool configuration. Project philosophy.</p>
+
+    <p>"The compiler replaces the kernel library." "No vendor primitives." "The search should find it." These are not instructions for a pipeline. They are constraints on what counts as a valid fix. A pipeline that reads VISION.md knows to reject its own custom kernel before the maintainer has to. It knows to adjust the heuristic's defaults instead of adding a special case.</p>
+
+    <p>VISION.md is the prereg checklist (Ch 12) applied to the project, not the experiment. It prevents a specific failure mode: the investigation succeeds technically but fails architecturally. The fix is correct but violates the project's invariants. Without VISION.md, the pipeline ships the fix and the maintainer rejects the PR. With VISION.md, the pipeline rejects the fix itself, re-enters the hypothesis graph, and searches for a solution that is both correct and aligned.</p>
+
+    <p>The human's role narrows to authoring and maintaining this one document. The pipeline handles observation, hypothesis generation, experiment design, measurement, adversarial review, and convergence. The human provides direction. Not which tool to use, not which file to change, not which test to run. Just: what kind of system is this, and what kind of system should it be.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The toolchain, assembled</h2>
+
+    <p>Every tool from the textbook appears in the pipeline. The assembly is the point of this chapter.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Tool</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Chapter</th>
+            <th class="text-left py-2 text-gray-400">Where it appears in the pipeline</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Diff</td><td class="pr-3 text-gray-400">4</td><td class="text-gray-400">Station 1: snapshot before/after, extract figure and ground</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Bi-abduction</td><td class="pr-3 text-gray-400">5</td><td class="text-gray-400">Station 1: infer the frame automatically; contract compositionality</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Tri-abduction</td><td class="pr-3 text-gray-400">6</td><td class="text-gray-400">Station 3: split oscillatory hypotheses at the branching condition</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Economy of research</td><td class="pr-3 text-gray-400">7</td><td class="text-gray-400">Station 1: rank hypotheses by information gain per cost</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">E-values</td><td class="pr-3 text-gray-400">8</td><td class="text-gray-400">Station 3: track cumulative evidence, not point estimates</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Four bins</td><td class="pr-3 text-gray-400">9</td><td class="text-gray-400">Stations 3&ndash;4: classify trajectory shape to determine next action</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Kill conditions</td><td class="pr-3 text-gray-400">10</td><td class="text-gray-400">All stations: failures generate edges in the hypothesis graph</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Convergence</td><td class="pr-3 text-gray-400">11</td><td class="text-gray-400">Station 4: two reviewers, iterated to zero new findings</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Prereg checklist</td><td class="pr-3 text-gray-400">12</td><td class="text-gray-400">Stations 1&ndash;2: block self-deception before experiments run</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Proof manual</td><td class="pr-3 text-gray-400">13</td><td class="text-gray-400">Stations 2, 4: escalation rules for validating claims structurally</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>No tool is optional. Remove the diff and the pipeline cannot generate hypotheses. Remove bi-abduction and it cannot infer the frame, so hypotheses overgeneralize. Remove the economy of research and it tests hypotheses in arbitrary order. Remove e-values and it relies on point estimates that lie. Remove the four bins and it cannot read the trajectory shape. Remove kill conditions and failures teach nothing. Remove convergence and it never stops. Remove the prereg checklist and it deceives itself. Remove the proof manual and it cannot escalate when induction fails.</p>
+
+    <p>The textbook is the pipeline. The pipeline is the textbook.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>What breaks</h2>
+
+    <p>The pipeline works on one system at a time. One agent investigates one system, produces one fix, ships one PR. The contract guarantees isolation. The monoidal structure guarantees composability.</p>
+
+    <p>But does the framework generalize? The three witnesses suggest yes &mdash; the pattern recurs independently in static analysis, game AI, and machine learning. The pipeline implements the pattern as an explicit loop. If the pattern is real, the pipeline should work on any system that can be perturbed and measured.</p>
+
+    <p>That is an empirical claim, not a proven theorem. The next chapter applies the pipeline to a concrete case: a system that searches without reasoning, that perturbs and observes but never asks why. If the pipeline produces a fix that grid search cannot find in the same budget, the framework's prediction holds. If it does not, the shape of the failure will name what the textbook got wrong.</p>
+
+    <p>Chapter 15.</p>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">🔭 Methodeutics</a></li>
+      <li><a href="/reading/methodeutics/ch05-bi-abduction/">Ch 5: Bi-abduction</a> &mdash; the frame rule and compositional analysis</li>
+      <li><a href="/reading/methodeutics/ch07-economy-of-research/">Ch 7: Economy of Research</a> &mdash; which hypotheses are worth testing?</li>
+      <li><a href="/reading/methodeutics/ch15-case-study/">Ch 15: Case Study</a> &mdash; applying the pipeline to a concrete system</li>
+      <li><a href="/investigate">Investigate</a> &mdash; the blog post that implements this pipeline</li>
+    </ul>
+
+    <p class="text-sm text-gray-500 mb-2 mt-4">External</p>
+    <ul>
+      <li><a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009, "Compositional Shape Analysis by Means of Bi-Abduction" (ACM DL)</a></li>
+      <li><a href="https://arxiv.org/abs/2305.16291">Wang et al. 2023, "Voyager: An Open-Ended Embodied Agent with Large Language Models" (arXiv)</a></li>
+      <li><a href="https://arxiv.org/abs/1907.02893">Arjovsky et al. 2019, "Invariant Risk Minimization" (arXiv)</a></li>
+      <li><a href="https://fbinfer.com/">Facebook Infer</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

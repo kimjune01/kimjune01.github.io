@@ -1,0 +1,329 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 5: Bi-abduction — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Bi-abduction</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 5 &middot; Calcagno et al. 2009, Bylander et al. 1991, O'Hearn 2019</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">Facebook runs Infer on millions of lines of code every day. It infers the frame &mdash; what the diff <em>didn't</em> touch &mdash; automatically. Chapter 4's diff requires the observer to choose what to snapshot. Bi-abduction removes that requirement.</p>
+    </div>
+
+    <h2>The limitation of diff</h2>
+
+    <p>Chapter 4 defined the primitive: snapshot before, snapshot after, XOR. The figure is what changed; the ground is what held. The mechanic taps the alternator. The engine stalls. The diff between "before tap" and "after tap" is the figure. Everything else &mdash; battery, fuel, spark &mdash; is the ground.</p>
+
+    <p>But the mechanic chose what to observe. She chose to look at the engine, not the headlights. She chose to snapshot RPM, not cabin temperature. The diff works on whatever you give it. It cannot tell you what you forgot to give it.</p>
+
+    <p>This is a problem for any system that runs the diff at scale. A function modifies some variables and leaves others untouched. If you snapshot all of them, you get the right diff. If you miss one, the ground is incomplete &mdash; and an incomplete ground means the hypothesis overgeneralizes. "Tile size 16 is optimal" is a different claim from "tile size 16 is optimal <em>when loop order is column-major and vectorization is enabled</em>." The first is figure without ground. The second is figure with ground. The ground is the qualification that makes the hypothesis precise.</p>
+
+    <p>The question: can a system infer the ground automatically, without the observer pre-selecting what to snapshot?</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Separation logic: the frame rule</h2>
+
+    <p>The answer comes from a branch of formal verification called separation logic. The key idea is simple: the heap &mdash; all the memory a program can access &mdash; separates into two disjoint parts.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Part</th>
+            <th class="text-left py-2 pr-3 text-gray-400">What it is</th>
+            <th class="text-left py-2 text-gray-400">In diff terms</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Footprint</td>
+            <td class="pr-3 text-gray-400">The memory the function actually reads and writes</td>
+            <td class="text-gray-400">Figure</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Frame</td>
+            <td class="pr-3 text-gray-400">Everything else &mdash; memory the function doesn't touch</td>
+            <td class="text-gray-400">Ground</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Separation logic's <strong>frame rule</strong> says: if a function is correct when run on just its footprint, it is also correct when run on its footprint plus any frame. The frame passes through untouched. This is the figure/ground separation, stated as a theorem.</p>
+
+    <p>The separating conjunction, written <code>*</code>, means "and separately." The assertion <code>P * F</code> says: the heap consists of two disjoint regions, one satisfying <code>P</code> (the footprint) and one satisfying <code>F</code> (the frame). The frame rule then says:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">   {'{'}P{'}'} C {'{'}Q{'}'}
+─────────────────────   (Frame Rule)
+ {'{'}P * F{'}'} C {'{'}Q * F{'}'}</code></pre>
+
+    <p>If command <code>C</code> transforms precondition <code>P</code> into postcondition <code>Q</code>, then running <code>C</code> on a larger heap <code>P * F</code> transforms it into <code>Q * F</code>. The frame <code>F</code> is unchanged. This is the ground, guaranteed by the logic itself.</p>
+
+    <h2>Bi-abduction: inferring both sides</h2>
+
+    <p>The frame rule assumes you already know the frame. Calcagno, Distefano, O'Hearn, and Yang (2009) asked: what if you don't?</p>
+
+    <p>Their insight was to solve for <em>two</em> unknowns simultaneously. Given a function with some known behavior, find:</p>
+
+    <ol class="list-decimal pl-5 mb-4">
+      <li class="mb-2"><strong>The anti-frame</strong> (missing precondition) &mdash; what must be true <em>before</em> the function runs for it to succeed. This is the heap the function needs but that wasn't stated in the spec.</li>
+      <li class="mb-2"><strong>The frame</strong> (untouched heap) &mdash; what stays true <em>after</em> the function runs. This is the heap the function doesn't touch.</li>
+    </ol>
+
+    <p>The bi-abduction problem is: given <code>A</code> (what we know about the current heap) and a function that requires precondition <code>P</code>, find <code>M</code> (anti-frame) and <code>F</code> (frame) such that:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">A * M  ⊢  P * F
+
+where:
+  A = what we know (current heap state)
+  M = anti-frame (what must also be true — inferred)
+  P = what the function needs (precondition)
+  F = frame (what the function won't touch — inferred)</code></pre>
+
+    <p>Two unknowns, one equation, solved simultaneously. The name <em>bi-abduction</em> comes from this double inference: abducing the missing precondition (M) and abducing the frame (F) at the same time.</p>
+
+    <h2>Why this matters for methodeutics</h2>
+
+    <p>Translate out of verification language and back into the language of inquiry.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Verification</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Methodeutics</th>
+            <th class="text-left py-2 text-gray-400">What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Anti-frame (M)</td>
+            <td class="pr-3 text-gray-300">Hypothesis</td>
+            <td class="text-gray-400">What was <em>missing</em> that would explain the observation. The abductive leap.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Frame (F)</td>
+            <td class="pr-3 text-gray-300">Ground</td>
+            <td class="text-gray-400">What was <em>untouched</em> &mdash; the context that qualifies the hypothesis. Automatically inferred.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The anti-frame is the hypothesis: "this memory must have been allocated before the call." The frame is the ground: "these other variables are preserved — untouched by this command." Chapter 4's diff gives you figure and ground only if you choose the right snapshot. Bi-abduction gives you figure and ground from the code itself, without the observer choosing what to watch.</p>
+
+    <p>This is the step from manual microscopy to automated imaging. The microscope is the diff. Bi-abduction is the autofocus &mdash; it finds the plane of interest without the observer turning the knob.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Facebook Infer: the primitive in production</h2>
+
+    <p><a href="https://fbinfer.com/">Infer</a> is the tool Calcagno and O'Hearn built at Facebook. It runs bi-abduction on every diff submitted to the codebase &mdash; millions of lines, every day. For each function, Infer infers the precondition (what must the caller set up?) and the frame (what does the function leave alone?). When the inferred precondition conflicts with the calling context, Infer reports a bug: null dereference, resource leak, race condition.</p>
+
+    <p>The architectural insight that makes this scale is <strong>compositionality</strong>. Infer analyzes each function independently, using bi-abduction to infer the function's contract. Then it composes contracts across call boundaries. Function A calls B calls C. Infer analyzes C first, infers C's contract, then uses that contract when analyzing B, and so on up the call graph. Each function is analyzed once, in isolation, with its dependencies summarized as inferred contracts.</p>
+
+    <p>This is why bi-abduction matters more than the general abduction problem. Bylander et al. (1991) proved that abduction in general is NP-hard. If you need to consider all possible explanations for a global observation, the search space explodes. Bi-abduction sidesteps this by reasoning <em>locally</em>: one function at a time, composing summaries across the call graph. Locality and summaries make the analysis practical by avoiding whole-program global search.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Approach</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Scope</th>
+            <th class="text-left py-2 text-gray-400">Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">General abduction</td>
+            <td class="pr-3 text-gray-400">Global: all possible explanations for all observations</td>
+            <td class="text-gray-400">NP-hard (Bylander et al. 1991)</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Bi-abduction</td>
+            <td class="pr-3 text-gray-400">Local: one function at a time, compose results</td>
+            <td class="text-gray-400">Polynomial per function, linear composition</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The lesson: abduction becomes tractable when you can decompose the problem into local pieces with clear boundaries. Separation logic provides the decomposition. The separating conjunction <code>*</code> guarantees that the pieces don't interfere. Without that guarantee, local reasoning is unsound &mdash; a change in one function could silently affect another's frame.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Code: bi-abduction on a state machine</h2>
+
+    <p>A concrete example outside verification. A function reads and writes keys in a state dictionary. Given the function's behavior, infer which keys must exist beforehand (anti-frame) and which keys are untouched (frame).</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def bi_abduce(known_state, reads, writes):
+    """Infer the anti-frame and frame for a state-machine transition.
+
+    known_state: dict of keys we know exist with their values
+    reads:       set of keys the function reads
+    writes:      dict of keys the function writes (key -> new_value)
+
+    Returns (anti_frame, frame):
+      anti_frame: keys the function needs but aren't in known_state
+      frame:      keys in known_state the function doesn't touch
+    """
+    # Anti-frame: keys the function reads that aren't in known_state.
+    # These MUST exist for the function to succeed.
+    anti_frame = reads - set(known_state.keys())
+
+    # Frame: keys in known_state that the function neither reads nor writes.
+    # These are UNTOUCHED — the ground.
+    touched = reads | set(writes.keys())
+    frame = {k: v for k, v in known_state.items() if k not in touched}
+
+    return anti_frame, frame
+
+
+# --- Example: a checkout function in an e-commerce state machine ---
+
+# What we know about the current state
+known_state = {
+    "cart": ["item_a", "item_b"],
+    "user_id": 42,
+    "session_token": "abc123",
+    "theme": "dark",
+    "locale": "en-US",
+}
+
+# The checkout function reads these keys:
+reads = {"cart", "user_id", "payment_method"}
+
+# And writes these keys:
+writes = {"order_id": "ord_789", "cart": []}
+
+anti_frame, frame = bi_abduce(known_state, reads, writes)
+
+print("Anti-frame (missing preconditions):")
+for key in sorted(anti_frame):
+    print(f"  {key} — must exist before checkout runs")
+
+print("\\nFrame (untouched state):")
+for key in sorted(frame):
+    print(f"  {key} = {frame[key]!r}")
+
+print("\\nFigure (touched by checkout):")
+touched = reads | set(writes.keys())
+for key in sorted(touched):
+    if key in writes:
+        print(f"  {key} -> {writes[key]!r}")
+    else:
+        print(f"  {key} (read only)")`} /></pre>
+
+    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">Anti-frame (missing preconditions):
+  payment_method — must exist before checkout runs
+
+Frame (untouched state):
+  locale = 'en-US'
+  session_token = 'abc123'
+  theme = 'dark'
+
+Figure (touched by checkout):
+  cart -> []
+  order_id -> 'ord_789'
+  payment_method (read only)
+  user_id (read only)</code></pre>
+
+    <p>The function never mentions <code>theme</code>, <code>locale</code>, or <code>session_token</code>. Bi-abduction infers they are untouched &mdash; the frame. The function reads <code>payment_method</code>, which isn't in the known state. Bi-abduction infers it must exist &mdash; the anti-frame. Given a known footprint (reads and writes), the system computed the frame and the gap — the ground and the hypothesis — without the observer choosing what to snapshot.</p>
+
+    <p>This is the checkout function. Now compose it. The order-confirmation function reads <code>order_id</code> (which checkout wrote) and <code>email</code> (which nobody mentioned). Bi-abduction on the second function infers <code>email</code> as a new anti-frame entry. Chain the two functions: the composed anti-frame is <code>{'{'}payment_method, email{'}'}</code>. The composed frame is <code>{'{'}theme, locale, session_token{'}'}</code>. Each function was analyzed locally. The composition is a set union. This toy example illustrates the structural idea; Infer's actual composition involves richer summary propagation across the call graph.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Compositionality is the key</h2>
+
+    <p>Three properties make bi-abduction work where general abduction doesn't.</p>
+
+    <p><strong>Locality.</strong> Each function is analyzed in isolation. You don't need the whole program to infer one function's contract. This is analogous to the mechanic diagnosing one subsystem at a time &mdash; checking the alternator doesn't require understanding the transmission.</p>
+
+    <p><strong>Separation.</strong> The frame and the footprint are disjoint. What one function touches, another cannot silently depend on through the frame. The separating conjunction <code>*</code> is the formal guarantee. Without it, a change in function A could invalidate function B's frame, and local reasoning would be unsound.</p>
+
+    <p><strong>Compositionality.</strong> Inferred contracts compose across boundaries. Function A's postcondition becomes function B's precondition context. The anti-frames and frames chain. The analysis scales linearly in the call graph, not exponentially in the state space.</p>
+
+    <p>These three properties are not specific to programs. Any domain where the state decomposes into independent regions &mdash; where one subsystem's behavior doesn't silently affect another &mdash; admits the same strategy. Diagnose locally, compose globally. The mechanic's intuition, formalized.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>What breaks</h2>
+
+    <p>Bi-abduction as presented above reasons along a single execution path. Static analyzers can handle branches through disjunctive summaries and path-sensitive analysis, but the core bi-abduction judgment produces one (anti-frame, frame) pair per path. Branching introduces a harder question.</p>
+
+    <p>But programs branch. Consider:</p>
+
+    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def process_payment(state):
+    if state["payment_method"] == "credit_card":
+        # Branch A: reads card_number, writes authorization_code
+        validate(state["card_number"])
+        state["authorization_code"] = charge(state["card_number"])
+    else:
+        # Branch B: reads bank_account, writes transfer_id
+        verify(state["bank_account"])
+        state["transfer_id"] = transfer(state["bank_account"])`} /></pre>
+
+    <p>Branch A touches <code>{'{'}card_number, authorization_code{'}'}</code>. Branch B touches <code>{'{'}bank_account, transfer_id{'}'}</code>. The two branches have different footprints and different frames. Bi-abduction on branch A says <code>card_number</code> must exist. Bi-abduction on branch B says <code>bank_account</code> must exist. Which anti-frame is correct?</p>
+
+    <p>Both. Neither. The answer depends on which branch executes, which depends on the value of <code>payment_method</code>. The function has two execution paths, each with its own figure and ground. Standard bi-abduction gives you one answer per path. Relating the paths to each other — understanding that the branch condition itself is load-bearing, that the <em>choice</em> is the structure &mdash; that the branch condition itself is load-bearing, that the <em>choice</em> between paths is the real structure.</p>
+
+    <p>This is not a bug in bi-abduction. It is its boundary. The primitive handles one path. When execution forks, you need a primitive that handles two paths and the condition that separates them. You need the diff between the branches, not just the diff within each branch.</p>
+
+    <p>That is tri-abduction. Chapter 6.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Sources</h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Calcagno et al. 2009</td>
+            <td class="text-gray-400">"Compositional Shape Analysis by Means of Bi-Abduction." <em>POPL 2009</em>. <a href="https://dl.acm.org/doi/10.1145/1480881.1480917">ACM DL</a>. The original bi-abduction paper. Introduces simultaneous inference of anti-frame and frame for compositional program analysis.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Bylander et al. 1991</td>
+            <td class="text-gray-400">"The Computational Complexity of Abduction." <em>Artificial Intelligence</em> 49(1&ndash;3). Proves abduction is NP-hard in general. The result that makes local decomposition necessary.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">O'Hearn 2019</td>
+            <td class="text-gray-400">"Separation Logic." <em>Communications of the ACM</em> 62(2). Retrospective on separation logic and the frame rule, from the co-inventor.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Reynolds 2002</td>
+            <td class="text-gray-400">"Separation Logic: A Logic for Shared Mutable Data Structures." <em>LICS 2002</em>. The foundational paper on separation logic and the frame rule.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Facebook Infer</td>
+            <td class="text-gray-400"><a href="https://fbinfer.com/">fbinfer.com</a>. Open-source static analyzer using bi-abduction. Deployed at Facebook, Amazon, Uber, and others. The primitive in production.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">🔭 Methodeutics</a></li>
+      <li><a href="/abduction">Abduction</a> &mdash; the blog post that covers bi-abduction, tri-abduction, and three witnesses</li>
+      <li><a href="/reading/methodeutics/ch07-economy-of-research/">Ch 7: Economy of Research</a> &mdash; which hypotheses are worth testing?</li>
+    </ul>
+
+    <p class="text-sm text-gray-500 mb-2 mt-4">External</p>
+    <ul>
+      <li><a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009, "Compositional Shape Analysis by Means of Bi-Abduction" (ACM DL)</a></li>
+      <li><a href="https://fbinfer.com/">Facebook Infer</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Separation_logic"><img src="/reading/wikipedia.svg" alt="wp" style="display:inline;height:1em;vertical-align:-0.1em;margin-right:0.2em;"/>Separation Logic (Wikipedia)</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

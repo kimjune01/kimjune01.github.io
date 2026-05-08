@@ -1,0 +1,358 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+---
+
+<Layout title="Ch 15: Case Study — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Case Study</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 15 &middot; Applying the full pipeline</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">
+        A system that searches without reasoning. It can perturb and observe but never asks why. It tries every combination, times each, keeps the best. No theory, no pruning, no explanation. This chapter applies the full pipeline from chapters 1&ndash;14.
+      </p>
+    </div>
+
+    <!-- ============================== -->
+    <h2>The optimizer</h2>
+
+    <p>Consider an optimizer with the following properties:</p>
+
+    <ul>
+      <li>A <strong>combinatorial space</strong> of roughly 200 configuration options &mdash; knobs, flags, orderings, tile sizes, data layouts.</li>
+      <li>A <strong>measurement oracle</strong>: it can run any configuration on hardware and get a wall-clock time.</li>
+      <li>A <strong>search strategy</strong>: beam search. Enumerate candidates, time each, keep the top-k, expand from there.</li>
+    </ul>
+
+    <p>This optimizer works. It finds configurations that run fast. But it has three structural problems:</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Problem</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Symptom</th>
+            <th class="text-left py-2 text-gray-400">Root cause</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Regressions</td>
+            <td class="pr-3 text-gray-400">Some workloads run slower than a naive baseline</td>
+            <td class="text-gray-400">No fallback. The search can find a local optimum worse than the default.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Waste</td>
+            <td class="pr-3 text-gray-400">90% of search budget spent on workloads already near-optimal</td>
+            <td class="text-gray-400">No triage. Every workload gets the same search depth.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Opacity</td>
+            <td class="pr-3 text-gray-400">When a configuration fails, the failure teaches nothing</td>
+            <td class="text-gray-400">No diagnosis. Bad results are discarded, not analyzed.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>All three problems trace to the same absence. The system has Experiment and Observation but no Theory. It runs the bottom edge of the triangle only.</p>
+
+    <!-- ============================== -->
+    <h2>1. Observe (Ch 1&ndash;3)</h2>
+
+    <p>Name what the system does and does not do, using the trichotomy.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Edge</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Mode</th>
+            <th class="text-left py-2 text-gray-400">Present?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Theory &rarr; Experiment</td>
+            <td class="pr-3 text-gray-400">Deduction</td>
+            <td class="text-gray-400">Absent. No theory predicts which configurations should work.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Experiment &rarr; Observation</td>
+            <td class="pr-3 text-gray-400">Induction</td>
+            <td class="text-gray-400">Present. The system measures, ranks, and generalizes (top-k).</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Observation &rarr; Theory</td>
+            <td class="pr-3 text-gray-400">Abduction</td>
+            <td class="text-gray-400">Absent. No mechanism asks <em>why</em> a result was fast or slow.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Two of three edges missing. The system cannot form hypotheses and cannot derive predictions. It compensates with brute force: if you time enough configurations, you'll stumble onto a good one. This is search as a substitute for reasoning.</p>
+
+    <!-- ============================== -->
+    <h2>2. Formalize the primitive (Ch 4&ndash;6)</h2>
+
+    <p>The abductive primitive is the diff. Chapter 4 defines it: given two states that produce different outcomes, the diff is the set of changes between them. Apply it here.</p>
+
+    <p>The optimizer runs configuration A (slow) and configuration B (fast). The diff between A and B is a set of knob changes: tile size 4&rarr;16, loop order swapped, vectorization enabled. That diff is the <strong>figure</strong>. Everything unchanged is the <strong>ground</strong>.</p>
+
+    <p>The figure is a candidate explanation. "This workload is faster with larger tiles." That sentence is a hypothesis. The system currently produces the diff (it must, to move from A to B) but discards it immediately. It keeps the timing, throws away the structure.</p>
+
+    <p>Bi-abduction (Ch 5) adds the frame &mdash; what the diff <em>didn't</em> touch. If A and B differ only in tile size, the frame includes loop order, vectorization, memory layout. The frame matters because it bounds the hypothesis: "larger tiles help <em>when loop order is X and vectorization is Y</em>." Without the frame, the hypothesis overgeneralizes.</p>
+
+    <p>Tri-abduction (Ch 6) handles forks. Increasing tile size helps on one workload and hurts on another. The branching condition &mdash; memory-bound vs. compute-bound &mdash; splits the hypothesis into two. The current system cannot represent this split. It would need to test both branches separately and discover which condition governs.</p>
+
+    <!-- ============================== -->
+    <h2>3. Economy of research (Ch 7)</h2>
+
+    <p>The optimizer has 200 configuration options. Exhaustive search is infeasible. Beam search samples from the space, but its selection is biased toward early top-k candidates. Its failure mode is premature commitment to a local basin, not exploration of the full space.</p>
+
+    <p>Peirce's economy of research asks: which experiment gives the most information per unit cost? Applied here:</p>
+
+    <ul>
+      <li><strong>Cost</strong> = wall-clock time to run one configuration on hardware.</li>
+      <li><strong>Information gain</strong> = how much the result would change the current hypothesis.</li>
+    </ul>
+
+    <p>A knob that has never varied has high information gain: testing it tells you whether it matters at all. A knob that has been tested ten times with consistent results has low information gain: you already know its effect. The economy-of-research criterion replaces beam search's uniform sampling with directed probing.</p>
+
+    <p>Concretely: if the current hypothesis says "tile size is the bottleneck," the highest-value experiment is one that tests tile size in a new context (different workload shape, different memory pressure), not one that retests a knob already known to be irrelevant.</p>
+
+    <!-- ============================== -->
+    <h2>4. Evidence trajectory (Ch 8&ndash;9)</h2>
+
+    <p>Each measurement round produces a result. The result is not a snapshot &mdash; it is a point on a trajectory. Chapter 8 introduced e-values for tracking cumulative evidence. Chapter 9 classified trajectories into four bins. Apply that classification to the optimizer's measurement stream.</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Trajectory shape</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Meaning for the optimizer</th>
+            <th class="text-left py-2 text-gray-400">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Convergent</td>
+            <td class="pr-3 text-gray-400">This knob's effect is stable across workloads. Changing it always helps or never helps.</td>
+            <td class="text-gray-400">Lock it. Stop testing it. Move budget elsewhere.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td>
+            <td class="pr-3 text-gray-400">Each new measurement increases the e-value. This knob is load-bearing.</td>
+            <td class="text-gray-400">Follow it. This is the bottleneck. Allocate more budget.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Oscillatory</td>
+            <td class="pr-3 text-gray-400">The knob helps on workload A, hurts on workload B, helps on C, hurts on D.</td>
+            <td class="text-gray-400">Split. Two constraints are fighting. Find the branching condition.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Flat / indeterminate</td>
+            <td class="pr-3 text-gray-400">Measurements are noisy. The knob might matter, might not.</td>
+            <td class="text-gray-400">Collect more data or reduce measurement variance before deciding.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The current system treats all results the same: keep the best time, discard the rest. It cannot distinguish a convergent knob (safe to freeze) from an oscillatory one (masking a deeper structural question). The trajectory classification turns raw measurements into decision procedures.</p>
+
+    <!-- ============================== -->
+    <h2>5. Kill conditions (Ch 10)</h2>
+
+    <p>When a hypothesis fails, the failure mode names the next experiment. This is the central claim of Chapter 10. Apply it.</p>
+
+    <p>Hypothesis: "This workload is memory-bound. Grouping memory accesses will speed it up." The optimizer tests a grouped-access configuration. It's slower. The hypothesis is killed. But the kill is not silent &mdash; the <em>shape</em> of the failure carries information.</p>
+
+    <ul>
+      <li>If grouping didn't change throughput at all, the workload isn't memory-bound. The bottleneck is elsewhere. Next experiment: test compute-bound interventions.</li>
+      <li>If grouping helped latency but hurt throughput, the bottleneck is bandwidth, not latency. Grouping reduced round-trips but each trip now carries more data than the bus can handle. Next experiment: test a smaller group size or a different memory layout.</li>
+      <li>If grouping helped on small inputs but hurt on large ones, the working set overflows cache at scale. Next experiment: test with explicit cache management.</li>
+    </ul>
+
+    <p>Each failure mode generates a directed edge in the hypothesis graph. The current system has no hypothesis graph. When a configuration is slow, it is ranked low and forgotten. The information in the failure &mdash; the most valuable output the system produces &mdash; is discarded.</p>
+
+    <!-- ============================== -->
+    <h2>6. Convergence (Ch 11)</h2>
+
+    <p>The system should stop when it can explain why the current configuration is optimal, not when it can't find anything better in one more round.</p>
+
+    <p>These are different stopping conditions. The first requires a theory: "Tile size 16 is optimal because the working set fits exactly in L1 cache at this size, and the loop order minimizes TLB misses given this tile." The second requires only exhaustion: "I tried 500 configurations and this one was the fastest."</p>
+
+    <p>Exhaustion-based stopping has a failure mode: the search got stuck in a local basin. The system cannot detect this because it has no theory of the landscape. Theory-based stopping is falsifiable: the explanation predicts that changing the cache size should change the optimal tile size. If it doesn't, the theory is wrong and the search must continue.</p>
+
+    <p>Chapter 11's convergence criterion &mdash; the hypothesis graph closes when every open edge has been resolved &mdash; gives a structural stopping condition. The optimizer has converged when:</p>
+
+    <ol>
+      <li>Every knob has been classified (convergent, divergent, oscillatory, or indeterminate).</li>
+      <li>Every divergent knob has a theory explaining its effect.</li>
+      <li>Every oscillatory knob has a branching condition that resolves the oscillation.</li>
+      <li>No indeterminate knobs remain.</li>
+    </ol>
+
+    <p>This is a stronger condition than "no improvement found." It is also a cheaper condition in the long run, because it prevents wasted budget on basins the system has already explained.</p>
+
+    <!-- ============================== -->
+    <h2>7. Protecting the loop (Ch 12&ndash;13)</h2>
+
+    <p>An autonomous optimizer can deceive itself. Chapter 12's prereg checklist catches the common failure modes before they compound.</p>
+
+    <p>The most dangerous failure: <strong>proxy measurement</strong>. The optimizer measures on a benchmark workload and deploys on a production workload. The benchmark is smaller, fits in cache, has regular access patterns. The production workload is larger, irregular, and cold-cache. Rankings on the benchmark do not transfer.</p>
+
+    <p>The prereg checklist asks: "Is your measurement on the actual workload or a proxy?" If it's a proxy, the entire evidence trajectory is suspect. E-values computed on proxy data do not compose with e-values on production data. The system must either measure on the real workload or explicitly model the gap between proxy and target.</p>
+
+    <p>Other checklist items that apply:</p>
+
+    <ul>
+      <li><strong>Did you abduce from the test data?</strong> If the optimizer uses measurement results both to generate hypotheses and to evaluate them, it is fitting to noise. Hold out a validation set.</li>
+      <li><strong>Is the measurement deterministic?</strong> Hardware timing is noisy. Thermal throttling, background processes, and memory allocation all inject variance. The system must either control these or account for them in the e-value computation.</li>
+      <li><strong>Can the result be reproduced on a different machine?</strong> If the optimal configuration depends on a specific hardware quirk, it is not a theory &mdash; it is an artifact.</li>
+    </ul>
+
+    <p>Chapter 13's proof manual adds structural validation. The optimizer should attempt to prove its claims deductively: "If the bottleneck is memory bandwidth, then doubling bandwidth should halve runtime." If the deduction fails (doubling bandwidth doesn't help), the abduction was wrong. Re-enter the loop.</p>
+
+    <!-- ============================== -->
+    <h2>8. The pipeline (Ch 14)</h2>
+
+    <p>Wire it together. The abduction engine replaces exhaustive search with theory-guided investigation.</p>
+
+    <p>The exhaustive search loop:</p>
+
+    <pre><code class="block bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto text-gray-300">def grid_search(workload, candidates, budget):
+    """Enumerate, time, keep best. No theory."""
+    results = []
+    for config in candidates[:budget]:
+        time = measure(workload, config)
+        results.append((time, config))
+    results.sort()
+    return results[0]  # fastest
+
+    # Problems:
+    # - budget spent uniformly across knobs
+    # - bad results discarded (no diagnosis)
+    # - no stopping criterion beyond exhaustion
+    # - no explanation of why the winner wins
+    # - regressions undetected (no baseline comparison)</code></pre>
+
+    <p>The abduction loop:</p>
+
+    <pre><code class="block bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto text-gray-300">def abduction_engine(workload, knobs, budget):
+    """Observe, hypothesize, test, update. Theory-guided."""
+    baseline = measure(workload, default_config(knobs))
+    graph = HypothesisGraph()
+    spent = 0
+
+    while spent &lt; budget and graph.has_open_edges():
+        # 1. Select: economy of research
+        knob = max(knobs, key=lambda k: info_gain(k, graph))
+
+        # 2. Perturb: generate a test configuration
+        config = perturb(knob, current_best(graph))
+        time = measure(workload, config)
+        spent += 1
+
+        # 3. Diff: extract figure and ground
+        figure, ground = diff(config, current_best(graph))
+
+        # 4. Classify: trajectory shape
+        shape = classify_trajectory(knob, graph)
+
+        if shape == CONVERGENT:
+            graph.freeze(knob)          # stop testing
+        elif shape == DIVERGENT:
+            graph.deepen(knob, figure)  # follow the lead
+        elif shape == OSCILLATORY:
+            graph.split(knob, ground)   # find the branch
+        else:
+            pass  # need more data
+
+        # 5. Kill check: does the current theory survive?
+        for hyp in graph.active_hypotheses():
+            if hyp.prediction_fails(time, config):
+                next_exp = hyp.failure_mode()  # Ch 10
+                graph.add_edge(hyp, next_exp)
+
+        # 6. Baseline guard: never regress
+        if current_best(graph).time &gt; baseline:
+            graph.revert_to(baseline)
+
+    return graph.best_config(), graph.explanation()</code></pre>
+
+    <p>The structural differences:</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Property</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Exhaustive search</th>
+            <th class="text-left py-2 text-gray-400">Abduction engine</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Selection</td>
+            <td class="pr-3 text-gray-400">Enumerate</td>
+            <td class="text-gray-400">Information gain per cost</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Bad results</td>
+            <td class="pr-3 text-gray-400">Discarded</td>
+            <td class="text-gray-400">Diagnosed (kill condition &rarr; next edge)</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Stopping</td>
+            <td class="pr-3 text-gray-400">Budget exhausted</td>
+            <td class="text-gray-400">Hypothesis graph closed</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Output</td>
+            <td class="pr-3 text-gray-400">Best configuration</td>
+            <td class="text-gray-400">Best configuration + explanation</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Regressions</td>
+            <td class="pr-3 text-gray-400">Undetected</td>
+            <td class="text-gray-400">Caught by baseline guard</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ============================== -->
+    <h2>What the textbook predicts</h2>
+
+    <p>If the framework developed in chapters 1&ndash;14 is correct, the abduction engine should exhibit three measurable properties compared to exhaustive search on the same budget:</p>
+
+    <ol>
+      <li><strong>Fewer trials to equivalent quality.</strong> Theory-guided selection skips irrelevant regions of the configuration space. The savings should grow with the size of the space.</li>
+      <li><strong>Fewer measured regressions.</strong> The baseline guard prevents deploying configurations known to be slower. Noisy timing and benchmark/production mismatch can still produce regressions, but the guard eliminates the obvious ones.</li>
+      <li><strong>Transferable explanations.</strong> The hypothesis graph from workload A should partially transfer to workload B. If the theory says "this workload is memory-bound because of access pattern X," and workload B has the same access pattern, the same configuration should work without re-searching. Exhaustive search cannot transfer because it produces no theory.</li>
+    </ol>
+
+    <h2>The falsification condition</h2>
+
+    <p>The framework makes a specific, falsifiable claim: <strong>abduction reduces sample complexity</strong>. Theory-guided search should find configurations of equal or better quality in fewer measurement rounds than theory-free search.</p>
+
+    <p>If this is false &mdash; if the abduction engine consistently requires <em>more</em> trials than exhaustive search to reach the same quality &mdash; then the overhead of maintaining and updating the hypothesis graph is not justified. The framework's core assumption (that the structure of failures carries exploitable information) would be wrong. The configuration space would be adversarial to theory: no pattern in the failures, no transferable structure, pure noise.</p>
+
+    <p>This is an empirical question. The textbook does not assert the answer. It provides the machinery to run the experiment and the criteria to interpret the result. If the abduction engine wins, the framework works. If it loses, the framework is wrong, and the shape of the loss will say why.</p>
+
+    <p>That last sentence is the framework applying to itself. The failure mode of the textbook names the next textbook.</p>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">🔭 Methodeutics</a></li>
+    </ul>
+    </Neighbors>
+  </main>
+</Layout>
