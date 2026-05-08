@@ -17,17 +17,17 @@ import Neighbors from "../../../../components/Neighbors.astro";
     </div>
 
     <!-- ============================== -->
-    <h2>The optimizer</h2>
+    <h2>Search without theory</h2>
 
-    <p>Consider an optimizer with the following properties:</p>
+    <p>The optimizer has three moving parts:</p>
 
     <ul>
-      <li>A <strong>combinatorial space</strong> of roughly 200 configuration options &mdash; knobs, flags, orderings, tile sizes, data layouts.</li>
-      <li>A <strong>measurement oracle</strong>: it can run any configuration on hardware and get a wall-clock time.</li>
+      <li>A <strong>combinatorial space</strong> of roughly 200 configuration options: knobs, flags, orderings, tile sizes, data layouts.</li>
+      <li>A <strong>measurement oracle</strong>: run any configuration on hardware, get a wall-clock time.</li>
       <li>A <strong>search strategy</strong>: beam search. Enumerate candidates, time each, keep the top-k, expand from there.</li>
     </ul>
 
-    <p>This optimizer works. It finds configurations that run fast. But it has three structural problems:</p>
+    <p>It finds fast configurations. But it has three structural problems:</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -58,12 +58,12 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>All three problems trace to the same absence. The system has Experiment and Observation but no Theory. It runs the bottom edge of the triangle only.</p>
+    <p>All three trace to the same absence: the system has Experiment and Observation but no Theory. It runs the bottom edge of the triangle only.</p>
 
     <!-- ============================== -->
-    <h2>1. Observe (Ch 1&ndash;3)</h2>
+    <h2>1. Two missing edges (Ch 1&ndash;3)</h2>
 
-    <p>Name what the system does and does not do, using the trichotomy.</p>
+    <p>The trichotomy names what's missing.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -94,41 +94,41 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>Two of three edges missing. The system cannot form hypotheses and cannot derive predictions. It compensates with brute force: if you time enough configurations, you'll stumble onto a good one. This is search as a substitute for reasoning.</p>
+    <p>Two of three edges missing. The system compensates with brute force: time enough configurations and you'll stumble onto a good one.</p>
 
     <!-- ============================== -->
-    <h2>2. Formalize the primitive (Ch 4&ndash;6)</h2>
+    <h2>2. The diff is the primitive (Ch 4&ndash;6)</h2>
 
-    <p>The abductive primitive is the diff. Chapter 4 defines it: given two states that produce different outcomes, the diff is the set of changes between them. Apply it here.</p>
+    <p>Chapter 4's abductive primitive is the diff: given two states with different outcomes, the diff is the set of changes between them.</p>
 
-    <p>The optimizer runs configuration A (slow) and configuration B (fast). The diff between A and B is a set of knob changes: tile size 4&rarr;16, loop order swapped, vectorization enabled. That diff is the <strong>figure</strong>. Everything unchanged is the <strong>ground</strong>.</p>
+    <p>Configuration A runs slow, configuration B runs fast. The diff: tile size 4&rarr;16, loop order swapped, vectorization enabled. That diff is the <strong>figure</strong>. Everything unchanged is the <strong>ground</strong>.</p>
 
-    <p>The figure is a candidate explanation. "This workload is faster with larger tiles." That sentence is a hypothesis. The system currently produces the diff (it must, to move from A to B) but discards it immediately. It keeps the timing, throws away the structure.</p>
+    <p>The figure is a candidate explanation: "this workload is faster with larger tiles." The system already produces this diff (it must, to move from A to B) but discards it immediately. It keeps the timing, throws away the structure.</p>
 
-    <p>Bi-abduction (Ch 5) adds the frame &mdash; what the diff <em>didn't</em> touch. If A and B differ only in tile size, the frame includes loop order, vectorization, memory layout. The frame matters because it bounds the hypothesis: "larger tiles help <em>when loop order is X and vectorization is Y</em>." Without the frame, the hypothesis overgeneralizes.</p>
+    <p>Bi-abduction (Ch 5) adds the frame: what the diff <em>didn't</em> touch. If A and B differ only in tile size, the frame includes loop order, vectorization, memory layout. The frame bounds the hypothesis: "larger tiles help <em>when loop order is X and vectorization is Y</em>." Without the frame, the hypothesis overgeneralizes.</p>
 
-    <p>Tri-abduction (Ch 6) handles forks. Increasing tile size helps on one workload and hurts on another. The branching condition &mdash; memory-bound vs. compute-bound &mdash; splits the hypothesis into two. The current system cannot represent this split. It would need to test both branches separately and discover which condition governs.</p>
+    <p>Tri-abduction (Ch 6) handles forks. Larger tiles help on one workload and hurt on another. The branching condition (memory-bound vs. compute-bound) splits the hypothesis into two. The current system cannot represent this split. It would need to test both branches separately and discover which condition governs.</p>
 
     <!-- ============================== -->
-    <h2>3. Economy of research (Ch 7)</h2>
+    <h2>3. Spend budget where uncertainty is highest (Ch 7)</h2>
 
-    <p>The optimizer has 200 configuration options. Exhaustive search is infeasible. Beam search samples from the space, but its selection is biased toward early top-k candidates. Its failure mode is premature commitment to a local basin, not exploration of the full space.</p>
+    <p>200 configuration options. Exhaustive search is infeasible. Beam search samples from the space, but it commits prematurely to a local basin instead of exploring broadly.</p>
 
-    <p>Peirce's economy of research asks: which experiment gives the most information per unit cost? Applied here:</p>
+    <p>Peirce's economy of research asks: which experiment gives the most information per unit cost?</p>
 
     <ul>
       <li><strong>Cost</strong> = wall-clock time to run one configuration on hardware.</li>
       <li><strong>Information gain</strong> = how much the result would change the current hypothesis.</li>
     </ul>
 
-    <p>A knob that has never varied has high information gain: testing it tells you whether it matters at all. A knob that has been tested ten times with consistent results has low information gain: you already know its effect. The economy-of-research criterion replaces beam search's uniform sampling with directed probing.</p>
+    <p>A never-varied knob has high information gain: testing it tells you whether it matters at all. A knob tested ten times with consistent results has low information gain: you already know its effect. This criterion replaces beam search's uniform sampling with directed probing.</p>
 
-    <p>Concretely: if the current hypothesis says "tile size is the bottleneck," the highest-value experiment is one that tests tile size in a new context (different workload shape, different memory pressure), not one that retests a knob already known to be irrelevant.</p>
+    <p>If the current hypothesis says "tile size is the bottleneck," the highest-value experiment tests tile size in a new context (different workload shape, different memory pressure), not a knob already known to be irrelevant.</p>
 
     <!-- ============================== -->
-    <h2>4. Evidence trajectory (Ch 8&ndash;9)</h2>
+    <h2>4. Measurements are trajectories, not snapshots (Ch 8&ndash;9)</h2>
 
-    <p>Each measurement round produces a result. The result is not a snapshot &mdash; it is a point on a trajectory. Chapter 8 introduced e-values for tracking cumulative evidence. Chapter 9 classified trajectories into four bins. Apply that classification to the optimizer's measurement stream.</p>
+    <p>Each measurement is a point on a trajectory. Chapter 8 introduced e-values for tracking cumulative evidence; Chapter 9 classified trajectories into four bins.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -164,14 +164,14 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The current system treats all results the same: keep the best time, discard the rest. It cannot distinguish a convergent knob (safe to freeze) from an oscillatory one (masking a deeper structural question). The trajectory classification turns raw measurements into decision procedures.</p>
+    <p>The current system keeps the best time and discards the rest. It cannot distinguish a convergent knob (safe to freeze) from an oscillatory one (masking a deeper structural question). Trajectory classification turns raw measurements into decision procedures.</p>
 
     <!-- ============================== -->
-    <h2>5. Kill conditions (Ch 10)</h2>
+    <h2>5. Failures name the next experiment (Ch 10)</h2>
 
-    <p>When a hypothesis fails, the failure mode names the next experiment. This is the central claim of Chapter 10. Apply it.</p>
+    <p>Chapter 10's central claim: when a hypothesis fails, the failure mode names the next experiment.</p>
 
-    <p>Hypothesis: "This workload is memory-bound. Grouping memory accesses will speed it up." The optimizer tests a grouped-access configuration. It's slower. The hypothesis is killed. But the kill is not silent &mdash; the <em>shape</em> of the failure carries information.</p>
+    <p>Hypothesis: "This workload is memory-bound. Grouping memory accesses will speed it up." The optimizer tests a grouped-access configuration. It's slower. The hypothesis is killed. But the <em>shape</em> of the failure carries information.</p>
 
     <ul>
       <li>If grouping didn't change throughput at all, the workload isn't memory-bound. The bottleneck is elsewhere. Next experiment: test compute-bound interventions.</li>
@@ -179,18 +179,16 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li>If grouping helped on small inputs but hurt on large ones, the working set overflows cache at scale. Next experiment: test with explicit cache management.</li>
     </ul>
 
-    <p>Each failure mode generates a directed edge in the hypothesis graph. The current system has no hypothesis graph. When a configuration is slow, it is ranked low and forgotten. The information in the failure &mdash; the most valuable output the system produces &mdash; is discarded.</p>
+    <p>Each failure mode generates a directed edge in the hypothesis graph. The current system has none. Slow configurations get ranked low and forgotten. Failure information, the most valuable output the system produces, is discarded.</p>
 
     <!-- ============================== -->
-    <h2>6. Convergence (Ch 11)</h2>
+    <h2>6. Stop when you can explain, not when you're exhausted (Ch 11)</h2>
 
-    <p>The system should stop when it can explain why the current configuration is optimal, not when it can't find anything better in one more round.</p>
+    <p>Two stopping conditions look alike but differ fundamentally. Theory-based: "Tile size 16 is optimal because the working set fits exactly in L1 cache, and the loop order minimizes TLB misses given this tile." Exhaustion-based: "I tried 500 configurations and this one was the fastest."</p>
 
-    <p>These are different stopping conditions. The first requires a theory: "Tile size 16 is optimal because the working set fits exactly in L1 cache at this size, and the loop order minimizes TLB misses given this tile." The second requires only exhaustion: "I tried 500 configurations and this one was the fastest."</p>
+    <p>Exhaustion-based stopping fails silently: the search may be stuck in a local basin, and the system cannot detect this because it has no theory of the landscape. Theory-based stopping is falsifiable: if changing cache size should change the optimal tile size but doesn't, the theory is wrong and the search must continue.</p>
 
-    <p>Exhaustion-based stopping has a failure mode: the search got stuck in a local basin. The system cannot detect this because it has no theory of the landscape. Theory-based stopping is falsifiable: the explanation predicts that changing the cache size should change the optimal tile size. If it doesn't, the theory is wrong and the search must continue.</p>
-
-    <p>Chapter 11's convergence criterion &mdash; the hypothesis graph closes when every open edge has been resolved &mdash; gives a structural stopping condition. The optimizer has converged when:</p>
+    <p>Chapter 11's convergence criterion (the hypothesis graph closes when every open edge resolves) gives a structural stopping condition. The optimizer has converged when:</p>
 
     <ol>
       <li>Every knob has been classified (convergent, divergent, oscillatory, or indeterminate).</li>
@@ -199,31 +197,29 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li>No indeterminate knobs remain.</li>
     </ol>
 
-    <p>This is a stronger condition than "no improvement found." It is also a cheaper condition in the long run, because it prevents wasted budget on basins the system has already explained.</p>
+    <p>Stronger than "no improvement found," and cheaper in the long run: it prevents wasted budget on basins the system has already explained.</p>
 
     <!-- ============================== -->
-    <h2>7. Protecting the loop (Ch 12&ndash;13)</h2>
+    <h2>7. The optimizer can deceive itself (Ch 12&ndash;13)</h2>
 
-    <p>An autonomous optimizer can deceive itself. Chapter 12's prereg checklist catches the common failure modes before they compound.</p>
+    <p>Chapter 12's prereg checklist catches self-deception before it compounds.</p>
 
-    <p>The most dangerous failure: <strong>proxy measurement</strong>. The optimizer measures on a benchmark workload and deploys on a production workload. The benchmark is smaller, fits in cache, has regular access patterns. The production workload is larger, irregular, and cold-cache. Rankings on the benchmark do not transfer.</p>
+    <p>The most dangerous failure: <strong>proxy measurement</strong>. The optimizer measures on a benchmark workload and deploys on production. The benchmark is smaller, fits in cache, has regular access patterns. Production is larger, irregular, cold-cache. Rankings do not transfer.</p>
 
-    <p>The prereg checklist asks: "Is your measurement on the actual workload or a proxy?" If it's a proxy, the entire evidence trajectory is suspect. E-values computed on proxy data do not compose with e-values on production data. The system must either measure on the real workload or explicitly model the gap between proxy and target.</p>
+    <p>The prereg checklist asks: "Is your measurement on the actual workload or a proxy?" If proxy, the entire evidence trajectory is suspect. E-values computed on proxy data do not compose with e-values on production data. Measure on the real workload or explicitly model the gap.</p>
 
-    <p>Other checklist items that apply:</p>
+    <p>Other checklist items:</p>
 
     <ul>
-      <li><strong>Did you abduce from the test data?</strong> If the optimizer uses measurement results both to generate hypotheses and to evaluate them, it is fitting to noise. Hold out a validation set.</li>
-      <li><strong>Is the measurement deterministic?</strong> Hardware timing is noisy. Thermal throttling, background processes, and memory allocation all inject variance. The system must either control these or account for them in the e-value computation.</li>
-      <li><strong>Can the result be reproduced on a different machine?</strong> If the optimal configuration depends on a specific hardware quirk, it is not a theory &mdash; it is an artifact.</li>
+      <li><strong>Did you abduce from the test data?</strong> If the optimizer generates hypotheses and evaluates them on the same measurements, it is fitting to noise. Hold out a validation set.</li>
+      <li><strong>Is the measurement deterministic?</strong> Thermal throttling, background processes, and memory allocation all inject variance. Control these or account for them in the e-value computation.</li>
+      <li><strong>Can the result reproduce on a different machine?</strong> If the optimal configuration depends on a specific hardware quirk, it is an artifact, not a theory.</li>
     </ul>
 
-    <p>Chapter 13's proof manual adds structural validation. The optimizer should attempt to prove its claims deductively: "If the bottleneck is memory bandwidth, then doubling bandwidth should halve runtime." If the deduction fails (doubling bandwidth doesn't help), the abduction was wrong. Re-enter the loop.</p>
+    <p>Chapter 13's proof manual adds structural validation: "If the bottleneck is memory bandwidth, then doubling bandwidth should halve runtime." If the deduction fails, the abduction was wrong. Re-enter the loop.</p>
 
     <!-- ============================== -->
-    <h2>8. The pipeline (Ch 14)</h2>
-
-    <p>Wire it together. The abduction engine replaces exhaustive search with theory-guided investigation.</p>
+    <h2>8. Wired together (Ch 14)</h2>
 
     <p>The exhaustive search loop:</p>
 
@@ -287,7 +283,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     return graph.best_config(), graph.explanation()</code></pre>
 
-    <p>The structural differences:</p>
+    <p>Side by side:</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -329,25 +325,25 @@ import Neighbors from "../../../../components/Neighbors.astro";
     </div>
 
     <!-- ============================== -->
-    <h2>What the textbook predicts</h2>
+    <h2>Three testable predictions</h2>
 
-    <p>If the framework developed in chapters 1&ndash;14 is correct, the abduction engine should exhibit three measurable properties compared to exhaustive search on the same budget:</p>
+    <p>If the framework from chapters 1&ndash;14 is correct, the abduction engine beats exhaustive search on the same budget in three measurable ways:</p>
 
     <ol>
-      <li><strong>Fewer trials to equivalent quality.</strong> Theory-guided selection skips irrelevant regions of the configuration space. The savings should grow with the size of the space.</li>
-      <li><strong>Fewer measured regressions.</strong> The baseline guard prevents deploying configurations known to be slower. Noisy timing and benchmark/production mismatch can still produce regressions, but the guard eliminates the obvious ones.</li>
-      <li><strong>Transferable explanations.</strong> The hypothesis graph from workload A should partially transfer to workload B. If the theory says "this workload is memory-bound because of access pattern X," and workload B has the same access pattern, the same configuration should work without re-searching. Exhaustive search cannot transfer because it produces no theory.</li>
+      <li><strong>Fewer trials to equivalent quality.</strong> Theory-guided selection skips irrelevant regions of configuration space. The savings grow with the size of the space.</li>
+      <li><strong>Fewer regressions.</strong> The baseline guard prevents deploying configurations known to be slower. Noisy timing and benchmark/production mismatch can still cause regressions, but the guard eliminates the obvious ones.</li>
+      <li><strong>Transferable explanations.</strong> The hypothesis graph from workload A partially transfers to workload B. If the theory says "this workload is memory-bound because of access pattern X," and workload B shares that pattern, the same configuration works without re-searching. Exhaustive search cannot transfer because it produces no theory.</li>
     </ol>
 
-    <h2>The falsification condition</h2>
+    <h2>How this textbook fails</h2>
 
-    <p>The framework makes a specific, falsifiable claim: <strong>abduction reduces sample complexity</strong>. Theory-guided search should find configurations of equal or better quality in fewer measurement rounds than theory-free search.</p>
+    <p>The framework makes a specific, falsifiable claim: <strong>abduction reduces sample complexity</strong>. Theory-guided search finds configurations of equal or better quality in fewer measurement rounds than theory-free search.</p>
 
-    <p>If this is false &mdash; if the abduction engine consistently requires <em>more</em> trials than exhaustive search to reach the same quality &mdash; then the overhead of maintaining and updating the hypothesis graph is not justified. The framework's core assumption (that the structure of failures carries exploitable information) would be wrong. The configuration space would be adversarial to theory: no pattern in the failures, no transferable structure, pure noise.</p>
+    <p>If the abduction engine consistently requires <em>more</em> trials than exhaustive search to reach the same quality, the overhead of the hypothesis graph is not justified. The core assumption (that failure structure carries exploitable information) would be wrong. The configuration space would be adversarial to theory: no pattern in the failures, no transferable structure, pure noise.</p>
 
-    <p>This is an empirical question. The textbook does not assert the answer. It provides the machinery to run the experiment and the criteria to interpret the result. If the abduction engine wins, the framework works. If it loses, the framework is wrong, and the shape of the loss will say why.</p>
+    <p>The textbook provides the machinery to run the experiment and the criteria to interpret the result. If the abduction engine wins, the framework works. If it loses, the framework is wrong, and the shape of the loss will say why.</p>
 
-    <p>That last sentence is the framework applying to itself. The failure mode of the textbook names the next textbook.</p>
+    <p>That last sentence is the framework applying to itself. The failure mode of this textbook names the next one.</p>
 
     <Neighbors>
     <ul class="neighbors">
