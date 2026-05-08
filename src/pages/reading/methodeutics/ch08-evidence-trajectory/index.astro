@@ -11,44 +11,44 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p class="text-gray-400 text-sm mb-6">Chapter 8 &middot; de Finetti 1937, Ville 1939, Wald 1947, Robbins 1967, Shafer 2021, Ramdas 2023</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
-      <p class="text-lg" style="max-width:none">You run an A/B test on two code variants. B converts 12% better than A, p &lt; .01, sample size 50,000. You ship B. Six months later, B is worse than A ever was. The snapshot lied. This chapter introduces a measure of evidence &mdash; the e-value &mdash; that preserves the temporal structure the p-value threw away.</p>
+      <p class="text-lg" style="max-width:none">You run an A/B test on two code variants. B converts 12% better than A, p &lt; .01, sample size 50,000. You ship B. Six months later, B is worse than A ever was. The snapshot lied. This chapter introduces the e-value, a measure of evidence that preserves the temporal structure the p-value threw away.</p>
     </div>
 
     <p>Chapters 4&ndash;7 built the abductive primitive. You can generate hypotheses from a surprising observation. You can select which experiment to run next. But after the experiment runs and data arrives, how do you know the hypothesis is right?</p>
 
-    <p>The standard answer is the p-value: collect a fixed sample, compute a test statistic, compare to a threshold. If p &lt; 0.05, declare significance. The p-value is a scalar computed at a single moment from a fixed sample. It compresses the entire temporal structure of the evidence into one number. That compression is not a convenience. It is a requirement. Peek at the data mid-experiment and the false positive guarantee breaks. The math demands you look once.</p>
+    <p>The standard answer is the p-value: collect a fixed sample, compute a test statistic, compare to a threshold. If p &lt; 0.05, declare significance. The p-value compresses the entire temporal structure of evidence into one number. That compression is mandatory. Peek at the data mid-experiment and the false positive guarantee breaks. The math demands you look once.</p>
 
-    <p>This chapter traces a 90-year lineage of work that removes that demand. The result is a measure of evidence that you can compute at every observation, that you can stop collecting whenever you want, and whose error guarantee holds at every moment. The evidence is no longer a scalar. It is a trajectory. And preserving that trajectory makes temporal patterns — including patterns that may reveal system dynamics — available for analysis.</p>
+    <p>This chapter traces a 90-year lineage of work that removes that demand. The result is a measure of evidence you can compute at every observation, stop whenever you want, and whose error guarantee holds at every moment. The evidence becomes a trajectory. And the trajectory carries temporal patterns that a scalar discards.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Three snapshots that lied</h2>
 
-    <p>Before the theory: three cases where compressing evidence to a snapshot produced catastrophic decisions.</p>
+    <p>Before the theory, three cases where compressing evidence to a snapshot produced catastrophic decisions.</p>
 
     <h3>Google: the feedback loop</h3>
 
-    <p>Google <a href="https://dl.acm.org/doi/abs/10.1145/2783258.2788583">A/B-tested ad load</a>: more ads per page, more revenue per session, ship it. The test assumed stationarity &mdash; that the treatment effect would not change over the measurement window. It also assumed no interference &mdash; that each user's behavior was independent of every other user's. Both assumptions reduce to one: no feedback. The treatment enters, the outcome exits, nothing loops back.</p>
+    <p>Google <a href="https://dl.acm.org/doi/abs/10.1145/2783258.2788583">A/B-tested ad load</a>: more ads per page, more revenue per session, ship it. The test assumed stationarity (the treatment effect stays constant) and independence (each user's behavior is unaffected by others'). Both assumptions reduce to one: no feedback. The treatment enters, the outcome exits, nothing loops back.</p>
 
-    <p>Long-term measurement revealed the loop. Users learned to ignore ads. Click-through rates degraded over months. Ad blindness spread through the user base as a learned behavior. Google cut mobile ad load by 50%. The snapshot said "more ads = more revenue." The trajectory said "more ads = more revenue now, less revenue later, and the crossover happens outside your test window."</p>
+    <p>Long-term measurement revealed the loop. Users learned to ignore ads. Click-through rates degraded over months. Ad blindness spread as a learned behavior. Google cut mobile ad load by 50%. The snapshot said "more ads = more revenue." The trajectory said "more ads = more revenue now, less revenue later, and the crossover happens outside your test window."</p>
 
     <h3>Boeing: oscillation killed 346 people</h3>
 
     <p>The <a href="https://en.wikipedia.org/wiki/Maneuvering_Characteristics_Augmentation_System">Maneuvering Characteristics Augmentation System (MCAS)</a> read a single sensor snapshot: nose too high. Correct response: push it down. Correct logic, wrong sensor. The angle-of-attack sensor was faulty. MCAS pushed the nose down. Pilots trimmed up. MCAS pushed again. Two subsystems fighting. The oscillation diverged. Lion Air Flight 610. Ethiopian Airlines Flight 302. 346 dead.</p>
 
-    <p>Nobody was watching the trajectory. Each individual MCAS activation was locally correct &mdash; the snapshot said "nose too high, push down." The oscillation between MCAS and pilot inputs was the signal. A system that tracked the temporal pattern of its own corrections would have seen the fight. The snapshot saw only the current angle.</p>
+    <p>Nobody was watching the trajectory. Each MCAS activation was locally correct: the snapshot said "nose too high, push down." The oscillation between MCAS and pilot inputs was the signal. A system that tracked the temporal pattern of its own corrections would have seen the fight. The snapshot saw only the current angle.</p>
 
     <h3>Vioxx: delayed cardiovascular risk</h3>
 
     <p>Rofecoxib (Vioxx) <a href="https://en.wikipedia.org/wiki/Rofecoxib">passed its 9-month trial</a>: fewer gastrointestinal bleeds than naproxen, ship it. The cardiovascular risk emerged at 18 months, past the trial window. Cumulative thrombotic damage, invisible in the snapshot. <a href="https://doi.org/10.1016/S0140-6736(05)17864-5">88,000&ndash;140,000 excess coronary events</a> before the drug was pulled.</p>
 
-    <p>The trial tested for GI bleeds over 9 months. It found what it tested for. The cardiovascular trajectory was in the data &mdash; thrombotic risk accumulated monotonically &mdash; but the fixed-sample test could not see it because the test window ended before the risk crossed the detection threshold.</p>
+    <p>The trial tested for GI bleeds over 9 months. It found what it tested for. The cardiovascular trajectory was in the data (thrombotic risk accumulated monotonically), but the test window ended before the risk crossed the detection threshold.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>What all three share</h2>
+    <h2>Same structure, same failure</h2>
 
-    <p>Each failure has the same structure:</p>
+    <p>Each case has the same skeleton:</p>
 
     <ol class="list-decimal pl-5 mb-4">
       <li class="mb-1">A system with feedback (users adapt, pilots fight the computer, cumulative organ damage).</li>
@@ -58,13 +58,13 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li class="mb-1">A trajectory that would have revealed the danger, had anyone preserved it.</li>
     </ol>
 
-    <p>This is <a href="/reading/scientific-method/meehl-1967/">Meehl's structural flaw</a> at industrial scale. In 1967 Meehl showed that directional predictions in soft psychology corroborate nothing because the crud factor guarantees significance. The same structure &mdash; directional prediction, snapshot window, no trajectory &mdash; now ships products and drugs. Soft psychology published non-replicable findings. A/B testing culture adopted the same structure — directional predictions, fixed sample sizes, ship on significance.</p>
+    <p><a href="/reading/scientific-method/meehl-1967/">Meehl's structural flaw</a> at industrial scale. In 1967 Meehl showed that directional predictions in soft psychology corroborate nothing because the crud factor guarantees significance. The same structure (directional prediction, snapshot window, no trajectory) now ships products and drugs. A/B testing culture inherited the pattern wholesale: directional predictions, fixed sample sizes, ship on significance.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>The betting line</h2>
 
-    <p>The alternative to snapshot testing has a 90-year lineage. Six contributions, each building on the last. The thread is thin &mdash; the key ideas ran parallel to Fisher's fixed-horizon view for decades before converging.</p>
+    <p>The alternative to snapshot testing has a 90-year lineage. Six contributions, each building on the last. The thread ran parallel to Fisher's fixed-horizon view for decades before converging.</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -99,7 +99,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
           <tr class="border-b border-zinc-800">
             <td class="py-2 pr-3 pl-0 text-gray-300">1967</td>
             <td class="pr-3 text-gray-300"><a href="https://en.wikipedia.org/wiki/Herbert_Robbins">Robbins</a> &amp; Darling</td>
-            <td class="text-gray-400">Proved that confidence sequences &mdash; confidence intervals valid at every sample size &mdash; are achievable. You can peek at every observation and the coverage guarantee holds.</td>
+            <td class="text-gray-400">Proved that confidence sequences (confidence intervals valid at every sample size) are achievable. Peek at every observation and the coverage guarantee holds.</td>
           </tr>
           <tr>
             <td class="py-2 pr-3 pl-0 text-gray-300">2019&ndash;2023</td>
@@ -110,7 +110,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>De Finetti said evidence is a bet. Ville said you can test a hypothesis by trying to make money against it. Wald said you don't need to fix your sample size. Doob proved the guarantee holds no matter when you stop. Robbins showed confidence intervals can hold at every peek. Ramdas, Shafer, and Gr&uuml;nwald unified it into a framework and named the central object.</p>
+    <p>De Finetti: evidence is a bet. Ville: test a hypothesis by trying to make money against it. Wald: you don't need a fixed sample size. Doob: the guarantee holds no matter when you stop. Robbins: confidence intervals hold at every peek. Ramdas, Shafer, and Gr&uuml;nwald unified it and named the central object.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -122,45 +122,43 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>E[e] &le; 1 &nbsp;&nbsp; under the null</code></pre>
 
-    <p>That's the entire definition. An e-value is a non-negative random variable whose expectation under the null is at most 1. Large values (e &gt;&gt; 1) mean the null is losing the bet badly. In the likelihood-ratio case, an e-value of 20 can be interpreted as the data being 20 times more consistent with the alternative than the null.</p>
+    <p>That's the entire definition. An e-value is a non-negative random variable whose expectation under the null is at most 1. Large values (e &gt;&gt; 1) mean the null is losing badly. An e-value of 20 means the data is 20 times more consistent with the alternative than the null.</p>
 
-    <p>The constraint E[e] &le; 1 is the <strong>supermartingale property</strong>. A supermartingale is a stochastic process whose expected future value is at most its current value. If you are betting against the null and the null is true, your wealth cannot grow on average. If your wealth grows anyway, the null is losing.</p>
+    <p>The constraint E[e] &le; 1 is the <strong>supermartingale property</strong>: the expected future value of the process is at most its current value. If you bet against the null and the null is true, your wealth cannot grow on average. If your wealth grows anyway, the null is losing.</p>
 
     <h3>Why "at most 1" and not "equals 1"</h3>
 
     <p>A martingale has E[e] = 1 exactly. A supermartingale relaxes this to E[e] &le; 1. The relaxation matters because it makes e-values composable. If you run two sequential experiments producing e-values e<sub>1</sub> and e<sub>2</sub>, their product e<sub>1</sub> &times; e<sub>2</sub> is also an e-value. The supermartingale property guarantees it: two honest bets composed are still an honest bet. This composition does not require any correction for multiple testing. It is exact.</p>
 
-    <p>P-values do not compose this way. If you run two tests and multiply their p-values, the result is not a valid p-value. You need corrections (Bonferroni, Holm, BH) and those corrections are conservative &mdash; they throw away statistical power to maintain the guarantee. E-values compose for free.</p>
+    <p>P-values do not compose this way. Multiply two p-values and the result is not a valid p-value. Corrections (Bonferroni, Holm, BH) restore validity but throw away statistical power. E-values compose for free.</p>
 
     <h3>Anytime validity</h3>
 
-    <p>The deepest property: you can compute an e-value at every observation and the guarantee holds at each one. There is no peeking penalty. There is no alpha spending. You look whenever you want, stop whenever you want, and the false positive rate is controlled at every moment.</p>
+    <p>The deepest property: you can compute an e-value at every observation and the guarantee holds at each one. No peeking penalty. No alpha spending. Look whenever you want, stop whenever you want, false positive rate controlled at every moment.</p>
 
-    <p>This is Doob's optional stopping theorem in action. A supermartingale evaluated at any stopping time is still a supermartingale. The math does not care when you look or why you stopped. It holds unconditionally.</p>
+    <p>This is Doob's optional stopping theorem in action. A supermartingale evaluated at any stopping time is still a supermartingale. The math does not care when you look or why you stopped.</p>
 
-    <p>Contrast with a p-value. If you compute a p-value at n=100 and it's 0.06 (not significant), then peek again at n=200 and it's 0.04 (significant), your false positive rate is no longer 5%. By peeking twice, you inflated it. The p-value guarantee requires exactly one look. One. The e-value guarantee holds at every look.</p>
-
-    <hr class="border-zinc-700 my-8"/>
-
-    <h2>The key insight: trajectory preserves temporal structure</h2>
-
-    <p>A p-value compresses evidence over time into a scalar. An e-value stream preserves evidence over time. The system's dynamics are in the temporal structure. Compress to a scalar and they're gone. Keep the stream and they're there.</p>
-
-    <p>This is a mathematical property of the two frameworks, not an empirical finding. No experiment is needed to see why.</p>
-
-    <p>Point an e-value stream at a system with feedback. The evidence trajectory preserves temporal patterns that a terminal scalar discards — patterns that may reveal the system's dynamics.</p>
-
-    <p><strong>Smoking and stress.</strong> Test whether smoking reduces stress. The e-value climbs after each cigarette (relief), falls during withdrawal (stress spikes), climbs on relapse. The oscillation in your evidence <em>is</em> the addiction cycle. A two-week snapshot would say "smoking reduces stress, p &lt; .05." The e-value trajectory shows the loop.</p>
-
-    <p><strong>Ad load.</strong> An e-value stream tracking revenue per session would climb for the first weeks (more ads = more revenue), then flatten (ad blindness developing), then decline (revenue loss from degraded engagement). The inflection point in the evidence trajectory is the moment the feedback loop activates. A fixed-sample test that ends before the inflection sees only the climb.</p>
-
-    <p><strong>MCAS.</strong> An e-value tracking "does the flight control correction succeed?" would oscillate. Each correction pushes the nose down (evidence for success), the pilot trims up (evidence resets), MCAS fires again (evidence for success again). The oscillation in the evidence is two subsystems fighting. A snapshot at any single activation says "correction successful."</p>
+    <p>Contrast with a p-value. Compute p at n=100: 0.06, not significant. Peek again at n=200: 0.04, significant. Your false positive rate is no longer 5%. Peeking twice inflated it. The p-value guarantee requires exactly one look. The e-value guarantee holds at every look.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Composition: evidence in installments</h2>
+    <h2>Trajectories expose feedback loops</h2>
 
-    <p>E-values compose multiplicatively across sequential experiments. This is the structural advantage.</p>
+    <p>A p-value compresses evidence into a scalar. An e-value stream preserves evidence over time. The system's dynamics live in the temporal structure. Compress to a scalar and they vanish.</p>
+
+    <p>Point an e-value stream at a system with feedback. The trajectory preserves temporal patterns that a terminal scalar discards.</p>
+
+    <p><strong>Smoking and stress.</strong> The e-value climbs after each cigarette (relief), falls during withdrawal (stress spikes), climbs on relapse. The oscillation <em>is</em> the addiction cycle. A two-week snapshot says "smoking reduces stress, p &lt; .05." The trajectory shows the loop.</p>
+
+    <p><strong>Ad load.</strong> An e-value stream tracking revenue per session climbs for weeks (more ads = more revenue), flattens (ad blindness developing), then declines (degraded engagement). The inflection point marks the moment the feedback loop activates. A fixed-sample test that ends before the inflection sees only the climb.</p>
+
+    <p><strong>MCAS.</strong> An e-value tracking "does the correction succeed?" oscillates. Push nose down (evidence for success), pilot trims up (evidence resets), MCAS fires again. The oscillation is two subsystems fighting. A snapshot at any single activation says "correction successful."</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Evidence compounds across experiments</h2>
+
+    <p>E-values compose multiplicatively across sequential experiments.</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -180,15 +178,15 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>Run ten small experiments, each isolating one variable, tracked over time. The evidence composes multiplicatively. Experiment A gives e<sub>1</sub> = 3 (suggestive). Experiment B gives e<sub>2</sub> = 4 (suggestive). Neither is strong alone. But e<sub>1</sub> &times; e<sub>2</sub> = 12 &mdash; strong combined evidence. The product is a valid e-value with no correction.</p>
+    <p>Run ten small experiments, each isolating one variable. Experiment A gives e<sub>1</sub> = 3 (suggestive). Experiment B gives e<sub>2</sub> = 4 (suggestive). Neither is strong alone. But e<sub>1</sub> &times; e<sub>2</sub> = 12, strong combined evidence, valid with no correction.</p>
 
-    <p>You can change your test, your sampling strategy, your hypothesis mid-stream, and the evidence still composes. The supermartingale guarantee holds regardless. You cannot do "try things and accumulate evidence" with a fixed method. You need the freedom to change what you're doing based on what you're learning. E-values grant that freedom.</p>
+    <p>Change your test, your sampling strategy, your hypothesis mid-stream. The evidence still composes. The supermartingale guarantee holds regardless. Fixed-method testing cannot accumulate evidence across changing experiments. E-values can.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>Code: e-value trajectory for a sequential test</h2>
 
-    <p>A simple sequential test. Observations arrive one at a time. Under the null, they are drawn from N(0, 1). Under the alternative, N(&mu;, 1) for some &mu; &gt; 0. At each step, compute the likelihood ratio &mdash; the simplest e-value &mdash; and track the trajectory.</p>
+    <p>A simple sequential test. Observations arrive one at a time. Under the null, N(0, 1). Under the alternative, N(&mu;, 1) for some &mu; &gt; 0. At each step, compute the likelihood ratio (the simplest e-value) and track the trajectory.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code><span class="hl-keyword">import</span> math
 <span class="hl-keyword">import</span> random
@@ -287,27 +285,25 @@ P-value at t=100: 0.0942  (snapshot at end)</code></pre>
 
     <p>Three scenarios. Three stories.</p>
 
-    <p><strong>Null is true:</strong> the e-value drops below 1 immediately and keeps falling. By t=100 it is 0.0001 &mdash; the bet against the null has been thoroughly lost. The supermartingale property in action: under the null, honest betting cannot grow in expectation. Individual paths can fluctuate, but the trend is downward. The p-value at 100 agrees: not significant.</p>
+    <p><strong>Null is true:</strong> the e-value drops below 1 immediately and keeps falling. By t=100, e = 0.0001. The bet against the null is thoroughly lost. Under the null, honest betting cannot grow in expectation. Individual paths fluctuate, but the trend is downward.</p>
 
-    <p><strong>Alternative is true:</strong> the e-value climbs steadily. By t=100, e = 73,237 &mdash; overwhelming evidence. You could have stopped at t=50 (e &asymp; 69, already strong) or continued. The guarantee held at every peek. The trajectory shows a monotone climb: the evidence is accumulating, not oscillating.</p>
+    <p><strong>Alternative is true:</strong> the e-value climbs steadily. By t=100, e = 73,237. You could have stopped at t=50 (e = 69, already strong) or continued. The guarantee held at every peek. Monotone climb: accumulating, not oscillating.</p>
 
-    <p><strong>Feedback system:</strong> this is the Google ad-load scenario. The effect is real for the first 50 observations, then reverses. The e-value climbs to 1,161 at t=50 (strong evidence), then <em>collapses</em> as the reversal erodes the accumulated evidence. By t=100, e = 0.003 &mdash; the bet has been lost. A p-value computed at t=50 says p = 0.0001 &mdash; highly significant. A p-value computed at t=100 says p = 0.09 &mdash; borderline. Two different scalars, two different conclusions, no way to reconcile them within the p-value framework. The e-value trajectory tells the whole story: rise, peak, collapse. The shape of the trajectory is the shape of the system.</p>
+    <p><strong>Feedback system:</strong> the Google ad-load scenario. The effect is real for the first 50 observations, then reverses. The e-value climbs to 1,161 at t=50, then <em>collapses</em> as the reversal erodes the accumulated evidence. By t=100, e = 0.003. Meanwhile: p at t=50 = 0.0001 (highly significant), p at t=100 = 0.09 (borderline). Two snapshots, two conclusions, no way to reconcile them. The e-value trajectory tells the whole story: rise, peak, collapse. The shape of the trajectory is the shape of the system.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Why the p-value compresses</h2>
+    <h2>The p-value's guarantee demands one look</h2>
 
-    <p>The p-value's limitation is not a design flaw. It is a mathematical consequence of how the guarantee works.</p>
+    <p>A p-value controls the <strong>type I error rate at a single, predetermined stopping time</strong>. Fix n in advance, compute once: P(p &lt; &alpha; | H<sub>0</sub>) = &alpha;. Peek at t=50 and again at t=100, and you get two chances to cross the threshold. The error rate inflates.</p>
 
-    <p>A p-value controls the <strong>type I error rate at a single, predetermined stopping time</strong>. If you fix n in advance and compute once, then P(p &lt; &alpha; | H<sub>0</sub>) = &alpha;. The guarantee is conditional on looking exactly once. Peeking at t=50 and again at t=100 gives you two chances to cross the threshold, inflating the error rate.</p>
-
-    <p>An e-value controls the error rate <strong>uniformly over all stopping times</strong>. By Markov's inequality and the supermartingale property: for any stopping time &tau;,</p>
+    <p>An e-value controls the error rate <strong>uniformly over all stopping times</strong>. By Markov's inequality and the supermartingale property, for any stopping time &tau;:</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>P(e<sub>&tau;</sub> &ge; 1/&alpha;) &le; &alpha; &nbsp;&nbsp; under the null</code></pre>
 
-    <p>This holds for <em>any</em> stopping time &mdash; fixed, random, data-dependent, adversarial. The proof is three lines and uses only Doob's optional stopping theorem. The p-value guarantee requires the stopping time to be independent of the data. The e-value guarantee does not.</p>
+    <p>This holds for <em>any</em> stopping time: fixed, random, data-dependent, adversarial. The proof is three lines from Doob's optional stopping theorem. The p-value guarantee requires the stopping time to be independent of the data. The e-value guarantee does not.</p>
 
-    <p>The tradeoff: e-value tests may lose power versus fixed-time tests at any single sample size. If you commit in advance to looking exactly once at exactly n observations, the p-value is more powerful. The e-value pays for its flexibility with a constant-factor loss in efficiency at any single time point. What it buys with that payment is the entire trajectory.</p>
+    <p>The tradeoff: at any single sample size, a p-value test is more powerful. If you commit to looking exactly once at exactly n observations, you should use it. The e-value pays a constant-factor efficiency loss at each time point. What it buys is the entire trajectory.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -322,19 +318,17 @@ P-value at t=100: 0.0942  (snapshot at end)</code></pre>
       <li class="mb-2"><strong>Read</strong> the trajectory's shape to classify the system's dynamics (Chapter 9).</li>
     </ol>
 
-    <p>Step 3 is new. Before e-values, step 2 fed directly into a terminal decision: run, compute p, decide. Now there is a trajectory between the experiment and the decision. That trajectory carries information that the terminal scalar discards.</p>
+    <p>Step 3 is new. Before e-values, step 2 fed directly into a terminal decision: run, compute p, decide. Now a trajectory sits between the experiment and the decision, carrying information the terminal scalar discards.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>What this chapter does not solve</h2>
+    <h2>Trajectory shape is ambiguous without classification</h2>
 
-    <p>You have the trajectory. It oscillates. Is the system fighting itself (two subsystems in a feedback loop, like MCAS vs. pilots), or is your measurement noisy (the underlying effect is constant but your observations are high-variance)?</p>
+    <p>You have the trajectory. It oscillates. Is the system fighting itself (MCAS vs. pilots), or is your measurement just noisy?</p>
 
-    <p>Oscillation in the e-value trajectory has at least two interpretations. One is structural: the system has cyclic dynamics and the evidence reflects them. The other is statistical: the effect is real but weak, and finite-sample noise creates apparent oscillation. The trajectory alone cannot distinguish the two.</p>
+    <p>Structural oscillation (cyclic dynamics in the system) and statistical oscillation (weak effect plus finite-sample noise) look the same in the raw trajectory. The trajectory alone cannot distinguish them.</p>
 
-    <p>To read the trajectory's shape &mdash; to classify whether the evidence is converging, diverging, oscillating, or chaotic &mdash; you need a classification scheme. That scheme exists. The math for classifying iterative sequences (convergence rate, <a href="https://en.wikipedia.org/wiki/Lyapunov_exponent">Lyapunov exponents</a>, stability analysis) has been developed for decades in dynamical systems theory. The question is whether it applies to evidence trajectories.</p>
-
-    <p>That is the subject of <a href="/reading/methodeutics/ch09-four-bins/">Chapter 9</a>.</p>
+    <p>Classifying whether evidence is converging, diverging, oscillating, or chaotic requires tools from dynamical systems theory: convergence rates, <a href="https://en.wikipedia.org/wiki/Lyapunov_exponent">Lyapunov exponents</a>, stability analysis. These tools apply directly to evidence trajectories. <a href="/reading/methodeutics/ch09-four-bins/">Chapter 9</a> builds the classification scheme.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
