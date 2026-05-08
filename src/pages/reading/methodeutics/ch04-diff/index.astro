@@ -16,38 +16,33 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <h2>The mechanic</h2>
 
-    <p>A mechanic taps the alternator and the engine stalls. Two hypotheses fire: test the battery, test the voltage regulator. Nobody taught the mechanic a hypothesis-generation algorithm. The shape of the failure named the next experiment.</p>
+    <p>A mechanic taps the alternator and the engine stalls. Two hypotheses fire: test the battery, test the voltage regulator. Nobody taught her a hypothesis-generation algorithm. The shape of the failure named the next experiment.</p>
 
-    <p>Where did the hypotheses come from? Not from induction &mdash; she didn't generalize from a thousand stalled engines. Not from deduction &mdash; she didn't derive them from axioms. She compared two states: engine running, engine stalled. She noted what changed (alternator tapped) and what didn't (fuel, spark, coolant). The change pointed at the electrical subsystem. The hypotheses followed from the diff.</p>
+    <p>Where did the hypotheses come from? She compared two states: engine running, engine stalled. She noted what changed (alternator tapped) and what stayed the same (fuel, spark, coolant). The change pointed at the electrical subsystem. The hypotheses followed from the diff.</p>
 
-    <p>Diff is computable. The mechanic performed it in her head. OBD-II performs it in silicon. Facebook Infer performs it on code. The representation changes; the contrast operation does not.</p>
+    <p>Diff is computable. The mechanic performed it in her head. OBD-II performs it in silicon. Facebook Infer performs it on code. The representation changes; the operation stays the same.</p>
 
-    <h2>The formal object</h2>
+    <h2>The primitive</h2>
 
-    <p>Chapter 3 showed eight fields performing the same abstract schema under different names. Before we implement it, we need to say what the primitive is. Diff is the substrate of abduction, not abduction entire. It produces the contrast that abduction operates over:</p>
+    <p>Diff is the substrate of abduction, not abduction entire. It produces the contrast that abduction operates over:</p>
 
     <div class="bg-zinc-800 rounded-lg p-5 mb-6">
       <p class="text-gray-300" style="max-width:none">Given expected state <strong>E</strong>, observed state <strong>O</strong>, and background frame <strong>B</strong>, partition what differs from what remains invariant.</p>
     </div>
 
-    <p>Abduction then uses that partition to generate candidate causes <strong>H</strong> — minimal revisions to <strong>B</strong> that would make <strong>O</strong> unsurprising. But the partition itself is the primitive this chapter defines.</p>
-    </div>
+    <p>Abduction then uses that partition to generate candidate causes <strong>H</strong>: minimal revisions to <strong>B</strong> that would make <strong>O</strong> unsurprising. The partition itself is the primitive. All eight names in Chapter 3 instantiate it. The simplest encoding: take two snapshots of a system's state, one before an event and one after. The comparison partitions state into two sets:</p>
 
-    <p>The expected state is what you thought would happen. The observed state is what actually happened. The background frame is everything you're not currently questioning. The output — the hypothesis — is the smallest change to your understanding that reconciles expectation with observation. This is the formal object that all eight names in Chapter 3 instantiate.</p>
+    <p><strong>Figure</strong> &mdash; what changed. Variables whose values differ between snapshots. In Gestalt terms, what pops out against a stable background.</p>
 
-    <h2>The primitive</h2>
-
-    <p>The simplest encoding of that formal object is the diff. Take two snapshots of a system's state: one before an event, one after. Compare them. The comparison partitions state into two sets:</p>
-
-    <p><strong>Figure</strong> &mdash; what changed. The variables whose values differ between snapshots. This is where the action happened. In Gestalt terms, the figure is what pops out against a stable background.</p>
-
-    <p><strong>Ground</strong> &mdash; what held. The variables whose values stayed the same. This is the frame &mdash; the context that remained invariant while the figure shifted. In separation logic, this is the frame that bi-abduction infers.</p>
+    <p><strong>Ground</strong> &mdash; what held. Variables whose values stayed the same. The context that remained invariant while the figure shifted. In separation logic, the frame that bi-abduction infers.</p>
 
     <p>Formally:</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">diff(state_before, state_after) &rarr; (figure, ground)</code></pre>
 
-    <p>The operation is symmetric in a narrow sense &mdash; it doesn't matter which snapshot is &ldquo;first&rdquo; for computing the partition &mdash; but asymmetric in use. Temporality matters. The before-state is the baseline; the after-state is the perturbation. The diff tells you what the perturbation touched.</p>
+    <p>The partition is symmetric: it doesn't matter which snapshot is &ldquo;first.&rdquo; But use is asymmetric. The before-state is the baseline; the after-state is the perturbation. The diff tells you what the perturbation touched.</p>
+
+    <p>Caution: diff gives candidates, not causes. A changed variable may be cause, effect, symptom, intervention, or coincident noise. The mechanic's diff puts both <em>alternator tapped</em> (intervention) and <em>engine stalled</em> (effect) in the figure. The diff alone does not know which is which. Separating cause from effect requires a dependency graph or an experiment. The diff just names what changed.</p>
 
     <h2>The XOR</h2>
 
@@ -116,15 +111,15 @@ for k, v in ground.items():
 #   spark: firing
 #   coolant: 92C`} /></pre>
 
-    <p>The figure contains two entries: the alternator (input &mdash; what the mechanic did) and the engine state (output &mdash; what changed as a result). The ground contains four entries: battery, fuel pump, spark, coolant &mdash; all unchanged.</p>
+    <p>Two figure entries: the alternator (input) and the engine state (output). Four ground entries: battery, fuel pump, spark, coolant, all unchanged.</p>
 
-    <p>The hypotheses follow from the figure. The alternator was tapped and the engine stalled. What connects them? The electrical subsystem. The battery supplies power. The voltage regulator manages alternator output. Both are upstream of the engine in the electrical path, and both are consistent with a tap-induced failure. The ground tells the mechanic what to rule out: the measured fuel-pump and spark variables are unchanged, which deprioritizes those paths — though it does not eliminate them unless the measurement set is complete.</p>
+    <p>The hypotheses follow from the figure. The alternator was tapped, the engine stalled. What connects them? The electrical subsystem. Battery supplies power; voltage regulator manages alternator output. Both sit upstream of the engine and both fit a tap-induced failure. The ground tells the mechanic what to deprioritize: fuel-pump and spark are unchanged (though that doesn't eliminate them unless the measurement set is complete).</p>
 
     <p>This is the contrast primitive. Hypothesis generation, ranking, and testing build on top of it.</p>
 
     <h2>Degrees of freedom</h2>
 
-    <p>The diff as defined above is the minimal case: one before, one after, one partition. The prefixes that appear across the literature are degrees of freedom added to this primitive:</p>
+    <p>The diff above is the minimal case: one before, one after, one partition. The variants in the literature add degrees of freedom to this primitive:</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -169,13 +164,13 @@ for k, v in ground.items():
 
     <h2>Three witnesses</h2>
 
-    <p>Three systems, three decades, three fields. Each encodes the diff. They are usually not presented as instances of one operation.</p>
+    <p>Three systems, three decades, three fields. Each encodes the diff. They are rarely presented as instances of one operation.</p>
 
     <h3>OBD-II (1996) &mdash; hardcoded diff</h3>
 
-    <p><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II">OBD-II</a> reads sensor states, diffs against expected values, and generates fault codes. The mechanic's intuition, mechanized. OBD-II-compliant vehicles have run a version of this since 1996.</p>
+    <p><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II">OBD-II</a> reads sensor states, diffs against expected values, and generates fault codes. (Real OBD-II adds thresholds, monitors, and enable conditions; "hardcoded diff" is a simplification of the core logic.) Vehicles have run this since 1996.</p>
 
-    <p>But OBD-II is hardcoded. The fault tree is hand-authored, the hypotheses enumerated in advance. An engineer at a desk decided which sensor deviations map to which fault codes. If a failure mode wasn't anticipated, no code fires. The primitive works; it just runs on a fixed table.</p>
+    <p>But OBD-II is hardcoded. The fault tree is hand-authored, the hypotheses enumerated in advance. An engineer decided which deviations map to which codes. If a failure mode wasn't anticipated, nothing fires. The primitive works; it just runs on a fixed table.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# OBD-II style: hardcoded fault table
 FAULT_TABLE = &#123;
@@ -216,17 +211,17 @@ for code in obd_diff(expected, observed):
 
     <h3>Facebook Infer (2009) &mdash; automated diff</h3>
 
-    <p><a href="https://fbinfer.com/">Infer</a> (<a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009</a>) runs bi-abduction on millions of lines of code in production. Given a function's precondition and postcondition, Infer infers the <em>frame</em> &mdash; the heap region the function didn't touch &mdash; and the <em>anti-frame</em> &mdash; the heap region that must exist for the function to be safe.</p>
+    <p><a href="https://fbinfer.com/">Infer</a> (<a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009</a>) runs bi-abduction on millions of lines of production code. Given a function's precondition and postcondition, it infers the <em>frame</em> (heap the function didn't touch) and the <em>anti-frame</em> (heap that must exist for the function to be safe).</p>
 
-    <p>The diff is between precondition and postcondition. The figure is what the function modifies. The ground is what it leaves alone. But Infer doesn't require the programmer to specify the ground. It infers it. That's the &ldquo;bi&rdquo; &mdash; abduction in both directions, computing both what must hold before and what the function preserves.</p>
+    <p>The figure is what the function modifies; the ground is what it leaves alone. Infer doesn't require the programmer to specify the ground. That's the &ldquo;bi&rdquo;: abduction in both directions, computing what must hold before and what the function preserves.</p>
 
-    <p>Infer moved the diff from a hand-authored table (OBD-II) to an automated inference engine. The primitive is the same. The degree of automation jumped.</p>
+    <p>Infer moved the diff from a hand-authored table (OBD-II) to an automated inference engine. Same primitive, higher automation.</p>
 
     <h3>IRM (2019) &mdash; learned diff</h3>
 
-    <p><a href="https://arxiv.org/abs/1907.02893">Invariant Risk Minimization</a> (Arjovsky et al. 2019) uses environment variation as the lever to force figure/ground separation. Train a model across multiple environments. Features that predict the outcome in all environments are invariant &mdash; ground. Features that predict in some environments but not others are spurious &mdash; figure.</p>
+    <p><a href="https://arxiv.org/abs/1907.02893">Invariant Risk Minimization</a> (Arjovsky et al. 2019) uses environment variation to force figure/ground separation. Train a model across multiple environments. Features that predict the outcome in all environments are invariant (ground). Features that predict in some but not others are spurious (figure).</p>
 
-    <p>IRM performs the diff across environments rather than across time. The before/after pair is replaced by environment A / environment B. The structural role is analogous: partition state into what changed and what held. But instead of comparing two snapshots of one system, IRM compares the same learning task under different conditions. The invariant features are the ground; the environment-specific features are the figure.</p>
+    <p>IRM diffs across environments rather than across time. Instead of comparing two snapshots of one system, it compares the same learning task under different conditions. Invariant features are ground; environment-specific features are figure. (Note the inversion: in IRM, the invariant features are the causal signal you <em>want</em>. Calling them "ground" follows the changed/unchanged definition but reverses the ordinary sense of "figure = thing of interest." The role assignment holds; the valence flips.)</p>
 
     <div class="overflow-x-auto my-6">
       <table class="w-full text-sm">
@@ -265,7 +260,7 @@ for code in obd_diff(expected, observed):
       </table>
     </div>
 
-    <p>Three fields, three encodings. The representation evolves from handcoded table (OBD-II) to automated inference (Infer) to learned separation (IRM). IRM is the loosest analogue — it seeks invariant representations rather than literally diffing states — but the structural role is the same: partition observations into signal and noise.</p>
+    <p>Three encodings. Handcoded table (OBD-II), automated inference (Infer), learned separation (IRM). IRM is the loosest analogue; it seeks invariant representations rather than literally diffing states. But the structural role holds: partition observations into signal and noise.</p>
 
     <h2>Code: the full loop</h2>
 
@@ -357,17 +352,17 @@ for h in hypotheses:
 #   [alternator_belt] alternator changed (untouched -> tapped)
 #   [alternator_bearing] alternator changed (untouched -> tapped)`} /></pre>
 
-    <p>Five hypotheses from a two-variable diff. The dependency graph constrains which components are candidates. The ground &mdash; fuel pump, spark, coolant &mdash; eliminates their upstream components from consideration. Battery, voltage regulator, ECU, alternator belt, alternator bearing. Those are the five things to check.</p>
+    <p>Five hypotheses from a two-variable diff. The dependency graph constrains which components are candidates. The ground (fuel pump, spark, coolant) eliminates their upstream components. Battery, voltage regulator, ECU, alternator belt, alternator bearing: the five things to check.</p>
 
-    <p>Notice what the code does <em>not</em> do: it does not test the hypotheses. It does not rank them. It does not estimate their probability. It generates them. The diff is a hypothesis-generation primitive, not a testing primitive. Testing is induction. Ranking is economy of research (ch 7). The diff is the first step: name the candidates.</p>
+    <p>Notice what the code does <em>not</em> do. It does not test the hypotheses, rank them, or estimate their probability. It generates them. The diff is a hypothesis-generation primitive. Testing is induction. Ranking is economy of research (ch 7). The diff names the candidates.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
     <h2>What breaks</h2>
 
-    <p>The diff requires you to know what to observe. Every variable in the before-state and after-state was chosen by someone &mdash; the mechanic who checked six gauges, the engineer who wired six sensors, the programmer who logged six fields. If the relevant state lives in a variable nobody snapshotted, the diff misses it.</p>
+    <p>The diff requires you to know what to observe. Every variable was chosen by someone: the mechanic who checked six gauges, the engineer who wired six sensors, the programmer who logged six fields. If the relevant state lives in a variable nobody snapshotted, the diff misses it.</p>
 
-    <p>Return to the mechanic. She checked engine state, alternator, battery voltage, fuel pump, spark, and coolant. She did not check the serpentine belt tension. If the real cause is a worn belt that slipped when she tapped the alternator, the diff cannot find it. The belt isn't in either snapshot. It is not in the figure, and it is not in the ground. It is absent.</p>
+    <p>Return to the mechanic. She checked six variables but not the serpentine belt tension. If the real cause is a worn belt that slipped when she tapped the alternator, the diff cannot find it. The belt isn't in either snapshot. Not in the figure, not in the ground. Absent.</p>
 
     <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# The variable that matters isn't in the snapshot.
 before = &#123;
@@ -398,11 +393,11 @@ print("Belt tension: not in snapshot. Hypothesis space is incomplete.")
 # Ground: ['battery', 'fuel_pump', 'spark', 'coolant']
 # Belt tension: not in snapshot. Hypothesis space is incomplete.`} /></pre>
 
-    <p>This is the structural limitation of the unary diff. It partitions observed state into figure and ground. It cannot reason about unobserved state. The hypothesis space is bounded by what you chose to measure.</p>
+    <p>This is the structural limitation. The unary diff partitions observed state into figure and ground. It cannot reason about unobserved state. The hypothesis space is bounded by what you chose to measure.</p>
 
-    <p>OBD-II has this problem in concrete form: if a failure involves a sensor the ECU doesn't monitor, no code fires. The fault is real; the system is blind to it. Engineers work around this by adding more sensors. But you can never instrument everything. Some state will always be unmeasured.</p>
+    <p>OBD-II shows this concretely: if a failure involves a sensor the ECU doesn't monitor, no code fires. Engineers add more sensors, but you can never instrument everything. Some state will always be unmeasured.</p>
 
-    <p>Bi-abduction addresses this. Instead of requiring the programmer to specify the full state, bi-abduction infers the frame &mdash; the state the operation <em>must not have touched</em> for the result to be valid. It reasons backward from the postcondition to discover what must have been true before, including state that was never explicitly observed. The diff goes from "compare what you measured" to "infer what you must have missed."</p>
+    <p>Bi-abduction addresses this by inferring the frame: the state the operation <em>must not have touched</em> for the result to be valid. It reasons backward from the postcondition, including state never explicitly observed. The diff goes from "compare what you measured" to "infer what you must have missed."</p>
 
     <p>That is Chapter 5.</p>
 
@@ -415,11 +410,11 @@ print("Belt tension: not in snapshot. Hypothesis space is incomplete.")
         <tbody>
           <tr class="border-b border-zinc-800">
             <td class="py-2 pr-3 pl-0 text-gray-300">Rubin 1915</td>
-            <td class="text-gray-400"><em>Synsoplevede Figurer</em>. Figure-ground segregation in visual perception. The partition into what pops out and what recedes &mdash; the perceptual ancestor of diff.</td>
+            <td class="text-gray-400"><em>Synsoplevede Figurer</em>. Figure-ground segregation in visual perception. The perceptual ancestor of diff.</td>
           </tr>
           <tr class="border-b border-zinc-800">
             <td class="py-2 pr-3 pl-0 text-gray-300">SAE J1962 (1996)</td>
-            <td class="text-gray-400"><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II">OBD-II standard</a>. Standardizes diagnostic connector, protocol, and trouble code conventions for OBD-II-compliant vehicles. The diff, hardcoded since 1996.</td>
+            <td class="text-gray-400"><a href="https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II">OBD-II standard</a>. Diagnostic connector, protocol, and trouble code conventions. The diff, hardcoded since 1996.</td>
           </tr>
           <tr class="border-b border-zinc-800">
             <td class="py-2 pr-3 pl-0 text-gray-300">Calcagno et al. 2009</td>
