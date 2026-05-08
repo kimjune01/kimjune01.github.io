@@ -296,7 +296,7 @@ for name, entry in [("Good prereg", good_prereg), ("Bad prereg", bad_prereg)]:
         for f in failures:
             print(f"  - {f}\\n")`} />
 
-    <p>The validator is intentionally minimal. It checks that each field is populated, not that the content is good. A falsification condition that says "if pigs fly" would pass. The validator catches cases where the agent didn't even try to answer the question. Catching bad answers requires judgment; catching missing answers requires a null check.</p>
+    <p>The validator is intentionally minimal. It checks that each field is populated. A falsification condition that says "if pigs fly" would pass. The validator catches cases where the agent didn't even try to answer the question. Catching bad answers requires judgment; catching missing answers requires a null check.</p>
 
     <p>This suffices for the most common failure. The agent that tests on training data never declares "I am testing on training data." It omits the data-split field. The agent that generates unfalsifiable hypotheses doesn't write "this hypothesis is unfalsifiable." It leaves the falsification field empty. The null check catches the omission. Judging quality is a harder problem, and still a human one.</p>
 
