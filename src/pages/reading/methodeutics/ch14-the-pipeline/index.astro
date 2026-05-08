@@ -14,15 +14,15 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <p class="text-lg" style="max-width:none">Chapter 12 protected the loop from self-deception. Chapter 13 gave escalation rules for validating claims. Now: wire every tool from the textbook into an autonomous pipeline. Five stations, one outer loop, and a contract that makes the stations compose.</p>
     </div>
 
-    <h2>Three witnesses</h2>
+    <h2>Three independent convergences</h2>
 
-    <p>Three systems close the abduction loop in production. They come from different fields, solve different problems, and share zero citations. The convergence is the evidence.</p>
+    <p>Three systems close the abduction loop in production. Different fields, different problems, zero shared citations. The convergence is the evidence.</p>
 
     <h3>Facebook Infer (Calcagno et al. 2009)</h3>
 
     <p>Infer takes a code diff and produces bug reports. The pipeline is: observe the change (diff, Ch 4), infer the anti-frame and frame (bi-abduction, Ch 5), compose contracts across call boundaries, report where the inferred precondition conflicts with the calling context. The observation is formal (a code diff). The goal is formal (memory safety). The hypothesis is formal (the anti-frame). Every component is mechanized. No human intervenes between input and output.</p>
 
-    <p>Infer runs on every diff submitted to the Facebook codebase. Millions of lines, every day. The abduction primitive &mdash; "what must have been true for this function to succeed?" &mdash; executes at industrial scale because the decomposition is compositional (Ch 5): each function is analyzed once, in isolation, and the results compose linearly.</p>
+    <p>Infer runs on every diff submitted to the Facebook codebase. Millions of lines, every day. The abduction primitive ("what must have been true for this function to succeed?") executes at industrial scale because the decomposition is compositional (Ch 5): each function is analyzed once, in isolation, and the results compose linearly.</p>
 
     <h3>Voyager (Wang et al. 2023)</h3>
 
@@ -34,11 +34,11 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>IRM observes that a classifier trained on one environment fails on another. Standard training minimizes loss. IRM minimizes loss subject to a constraint: the learned features must be invariant across training environments. Features that correlate with the label in environment A but not environment B are discarded. Only features that predict in all environments survive.</p>
 
-    <p>The environment variation is the lever for figure-ground separation (Ch 4). The invariant features are the figure &mdash; what is structurally load-bearing. The spurious correlations are the ground &mdash; what holds in one environment but not another. IRM automates the tri-abductive split (Ch 6): when a feature helps in one environment and hurts in another (oscillatory, Ch 9), the branching condition is the environment itself. The system splits the hypothesis without a human identifying the confound.</p>
+    <p>Environment variation is the lever for figure-ground separation (Ch 4). Invariant features are the figure: what is structurally load-bearing. Spurious correlations are the ground: what holds in one environment but not another. IRM automates the tri-abductive split (Ch 6). When a feature helps in one environment and hurts in another (oscillatory, Ch 9), the branching condition is the environment itself. The system splits the hypothesis without a human identifying the confound.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The common structure</h2>
+    <h2>One pattern across three domains</h2>
 
     <p>Three witnesses, three domains, one pattern.</p>
 
@@ -66,9 +66,9 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Five stations</h2>
+    <h2>Every station produces a standalone artifact</h2>
 
-    <p>The textbook's tools assemble into five stations. Each station produces a self-contained artifact. Any station can stop and the output stands alone: a diagnosis, an experiment repo, a measurement, a convergence report, a PR.</p>
+    <p>The textbook's tools assemble into five stations. Each produces a self-contained artifact. Any station can stop and the output stands alone: a diagnosis, an experiment repo, a measurement, a convergence report, a PR.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -119,9 +119,9 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The contract</h2>
+    <h2>Stations compose because contracts are explicit</h2>
 
-    <p>Each station writes everything the next station needs. No hidden state. The contract is explicit:</p>
+    <p>Each station writes everything the next station needs. No hidden state:</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -133,24 +133,24 @@ import Neighbors from "../../../../components/Neighbors.astro";
           </tr>
         </thead>
         <tbody>
-          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Hypothesize</td><td class="pr-3 text-gray-300">Prework</td><td class="text-gray-400">HYPOTHESIS_GRAPH.md &mdash; ranked hypotheses with evidence trails, predicted outcomes, and falsification conditions</td></tr>
-          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Prework</td><td class="pr-3 text-gray-300">Benchmark</td><td class="text-gray-400">Experiment repo &mdash; reference implementation, candidate fix, compatibility suite, extraction script</td></tr>
-          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Benchmark</td><td class="pr-3 text-gray-300">Bug hunt</td><td class="text-gray-400">Measurement table &mdash; before/after numbers, trajectory classification, environment specs</td></tr>
-          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Bug hunt</td><td class="pr-3 text-gray-300">Ship</td><td class="text-gray-400">Convergence report &mdash; two independent reviewers, iterated to zero new findings</td></tr>
-          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Ship (kill)</td><td class="pr-3 text-gray-300">Hypothesize</td><td class="text-gray-400">Kill condition &mdash; classified observation re-entering the graph as a new edge</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Hypothesize</td><td class="pr-3 text-gray-300">Prework</td><td class="text-gray-400">HYPOTHESIS_GRAPH.md: ranked hypotheses with evidence trails, predicted outcomes, falsification conditions</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Prework</td><td class="pr-3 text-gray-300">Benchmark</td><td class="text-gray-400">Experiment repo: reference implementation, candidate fix, compatibility suite, extraction script</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Benchmark</td><td class="pr-3 text-gray-300">Bug hunt</td><td class="text-gray-400">Measurement table: before/after numbers, trajectory classification, environment specs</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Bug hunt</td><td class="pr-3 text-gray-300">Ship</td><td class="text-gray-400">Convergence report: two independent reviewers, iterated to zero new findings</td></tr>
+          <tr><td class="py-2 pr-3 pl-0 text-gray-300">Ship (kill)</td><td class="pr-3 text-gray-300">Hypothesize</td><td class="text-gray-400">Kill condition: classified observation re-entering the graph as a new edge</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>The contract is monoidal. Station A's output is Station B's input. Station B's output is Station C's input. The composition is associative: (A ; B) ; C = A ; (B ; C). No station needs to know about any station except its immediate predecessor and successor. This is separation logic's frame rule (Ch 5), applied to the pipeline itself: each station has a footprint (what it reads and writes) and a frame (everything else). The frame passes through untouched.</p>
+    <p>The contract is monoidal. Station A's output is Station B's input. The composition is associative: (A ; B) ; C = A ; (B ; C). No station needs to know about any station except its immediate neighbors. This is separation logic's frame rule (Ch 5) applied to the pipeline itself: each station has a footprint (what it reads and writes) and a frame (everything else). The frame passes through untouched.</p>
 
-    <p>The consequence: stations can be replaced, reordered, or run by different agents. The contract is the interface. The implementation is local.</p>
+    <p>Stations can be replaced, reordered, or run by different agents. The contract is the interface. The implementation is local.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The outer loop</h2>
+    <h2>Kills re-enter station 1, never retry</h2>
 
-    <p>The five stations form the inner pass. The outer loop handles re-entry. When any station produces a kill condition, the pipeline does not retry the failed station. It returns to station 1, adds a new edge to the hypothesis graph, and starts a fresh inner pass.</p>
+    <p>The five stations form the inner pass. The outer loop handles re-entry. When any station fires a kill condition, the pipeline returns to station 1, adds a new edge to the hypothesis graph, and starts a fresh inner pass.</p>
 
     <p>The outer loop terminates when one of three conditions holds:</p>
 
@@ -160,7 +160,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li class="mb-2"><strong>Budget exhausted.</strong> The economy of research (Ch 7) says the marginal information gain per experiment has dropped below threshold. Further investigation costs more than it returns.</li>
     </ol>
 
-    <p>Condition 2 is the most informative termination. A pipeline that reports "no surviving hypothesis after three rounds" has taught you something: the initial observation was misleading, the system's behavior is within spec, or the hypothesis space was too narrow. Each of these diagnoses is itself a classified observation that can re-enter a higher-level investigation.</p>
+    <p>Condition 2 is the most informative termination. "No surviving hypothesis after three rounds" teaches you something concrete: the initial observation was misleading, the system's behavior is within spec, or the hypothesis space was too narrow. Each diagnosis is itself a classified observation that can re-enter a higher-level investigation.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -237,9 +237,9 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The kill-condition circuit</h2>
+    <h2>Every kill teaches the graph something</h2>
 
-    <p>Kill conditions from downstream stations do not simply discard the hypothesis. They re-enter the hypothesis graph as new observations. The four-bin classification (Ch 9) names what happens next:</p>
+    <p>Kill conditions from downstream stations do not discard the hypothesis. They re-enter the hypothesis graph as new observations. The four-bin classification (Ch 9) names what happens next:</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -260,35 +260,33 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The oscillatory case is the most valuable. It means the investigation found a real lever but applied it too broadly. The split produces a simpler, more targeted hypothesis. An investigation that passes through the oscillatory case once almost always converges on the second pass, because the branching condition narrows the scope to where the lever actually works.</p>
+    <p>The oscillatory case is the most valuable: the investigation found a real lever but applied it too broadly. The split produces a simpler, more targeted hypothesis. Investigations that pass through the oscillatory case once almost always converge on the second pass, because the branching condition narrows scope to where the lever actually works.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>Scale</h2>
+    <h2>Isolation makes the pipeline embarrassingly parallel</h2>
 
     <p>One agent, one system, one fix. Ten agents, ten systems, ten fixes. No shared state between runs.</p>
 
-    <p>The monoidal contract makes this possible. Each pipeline run is independent. Agent A investigating system X cannot corrupt agent B investigating system Y, because the contract artifacts &mdash; hypothesis graph, experiment repo, measurement table, convergence report &mdash; are local to each run. The pipeline's footprint is the system under investigation. Its frame is everything else. The frame rule (Ch 5) guarantees non-interference.</p>
+    <p>Each pipeline run is independent. Agent A investigating system X cannot corrupt agent B investigating system Y, because the contract artifacts (hypothesis graph, experiment repo, measurement table, convergence report) are local to each run. The pipeline's footprint is the system under investigation. Its frame is everything else. The frame rule (Ch 5) guarantees non-interference.</p>
 
-    <p>This is not parallelism as an optimization. It is parallelism as a structural property. The pipeline scales because the contract forces isolation. The same property that makes individual stations composable (no hidden state) makes entire pipeline runs composable (no shared state).</p>
-
-    <hr class="border-zinc-700 my-8"/>
-
-    <h2>VISION.md</h2>
-
-    <p>The pipeline has one human input: VISION.md. Not tool configuration. Project philosophy.</p>
-
-    <p>"The compiler replaces the kernel library." "No vendor primitives." "The search should find it." These are not instructions for a pipeline. They are constraints on what counts as a valid fix. A pipeline that reads VISION.md knows to reject its own custom kernel before the maintainer has to. It knows to adjust the heuristic's defaults instead of adding a special case.</p>
-
-    <p>VISION.md is the prereg checklist (Ch 12) applied to the project, not the experiment. It prevents a specific failure mode: the investigation succeeds technically but fails architecturally. The fix is correct but violates the project's invariants. Without VISION.md, the pipeline ships the fix and the maintainer rejects the PR. With VISION.md, the pipeline rejects the fix itself, re-enters the hypothesis graph, and searches for a solution that is both correct and aligned.</p>
-
-    <p>The human's role narrows to authoring and maintaining this one document. The pipeline handles observation, hypothesis generation, experiment design, measurement, adversarial review, and convergence. The human provides direction. Not which tool to use, not which file to change, not which test to run. Just: what kind of system is this, and what kind of system should it be.</p>
+    <p>The pipeline scales because the contract forces isolation. The same property that makes individual stations composable (no hidden state) makes entire pipeline runs composable (no shared state). Parallelism falls out of the structure; it is not bolted on as an optimization.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>The toolchain, assembled</h2>
+    <h2>The human writes one document: VISION.md</h2>
 
-    <p>Every tool from the textbook appears in the pipeline. The assembly is the point of this chapter.</p>
+    <p>"The compiler replaces the kernel library." "No vendor primitives." "The search should find it." These are constraints on what counts as a valid fix. A pipeline that reads VISION.md knows to reject its own custom kernel before the maintainer has to. It knows to adjust the heuristic's defaults instead of adding a special case.</p>
+
+    <p>VISION.md is the prereg checklist (Ch 12) applied to the project, not the experiment. It blocks a specific failure mode: the investigation succeeds technically but fails architecturally. Without VISION.md, the pipeline ships the fix and the maintainer rejects the PR. With VISION.md, the pipeline rejects the fix itself, re-enters the hypothesis graph, and searches for a solution that is both correct and aligned.</p>
+
+    <p>The human provides direction: what kind of system is this, and what kind of system should it be. The pipeline handles everything else.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Remove any tool and the pipeline breaks</h2>
+
+    <p>Every tool from the textbook appears in the pipeline:</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -320,13 +318,13 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <hr class="border-zinc-700 my-8"/>
 
-    <h2>What breaks</h2>
+    <h2>The framework predicts it will generalize. Chapter 15 tests that.</h2>
 
-    <p>The pipeline works on one system at a time. One agent investigates one system, produces one fix, ships one PR. The contract guarantees isolation. The monoidal structure guarantees composability.</p>
+    <p>The pipeline works on one system at a time. One agent, one system, one fix. The contract guarantees isolation. The monoidal structure guarantees composability.</p>
 
-    <p>But does the framework generalize? The three witnesses suggest yes &mdash; the pattern recurs independently in static analysis, game AI, and machine learning. The pipeline implements the pattern as an explicit loop. If the pattern is real, the pipeline should work on any system that can be perturbed and measured.</p>
+    <p>The three independent convergences predict generalization: the pattern recurs in static analysis, game AI, and machine learning without shared lineage. The pipeline implements the pattern as an explicit loop. Any system that can be perturbed and measured should be a valid target.</p>
 
-    <p>That is an empirical claim, not a proven theorem. The next chapter applies the pipeline to a concrete case: a system that searches without reasoning, that perturbs and observes but never asks why. If the pipeline produces a fix that grid search cannot find in the same budget, the framework's prediction holds. If it does not, the shape of the failure will name what the textbook got wrong.</p>
+    <p>The next chapter tests this claim on a concrete case: a system that searches without reasoning, that perturbs and observes but never asks why. If the pipeline produces a fix that grid search cannot find in the same budget, the prediction holds. If it does not, the shape of the failure will name what the textbook got wrong.</p>
 
     <p>Chapter 15.</p>
 
