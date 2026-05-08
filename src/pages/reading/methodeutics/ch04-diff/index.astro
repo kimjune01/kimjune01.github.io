@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 4: Diff — Methodeutics" favicon="🔭">
@@ -48,7 +49,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>The simplest instantiation: state is a set of key-value pairs. The figure is every key whose value changed. The ground is every key whose value didn't.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def diff(before: dict, after: dict) -&gt; tuple[dict, dict]:
+    <Repl client:load initialCode={`def diff(before: dict, after: dict) -> tuple[dict, dict]:
     """Compute figure (what changed) and ground (what held).
 
     Returns (figure, ground).
@@ -57,8 +58,8 @@ import Neighbors from "../../../../components/Neighbors.astro";
     ground: keys present in both with identical values.
     """
     all_keys = set(before) | set(after)
-    figure = &#123;&#125;
-    ground = &#123;&#125;
+    figure = {}
+    ground = {}
 
     for key in all_keys:
         b = before.get(key)
@@ -68,48 +69,41 @@ import Neighbors from "../../../../components/Neighbors.astro";
         else:
             figure[key] = (b, a)   # (was, now)
 
-    return figure, ground`} /></pre>
+    return figure, ground
+
+print("diff() defined")
+`} />
 
     <p>Apply it to the mechanic's engine:</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`before = &#123;
+    <Repl client:load initialCode={`before = {
     "engine":     "running",
     "alternator": "untouched",
     "battery":    "12.6V",
     "fuel_pump":  "on",
     "spark":      "firing",
     "coolant":    "92C",
-&#125;
+}
 
-after = &#123;
+after = {
     "engine":     "stalled",
     "alternator": "tapped",
     "battery":    "12.6V",
     "fuel_pump":  "on",
     "spark":      "firing",
     "coolant":    "92C",
-&#125;
+}
 
 figure, ground = diff(before, after)
 
 print("FIGURE (what changed):")
 for k, (was, now) in figure.items():
-    print(f"  &#123;k&#125;: &#123;was&#125; -> &#123;now&#125;")
+    print(f"  {k}: {was} -> {now}")
 
 print("\\nGROUND (what held):")
 for k, v in ground.items():
-    print(f"  &#123;k&#125;: &#123;v&#125;")
-
-# Output:
-# FIGURE (what changed):
-#   engine: running -> stalled
-#   alternator: untouched -> tapped
-#
-# GROUND (what held):
-#   battery: 12.6V
-#   fuel_pump: on
-#   spark: firing
-#   coolant: 92C`} /></pre>
+    print(f"  {k}: {v}")
+`} />
 
     <p>Two figure entries: the alternator (input) and the engine state (output). Four ground entries: battery, fuel pump, spark, coolant, all unchanged.</p>
 
@@ -172,21 +166,21 @@ for k, v in ground.items():
 
     <p>But OBD-II is hardcoded. The fault tree is hand-authored, the hypotheses enumerated in advance. An engineer decided which deviations map to which codes. If a failure mode wasn't anticipated, nothing fires. The primitive works; it just runs on a fixed table.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# OBD-II style: hardcoded fault table
-FAULT_TABLE = &#123;
-    "alternator_voltage": &#123;
+    <Repl client:load initialCode={`# OBD-II style: hardcoded fault table
+FAULT_TABLE = {
+    "alternator_voltage": {
         "low":  ["P0562 - System Voltage Low",
                  "Check battery", "Check voltage regulator"],
         "high": ["P0563 - System Voltage High",
                  "Check voltage regulator", "Check wiring"],
-    &#125;,
-    "coolant_temp": &#123;
+    },
+    "coolant_temp": {
         "high": ["P0217 - Engine Overtemp",
                  "Check thermostat", "Check coolant level"],
-    &#125;,
-&#125;
+    },
+}
 
-def obd_diff(expected: dict, observed: dict) -&gt; list[str]:
+def obd_diff(expected: dict, observed: dict) -> list[str]:
     """Hardcoded diff: look up deviations in the fault table."""
     codes = []
     for sensor, exp_val in expected.items():
@@ -196,16 +190,12 @@ def obd_diff(expected: dict, observed: dict) -&gt; list[str]:
                 codes.extend(FAULT_TABLE[sensor][obs_val])
     return codes
 
-expected = &#123;"alternator_voltage": "normal", "coolant_temp": "normal"&#125;
-observed = &#123;"alternator_voltage": "low",    "coolant_temp": "normal"&#125;
+expected = {"alternator_voltage": "normal", "coolant_temp": "normal"}
+observed = {"alternator_voltage": "low",    "coolant_temp": "normal"}
 
 for code in obd_diff(expected, observed):
     print(code)
-
-# Output:
-# P0562 - System Voltage Low
-# Check battery
-# Check voltage regulator`} /></pre>
+`} />
 
     <p>The limitation is the table. Every hypothesis must be written down before the system ships. No table entry, no hypothesis. The diff is there; the inference is manual.</p>
 
@@ -266,7 +256,7 @@ for code in obd_diff(expected, observed):
 
     <p>Combine the primitive with hypothesis generation. Given a diff, produce candidate explanations by examining what the figure touches in a dependency graph.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`from dataclasses import dataclass
+    <Repl client:load initialCode={`from dataclasses import dataclass
 
 @dataclass
 class Hypothesis:
@@ -274,10 +264,10 @@ class Hypothesis:
     reason: str
     testable: bool = True
 
-def diff(before: dict, after: dict) -&gt; tuple[dict, dict]:
+def diff(before: dict, after: dict) -> tuple[dict, dict]:
     """Partition state into figure (changed) and ground (held)."""
     all_keys = set(before) | set(after)
-    figure, ground = &#123;&#125;, &#123;&#125;
+    figure, ground = {}, {}
     for key in all_keys:
         b, a = before.get(key), after.get(key)
         if b == a:
@@ -286,7 +276,7 @@ def diff(before: dict, after: dict) -&gt; tuple[dict, dict]:
             figure[key] = (b, a)
     return figure, ground
 
-def abduct(figure: dict, dependencies: dict) -&gt; list[Hypothesis]:
+def abduct(figure: dict, dependencies: dict) -> list[Hypothesis]:
     """Generate hypotheses from the diff.
 
     dependencies: maps each state variable to components
@@ -301,56 +291,45 @@ def abduct(figure: dict, dependencies: dict) -&gt; list[Hypothesis]:
                 was, now = figure[key]
                 candidates.append(Hypothesis(
                     component=component,
-                    reason=f"&#123;key&#125; changed (&#123;was&#125; -> &#123;now&#125;)",
+                    reason=f"{key} changed ({was} -> {now})",
                 ))
     return candidates
 
 
 # --- The mechanic scenario ---
 
-before = &#123;
+before = {
     "engine": "running", "alternator": "untouched",
     "battery": "12.6V", "fuel_pump": "on",
     "spark": "firing",  "coolant": "92C",
-&#125;
+}
 
-after = &#123;
+after = {
     "engine": "stalled", "alternator": "tapped",
     "battery": "12.6V",  "fuel_pump": "on",
     "spark": "firing",   "coolant": "92C",
-&#125;
+}
 
 # Which components can cause each state variable to change?
-dependencies = &#123;
+dependencies = {
     "engine":     ["battery", "voltage_regulator", "ECU"],
     "alternator": ["alternator_belt", "alternator_bearing"],
     "battery":    ["alternator", "parasitic_drain"],
     "fuel_pump":  ["fuel_relay", "fuel_filter"],
     "spark":      ["ignition_coil", "spark_plug"],
     "coolant":    ["thermostat", "water_pump"],
-&#125;
+}
 
 figure, ground = diff(before, after)
 hypotheses = abduct(figure, dependencies)
 
 print("Diff result:")
-print(f"  Figure: &#123;list(figure.keys())&#125;")
-print(f"  Ground: &#123;list(ground.keys())&#125;")
-print(f"\\n&#123;len(hypotheses)&#125; hypotheses generated:")
+print(f"  Figure: {list(figure.keys())}")
+print(f"  Ground: {list(ground.keys())}")
+print(f"\\n{len(hypotheses)} hypotheses generated:")
 for h in hypotheses:
-    print(f"  [{h.component}] &#123;h.reason&#125;")
-
-# Output:
-# Diff result:
-#   Figure: ['engine', 'alternator']
-#   Ground: ['battery', 'fuel_pump', 'spark', 'coolant']
-#
-# 5 hypotheses generated:
-#   [battery] engine changed (running -> stalled)
-#   [voltage_regulator] engine changed (running -> stalled)
-#   [ECU] engine changed (running -> stalled)
-#   [alternator_belt] alternator changed (untouched -> tapped)
-#   [alternator_bearing] alternator changed (untouched -> tapped)`} /></pre>
+    print(f"  [{h.component}] {h.reason}")
+`} />
 
     <p>Five hypotheses from a two-variable diff. The dependency graph constrains which components are candidates. The ground (fuel pump, spark, coolant) eliminates their upstream components. Battery, voltage regulator, ECU, alternator belt, alternator bearing: the five things to check.</p>
 
@@ -364,20 +343,20 @@ for h in hypotheses:
 
     <p>Return to the mechanic. She checked six variables but not the serpentine belt tension. If the real cause is a worn belt that slipped when she tapped the alternator, the diff cannot find it. The belt isn't in either snapshot. Not in the figure, not in the ground. Absent.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# The variable that matters isn't in the snapshot.
-before = &#123;
+    <Repl client:load initialCode={`# The variable that matters isn't in the snapshot.
+before = {
     "engine": "running", "alternator": "untouched",
     "battery": "12.6V", "fuel_pump": "on",
     "spark": "firing",  "coolant": "92C",
     # "belt_tension": "4.2" — not measured!
-&#125;
+}
 
-after = &#123;
+after = {
     "engine": "stalled", "alternator": "tapped",
     "battery": "12.6V", "fuel_pump": "on",
     "spark": "firing",  "coolant": "92C",
     # "belt_tension": "1.1" — would have been figure, but we missed it
-&#125;
+}
 
 figure, ground = diff(before, after)
 
@@ -387,11 +366,7 @@ figure, ground = diff(before, after)
 print("Figure:", list(figure.keys()))
 print("Ground:", list(ground.keys()))
 print("Belt tension: not in snapshot. Hypothesis space is incomplete.")
-
-# Output:
-# Figure: ['engine', 'alternator']
-# Ground: ['battery', 'fuel_pump', 'spark', 'coolant']
-# Belt tension: not in snapshot. Hypothesis space is incomplete.`} /></pre>
+`} />
 
     <p>This is the structural limitation. The unary diff partitions observed state into figure and ground. It cannot reason about unobserved state. The hypothesis space is bounded by what you chose to measure.</p>
 

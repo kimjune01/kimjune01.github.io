@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 12: Protecting the Loop — Methodeutics" favicon="🔭">
@@ -179,157 +180,121 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>Given a hypothesis and a test plan, check the five critical questions programmatically. The validator checks that the questions have been addressed, not that the answers are good.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`<span class="hl-keyword">from</span> dataclasses <span class="hl-keyword">import</span> dataclass
-<span class="hl-keyword">from</span> typing <span class="hl-keyword">import</span> Optional
+    <Repl client:load initialCode={`from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
-<span class="hl-keyword">class</span> <span class="hl-builtin">PreregEntry</span>:
-    hypothesis: <span class="hl-builtin">str</span>
-    falsification: Optional[<span class="hl-builtin">str</span>]       <span class="hl-comment"># Q11: what would prove it wrong?</span>
-    data_split: Optional[<span class="hl-builtin">str</span>]          <span class="hl-comment"># Q9:  generation vs. test data</span>
-    prediction_bounds: Optional[tuple]  <span class="hl-comment"># Q15: (lower, upper) for the effect</span>
-    self_deception_risks: <span class="hl-builtin">list</span>[<span class="hl-builtin">str</span>]    <span class="hl-comment"># Q16: how could you fool yourself?</span>
-    evidence_measure: Optional[<span class="hl-builtin">str</span>]    <span class="hl-comment"># Q22: what statistic, frozen before data?</span>
-    test_spec_frozen: <span class="hl-builtin">bool</span> = <span class="hl-bool">False</span>     <span class="hl-comment"># Q22: is the spec locked?</span>
+class PreregEntry:
+    hypothesis: str
+    falsification: Optional[str]       # Q11: what would prove it wrong?
+    data_split: Optional[str]          # Q9:  generation vs. test data
+    prediction_bounds: Optional[tuple]  # Q15: (lower, upper) for the effect
+    self_deception_risks: list[str]    # Q16: how could you fool yourself?
+    evidence_measure: Optional[str]    # Q22: what statistic, frozen before data?
+    test_spec_frozen: bool = False     # Q22: is the spec locked?
 
 
-<span class="hl-keyword">def</span> <span class="hl-builtin">validate_prereg</span>(entry: PreregEntry) -&gt; <span class="hl-builtin">list</span>[<span class="hl-builtin">str</span>]:
-    <span class="hl-string">"""Check the five critical prereg questions.
+def validate_prereg(entry: PreregEntry) -> list[str]:
+    """Check the five critical prereg questions.
 
     Returns a list of failures. Empty list = all checks pass.
-    """</span>
+    """
     failures = []
 
-    <span class="hl-comment"># Q9 (Peirce): Did the hypothesis come before the data?</span>
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> entry.data_split:
+    # Q9 (Peirce): Did the hypothesis come before the data?
+    if not entry.data_split:
         failures.append(
-            <span class="hl-string">"Q9 (Peirce): No data split declared. "</span>
-            <span class="hl-string">"The hypothesis may have been generated from the test data. "</span>
-            <span class="hl-string">"Specify which data was used for generation and which for testing."</span>
+            "Q9 (Peirce): No data split declared. "
+            "The hypothesis may have been generated from the test data. "
+            "Specify which data was used for generation and which for testing."
         )
 
-    <span class="hl-comment"># Q11 (Popper): What would prove the hypothesis wrong?</span>
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> entry.falsification:
+    # Q11 (Popper): What would prove the hypothesis wrong?
+    if not entry.falsification:
         failures.append(
-            <span class="hl-string">"Q11 (Popper): No falsification condition. "</span>
-            <span class="hl-string">"The hypothesis cannot be tested if no observation would refute it. "</span>
-            <span class="hl-string">"State: 'if I observe X, the hypothesis is wrong.'"</span>
+            "Q11 (Popper): No falsification condition. "
+            "The hypothesis cannot be tested if no observation would refute it. "
+            "State: 'if I observe X, the hypothesis is wrong.'"
         )
 
-    <span class="hl-comment"># Q15 (Meehl): Is the prediction specific enough?</span>
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> entry.prediction_bounds:
+    # Q15 (Meehl): Is the prediction specific enough?
+    if not entry.prediction_bounds:
         failures.append(
-            <span class="hl-string">"Q15 (Meehl): No prediction bounds. "</span>
-            <span class="hl-string">"A directional prediction ('X improves Y') gets easier to confirm "</span>
-            <span class="hl-string">"with more data. Specify numeric bounds: (lower, upper)."</span>
+            "Q15 (Meehl): No prediction bounds. "
+            "A directional prediction ('X improves Y') gets easier to confirm "
+            "with more data. Specify numeric bounds: (lower, upper)."
         )
-    <span class="hl-keyword">elif</span> entry.prediction_bounds[<span class="hl-number">0</span>] &gt;= entry.prediction_bounds[<span class="hl-number">1</span>]:
+    elif entry.prediction_bounds[0] >= entry.prediction_bounds[1]:
         failures.append(
-            <span class="hl-string">"Q15 (Meehl): Prediction bounds are inverted or zero-width. "</span>
-            <span class="hl-string">f"Got ({entry.prediction_bounds[0]}, {entry.prediction_bounds[1]}). "</span>
-            <span class="hl-string">"Lower bound must be strictly less than upper bound."</span>
-        )
-
-    <span class="hl-comment"># Q16 (Feynman): How would you fool yourself?</span>
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> entry.self_deception_risks:
-        failures.append(
-            <span class="hl-string">"Q16 (Feynman): No self-deception risks listed. "</span>
-            <span class="hl-string">"Every experiment has artifacts. If you can't name one, "</span>
-            <span class="hl-string">"you haven't thought hard enough."</span>
+            "Q15 (Meehl): Prediction bounds are inverted or zero-width. "
+            f"Got ({entry.prediction_bounds[0]}, {entry.prediction_bounds[1]}). "
+            "Lower bound must be strictly less than upper bound."
         )
 
-    <span class="hl-comment"># Q22 (Ramdas): Is the evidence measure valid under peeking?</span>
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> entry.evidence_measure:
+    # Q16 (Feynman): How would you fool yourself?
+    if not entry.self_deception_risks:
         failures.append(
-            <span class="hl-string">"Q22 (Ramdas): No evidence measure declared. "</span>
-            <span class="hl-string">"Specify the test statistic and confirm it is anytime-valid "</span>
-            <span class="hl-string">"if you plan to peek or stop early."</span>
-        )
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> entry.test_spec_frozen:
-        failures.append(
-            <span class="hl-string">"Q22 (Ramdas): Test specification not frozen. "</span>
-            <span class="hl-string">"Lock the null, alternative, test martingale, and stopping rule "</span>
-            <span class="hl-string">"before data collection begins."</span>
+            "Q16 (Feynman): No self-deception risks listed. "
+            "Every experiment has artifacts. If you can't name one, "
+            "you haven't thought hard enough."
         )
 
-    <span class="hl-keyword">return</span> failures
+    # Q22 (Ramdas): Is the evidence measure valid under peeking?
+    if not entry.evidence_measure:
+        failures.append(
+            "Q22 (Ramdas): No evidence measure declared. "
+            "Specify the test statistic and confirm it is anytime-valid "
+            "if you plan to peek or stop early."
+        )
+    if not entry.test_spec_frozen:
+        failures.append(
+            "Q22 (Ramdas): Test specification not frozen. "
+            "Lock the null, alternative, test martingale, and stopping rule "
+            "before data collection begins."
+        )
+
+    return failures
 
 
-<span class="hl-comment"># --- Example: a well-formed prereg ---</span>
+# --- Example: a well-formed prereg ---
 
 good_prereg = PreregEntry(
-    hypothesis=<span class="hl-string">"Tile size 16 reduces kernel latency by 12-18% on memory-bound workloads"</span>,
-    falsification=<span class="hl-string">"If latency reduction is &lt;12% or &gt;18% on held-out workloads, reject"</span>,
-    data_split=<span class="hl-string">"Generated from workloads A-D; testing on held-out workloads E-F"</span>,
-    prediction_bounds=(<span class="hl-number">0.12</span>, <span class="hl-number">0.18</span>),
+    hypothesis="Tile size 16 reduces kernel latency by 12-18% on memory-bound workloads",
+    falsification="If latency reduction is <12% or >18% on held-out workloads, reject",
+    data_split="Generated from workloads A-D; testing on held-out workloads E-F",
+    prediction_bounds=(0.12, 0.18),
     self_deception_risks=[
-        <span class="hl-string">"Warm-cache bias: generation workloads may have primed the cache"</span>,
-        <span class="hl-string">"Confound: tile size 16 also changes memory alignment"</span>,
+        "Warm-cache bias: generation workloads may have primed the cache",
+        "Confound: tile size 16 also changes memory alignment",
     ],
-    evidence_measure=<span class="hl-string">"E-value via GROW test martingale, null = no effect"</span>,
-    test_spec_frozen=<span class="hl-bool">True</span>,
+    evidence_measure="E-value via GROW test martingale, null = no effect",
+    test_spec_frozen=True,
 )
 
-<span class="hl-comment"># --- Example: a bad prereg ---</span>
+# --- Example: a bad prereg ---
 
 bad_prereg = PreregEntry(
-    hypothesis=<span class="hl-string">"The system is suboptimal and can be improved"</span>,
-    falsification=<span class="hl-keyword">None</span>,
-    data_split=<span class="hl-keyword">None</span>,
-    prediction_bounds=<span class="hl-keyword">None</span>,
+    hypothesis="The system is suboptimal and can be improved",
+    falsification=None,
+    data_split=None,
+    prediction_bounds=None,
     self_deception_risks=[],
-    evidence_measure=<span class="hl-keyword">None</span>,
-    test_spec_frozen=<span class="hl-bool">False</span>,
+    evidence_measure=None,
+    test_spec_frozen=False,
 )
 
-<span class="hl-keyword">for</span> name, entry <span class="hl-keyword">in</span> [(<span class="hl-string">"Good prereg"</span>, good_prereg), (<span class="hl-string">"Bad prereg"</span>, bad_prereg)]:
+for name, entry in [("Good prereg", good_prereg), ("Bad prereg", bad_prereg)]:
     failures = validate_prereg(entry)
-    <span class="hl-builtin">print</span>(<span class="hl-string">f"\\n{'='*60}"</span>)
-    <span class="hl-builtin">print</span>(<span class="hl-string">f"  {name}: {entry.hypothesis[:50]}..."</span>)
-    <span class="hl-builtin">print</span>(<span class="hl-string">f"{'='*60}"</span>)
-    <span class="hl-keyword">if</span> <span class="hl-keyword">not</span> failures:
-        <span class="hl-builtin">print</span>(<span class="hl-string">"  PASS: All five critical questions addressed."</span>)
-    <span class="hl-keyword">else</span>:
-        <span class="hl-builtin">print</span>(<span class="hl-string">f"  FAIL: {len(failures)} question(s) unaddressed.\\n"</span>)
-        <span class="hl-keyword">for</span> f <span class="hl-keyword">in</span> failures:
-            <span class="hl-builtin">print</span>(<span class="hl-string">f"  - {f}\\n"</span>)`} /></pre>
-
-    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>============================================================
-  Good prereg: Tile size 16 reduces kernel latency by 12-18...
-============================================================
-  PASS: All five critical questions addressed.
-
-============================================================
-  Bad prereg: The system is suboptimal and can be improved...
-============================================================
-  FAIL: 6 question(s) unaddressed.
-
-  - Q9 (Peirce): No data split declared. The hypothesis may have been
-    generated from the test data. Specify which data was used for
-    generation and which for testing.
-
-  - Q11 (Popper): No falsification condition. The hypothesis cannot be
-    tested if no observation would refute it. State: 'if I observe X,
-    the hypothesis is wrong.'
-
-  - Q15 (Meehl): No prediction bounds. A directional prediction
-    ('X improves Y') gets easier to confirm with more data. Specify
-    numeric bounds: (lower, upper).
-
-  - Q16 (Feynman): No self-deception risks listed. Every experiment
-    has artifacts. If you can't name one, you haven't thought hard
-    enough.
-
-  - Q22 (Ramdas): No evidence measure declared. Specify the test
-    statistic and confirm it is anytime-valid if you plan to peek
-    or stop early.
-
-  - Q22 (Ramdas): Test specification not frozen. Lock the null,
-    alternative, test martingale, and stopping rule before data
-    collection begins.</code></pre>
+    print(f"\\n{'='*60}")
+    print(f"  {name}: {entry.hypothesis[:50]}...")
+    print(f"{'='*60}")
+    if not failures:
+        print("  PASS: All five critical questions addressed.")
+    else:
+        print(f"  FAIL: {len(failures)} question(s) unaddressed.\\n")
+        for f in failures:
+            print(f"  - {f}\\n")`} />
 
     <p>The validator is intentionally minimal. It checks that each field is populated, not that the content is good. A falsification condition that says "if pigs fly" would pass. The validator catches cases where the agent didn't even try to answer the question. Catching bad answers requires judgment; catching missing answers requires a null check.</p>
 

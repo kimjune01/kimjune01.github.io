@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 6: Tri-abduction — Methodeutics" favicon="🔭">
@@ -20,7 +21,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>But chapter 5 ended on a crack. Consider a function with an <code>if/else</code>:</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def process_payment(state):
+    <Repl client:load initialCode={`def process_payment(state):
     if state["payment_method"] == "credit_card":
         # Branch A: reads card_number, writes authorization_code
         validate(state["card_number"])
@@ -28,11 +29,12 @@ import Neighbors from "../../../../components/Neighbors.astro";
     else:
         # Branch B: reads bank_account, writes transfer_id
         verify(state["bank_account"])
-        state["transfer_id"] = transfer(state["bank_account"])`} /></pre>
+        state["transfer_id"] = transfer(state["bank_account"])
+`} />
 
     <p>Branch A touches <code>{'{'}card_number, authorization_code{'}'}</code>. Branch B touches <code>{'{'}bank_account, transfer_id{'}'}</code>. Run bi-abduction on branch A: the anti-frame says <code>card_number</code> must exist, the frame excludes <code>authorization_code</code>. Run bi-abduction on branch B: the anti-frame says <code>bank_account</code> must exist, the frame excludes <code>transfer_id</code>. Two separate analyses, two separate answers.</p>
 
-    <p>Which precondition does the caller need to establish? Both? Neither? It depends on which branch executes, which depends on <code>payment_method</code>. Bi-abduction gives you one (anti-frame, frame) pair per path. It cannot tell you how the paths relate to each other: that the branch condition itself is load-bearing, that the <em>choice</em> between paths is the real structure.</p>
+    <p>Which precondition does the caller need to establish? Both? Neither? It depends on which branch executes, which depends on <code>payment_method</code>. Bi-abduction gives you one (anti-frame, frame) pair per path. It cannot tell you how the paths relate to each other: that the branch condition itself determines the outcome, that the <em>choice</em> between paths is the real structure.</p>
 
     <p>The same limitation shows up everywhere programs fork: <code>if/else</code>, <code>try/catch</code>, pattern matching, concurrent threads racing to a shared resource. Each branch has its own footprint. Bi-abduction analyzes them independently. What's missing is the joint analysis: a single precondition valid for <em>all</em> branches.</p>
 
@@ -262,7 +264,7 @@ Such that:
 
     <p>Given two experimental outcomes from the same starting state with different perturbations, identify the branching condition that explains the divergence.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`from dataclasses import dataclass
+    <Repl client:load initialCode={`from dataclasses import dataclass
 
 @dataclass
 class CausalEdge:
@@ -289,10 +291,10 @@ def tri_abduce(shared_start, branch_a_end, branch_b_end):
     all_keys = set(shared_start) | set(branch_a_end) | set(branch_b_end)
 
     # Shared ground: keys unchanged in BOTH branches
-    shared_ground = &#123;&#125;
+    shared_ground = {}
     # Per-branch diffs
-    a_changed = &#123;&#125;
-    b_changed = &#123;&#125;
+    a_changed = {}
+    b_changed = {}
 
     for key in all_keys:
         start_val = shared_start.get(key)
@@ -318,10 +320,10 @@ def tri_abduce(shared_start, branch_a_end, branch_b_end):
     perturbation_keys = a_only | b_only
 
     return CausalEdge(
-        condition=f"diverged on: &#123;perturbation_keys&#125;",
-        branch_a_perturbation=&#123;k: a_changed[k] for k in a_only if k in a_changed&#125;,
+        condition=f"diverged on: {perturbation_keys}",
+        branch_a_perturbation={k: a_changed[k] for k in a_only if k in a_changed},
         branch_a_outcome="stalled" if any("stalled" in str(v) for v in a_changed.values()) else "nominal",
-        branch_b_perturbation=&#123;k: b_changed[k] for k in b_only if k in b_changed&#125;,
+        branch_b_perturbation={k: b_changed[k] for k in b_only if k in b_changed},
         branch_b_outcome="stalled" if any("stalled" in str(v) for v in b_changed.values()) else "nominal",
         shared_ground=shared_ground,
     )
@@ -329,66 +331,49 @@ def tri_abduce(shared_start, branch_a_end, branch_b_end):
 
 # --- The mechanic: two perturbations from the same start ---
 
-shared_start = &#123;
+shared_start = {
     "engine":     "running",
     "alternator": "untouched",
     "radiator":   "untouched",
     "battery":    "12.6V",
     "fuel_pump":  "on",
     "spark":      "firing",
-&#125;
+}
 
 # Branch A: tap alternator -> engine stalls
-branch_a_end = &#123;
+branch_a_end = {
     "engine":     "stalled",
     "alternator": "tapped",
     "radiator":   "untouched",
     "battery":    "12.6V",
     "fuel_pump":  "on",
     "spark":      "firing",
-&#125;
+}
 
 # Branch B: tap radiator -> engine keeps running
-branch_b_end = &#123;
+branch_b_end = {
     "engine":     "running",
     "alternator": "untouched",
     "radiator":   "tapped",
     "battery":    "12.6V",
     "fuel_pump":  "on",
     "spark":      "firing",
-&#125;
+}
 
 edge = tri_abduce(shared_start, branch_a_end, branch_b_end)
 
 print("Tri-abduction result:")
-print(f"  &#123;edge.condition&#125;")
-print(f"\\n  Branch A: &#123;edge.branch_a_perturbation&#125;")
-print(f"    Outcome: &#123;edge.branch_a_outcome&#125;")
-print(f"\\n  Branch B: &#123;edge.branch_b_perturbation&#125;")
-print(f"    Outcome: &#123;edge.branch_b_outcome&#125;")
-print(f"\\n  Shared ground (control): &#123;list(edge.shared_ground.keys())&#125;")
+print(f"  {edge.condition}")
+print(f"\\n  Branch A: {edge.branch_a_perturbation}")
+print(f"    Outcome: {edge.branch_a_outcome}")
+print(f"\\n  Branch B: {edge.branch_b_perturbation}")
+print(f"    Outcome: {edge.branch_b_outcome}")
+print(f"\\n  Shared ground (control): {list(edge.shared_ground.keys())}")
 print(f"\\n  Causal conclusion:")
 print(f"    alternator perturbation -> stalled")
 print(f"    radiator perturbation -> nominal")
-print(f"    => alternator is causal, radiator is not")`} /></pre>
-
-    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">Tri-abduction result:
-  diverged on: {'{'}'alternator', 'radiator', 'engine'{'}'}
-
-  Branch A: {'{'}'alternator': ('untouched', 'tapped'), 'engine': ('running', 'stalled'){'}'}
-    Outcome: stalled
-
-  Branch B: {'{'}'radiator': ('untouched', 'tapped'){'}'}
-    Outcome: nominal
-
-  Shared ground (control): ['battery', 'fuel_pump', 'spark']
-
-  Causal conclusion:
-    alternator perturbation -> stalled
-    radiator perturbation -> nominal
-    => alternator is causal, radiator is not</code></pre>
+print(f"    => alternator is causal, radiator is not")
+`} />
 
     <p>The function takes three snapshots instead of two. The shared start is the control. The two branch endpoints are the experimental outcomes. The shared ground (battery, fuel pump, spark) is what held across both experiments, ruling out those variables as causes. The divergent keys (alternator, radiator, engine) are the figure. Within the figure, the code identifies which perturbation (alternator vs. radiator) correlates with the outcome change (stalled vs. running).</p>
 

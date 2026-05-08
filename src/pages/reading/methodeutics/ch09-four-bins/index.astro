@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 9: Four Bins — Methodeutics" favicon="🔭">
@@ -104,8 +105,8 @@ import Neighbors from "../../../../components/Neighbors.astro";
           </tr>
         </thead>
         <tbody>
-          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Convergent</td><td class="pr-3 text-gray-400">Decays to baseline</td><td class="pr-3 text-gray-400">Something absorbed the perturbation. Redundancy or compensation.</td><td class="text-gray-400">Test a different node. This one is not load-bearing.</td></tr>
-          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td><td class="pr-3 text-gray-400">Grows without bound</td><td class="pr-3 text-gray-400">Load-bearing. No backup. The perturbation cascaded.</td><td class="text-gray-400">Test what depends on it. Map the blast radius.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Convergent</td><td class="pr-3 text-gray-400">Decays to baseline</td><td class="pr-3 text-gray-400">Something absorbed the perturbation. Redundancy or compensation.</td><td class="text-gray-400">Test a different node. This node has backup.</td></tr>
+          <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td><td class="pr-3 text-gray-400">Grows without bound</td><td class="pr-3 text-gray-400">Critical. No backup. The perturbation cascaded.</td><td class="text-gray-400">Test what depends on it. Map the blast radius.</td></tr>
           <tr class="border-b border-zinc-800"><td class="py-2 pr-3 pl-0 text-gray-300">Oscillatory</td><td class="pr-3 text-gray-400">Periodic cycles</td><td class="pr-3 text-gray-400">Two subsystems fighting. One pushes, the other pushes back.</td><td class="text-gray-400">Test the interface between them.</td></tr>
           <tr><td class="py-2 pr-3 pl-0 text-gray-300">Chaotic</td><td class="pr-3 text-gray-400">Bounded, aperiodic</td><td class="pr-3 text-gray-400">Input exceeds architecture capacity. Too many interacting components for stable behavior.</td><td class="text-gray-400">Decompose differently. Your current partition is too coarse.</td></tr>
         </tbody>
@@ -198,7 +199,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
     <p>A mechanic suspects the alternator. She disconnects it briefly and watches the electrical system:</p>
 
     <ul class="list-disc pl-5 mb-4">
-      <li class="mb-1"><strong>Convergent:</strong> Battery voltage dips to 11.8V, recovers to 12.6V when the alternator reconnects. The battery absorbed the perturbation. The alternator is not load-bearing at current draw.</li>
+      <li class="mb-1"><strong>Convergent:</strong> Battery voltage dips to 11.8V, recovers to 12.6V when the alternator reconnects. The battery absorbed the perturbation. The alternator is redundant at current draw.</li>
       <li class="mb-1"><strong>Divergent:</strong> Voltage drops steadily. The radio dims, the dashboard flickers, the engine stalls. The alternator was the only power source at this draw level. Everything downstream cascaded.</li>
       <li class="mb-1"><strong>Oscillatory:</strong> Voltage swings between 11V and 14V with a 2-second period. The voltage regulator and the alternator are fighting: one compensates, the other overcompensates. The fault is in the interface (the regulator), not the alternator itself.</li>
     </ul>
@@ -224,86 +225,82 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>The implementation follows the decision tree: check boundedness, then settling, then periodicity.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`<span class="hl-keyword">import</span> numpy <span class="hl-keyword">as</span> np
-<span class="hl-keyword">from</span> scipy <span class="hl-keyword">import</span> stats, signal
+    <Repl client:load initialCode={`import micropip
+await micropip.install('scipy')
 
-<span class="hl-keyword">def</span> <span class="hl-builtin">classify_trajectory</span>(ts, alpha=<span class="hl-number">0.05</span>):
-    <span class="hl-string">"""Classify a perturbation-response time series into four bins."""</span>
+import numpy as np
+from scipy import stats, signal
+
+def classify_trajectory(ts, alpha=0.05):
+    """Classify a perturbation-response time series into four bins."""
     ts = np.asarray(ts, dtype=float)
-    n = <span class="hl-builtin">len</span>(ts)
+    n = len(ts)
 
-    <span class="hl-keyword">if</span> n &lt; <span class="hl-number">30</span>:
-        <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'indeterminate'</span>, <span class="hl-string">'evidence'</span>: &#123;<span class="hl-string">'reason'</span>: <span class="hl-string">'too few observations'</span>&#125;&#125;
+    if n < 30:
+        return {'bin': 'indeterminate', 'evidence': {'reason': 'too few observations'}}
 
-    evidence = &#123;&#125;
+    evidence = {}
 
-    <span class="hl-comment"># Step 1: Is it bounded? (Mann-Kendall trend on |x|)</span>
-    abs_ts = np.abs(ts - np.mean(ts[:n // <span class="hl-number">10</span>]))
+    # Step 1: Is it bounded? (Mann-Kendall trend on |x|)
+    abs_ts = np.abs(ts - np.mean(ts[:n // 10]))
     mk_tau, mk_p = stats.kendalltau(np.arange(n), abs_ts)
-    evidence[<span class="hl-string">'trend_tau'</span>] = mk_tau
-    evidence[<span class="hl-string">'trend_p'</span>] = mk_p
+    evidence['trend_tau'] = mk_tau
+    evidence['trend_p'] = mk_p
 
-    late_start = <span class="hl-number">3</span> * n // <span class="hl-number">4</span>
+    late_start = 3 * n // 4
     late_tau, late_p = stats.kendalltau(
         np.arange(n - late_start), abs_ts[late_start:]
     )
 
-    <span class="hl-keyword">if</span> mk_tau &gt; <span class="hl-number">0</span> <span class="hl-keyword">and</span> mk_p &lt; alpha <span class="hl-keyword">and</span> late_tau &gt; <span class="hl-number">0</span> <span class="hl-keyword">and</span> late_p &lt; alpha:
-        <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'divergent'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+    if mk_tau > 0 and mk_p < alpha and late_tau > 0 and late_p < alpha:
+        return {'bin': 'divergent', 'evidence': evidence}
 
-    <span class="hl-comment"># Step 2: Does it settle? (variance ratio, Levene's test)</span>
-    third = n // <span class="hl-number">3</span>
+    # Step 2: Does it settle? (variance ratio, Levene's test)
+    third = n // 3
     var_early = np.var(ts[:third])
     var_late = np.var(ts[-third:])
 
-    <span class="hl-keyword">if</span> var_early &gt; <span class="hl-number">0</span>:
+    if var_early > 0:
         lev_stat, lev_p = stats.levene(ts[:third], ts[-third:])
         var_ratio = var_late / var_early
-        <span class="hl-keyword">if</span> var_ratio &lt; <span class="hl-number">0.25</span> <span class="hl-keyword">and</span> lev_p &lt; alpha:
-            <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'convergent'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+        if var_ratio < 0.25 and lev_p < alpha:
+            return {'bin': 'convergent', 'evidence': evidence}
 
-    <span class="hl-comment"># Step 3: Is it periodic? (Welch PSD, peak fraction)</span>
-    freqs, psd = signal.welch(ts - np.mean(ts), nperseg=min(<span class="hl-number">256</span>, n // <span class="hl-number">2</span>))
+    # Step 3: Is it periodic? (Welch PSD, peak fraction)
+    freqs, psd = signal.welch(ts - np.mean(ts), nperseg=min(256, n // 2))
     total_power = np.sum(psd)
-    <span class="hl-keyword">if</span> total_power &gt; <span class="hl-number">0</span>:
-        peak_idx = np.argmax(psd[<span class="hl-number">1</span>:]) + <span class="hl-number">1</span>
+    if total_power > 0:
+        peak_idx = np.argmax(psd[1:]) + 1
         peak_fraction = psd[peak_idx] / total_power
-        <span class="hl-keyword">if</span> peak_fraction &gt; <span class="hl-number">0.40</span>:
-            <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'oscillatory'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+        if peak_fraction > 0.40:
+            return {'bin': 'oscillatory', 'evidence': evidence}
 
-    <span class="hl-keyword">return</span> &#123;<span class="hl-string">'bin'</span>: <span class="hl-string">'chaotic'</span>, <span class="hl-string">'evidence'</span>: evidence&#125;
+    return {'bin': 'chaotic', 'evidence': evidence}
 
 
-<span class="hl-comment"># Demo: one of each</span>
-np.random.seed(<span class="hl-number">42</span>)
-t = np.linspace(<span class="hl-number">0</span>, <span class="hl-number">10</span>, <span class="hl-number">500</span>)
+# Demo: one of each
+np.random.seed(42)
+t = np.linspace(0, 10, 500)
 
-conv = <span class="hl-number">5.0</span> * np.exp(-<span class="hl-number">0.5</span> * t) + np.random.normal(<span class="hl-number">0</span>, <span class="hl-number">0.1</span>, len(t))
-div  = <span class="hl-number">0.1</span> * np.exp(<span class="hl-number">0.3</span> * t)  + np.random.normal(<span class="hl-number">0</span>, <span class="hl-number">0.1</span>, len(t))
-osc  = <span class="hl-number">3.0</span> * np.sin(<span class="hl-number">2</span> * np.pi * <span class="hl-number">0.5</span> * t) + np.random.normal(<span class="hl-number">0</span>, <span class="hl-number">0.3</span>, len(t))
+conv = 5.0 * np.exp(-0.5 * t) + np.random.normal(0, 0.1, len(t))
+div  = 0.1 * np.exp(0.3 * t)  + np.random.normal(0, 0.1, len(t))
+osc  = 3.0 * np.sin(2 * np.pi * 0.5 * t) + np.random.normal(0, 0.3, len(t))
 
-<span class="hl-keyword">def</span> <span class="hl-builtin">lorenz_x</span>(n_steps=<span class="hl-number">500</span>, dt=<span class="hl-number">0.02</span>, sigma=<span class="hl-number">10</span>, rho=<span class="hl-number">28</span>, beta=<span class="hl-number">8</span>/<span class="hl-number">3</span>):
-    x, y, z = <span class="hl-number">1.0</span>, <span class="hl-number">1.0</span>, <span class="hl-number">1.0</span>
+def lorenz_x(n_steps=500, dt=0.02, sigma=10, rho=28, beta=8/3):
+    x, y, z = 1.0, 1.0, 1.0
     xs = []
-    <span class="hl-keyword">for</span> _ <span class="hl-keyword">in</span> range(n_steps):
+    for _ in range(n_steps):
         dx = sigma*(y-x); dy = x*(rho-z)-y; dz = x*y-beta*z
         x += dx*dt; y += dy*dt; z += dz*dt
         xs.append(x)
-    <span class="hl-keyword">return</span> np.array(xs)
+    return np.array(xs)
 
 chaos = lorenz_x()
 
-<span class="hl-keyword">for</span> name, series <span class="hl-keyword">in</span> [(<span class="hl-string">"convergent"</span>, conv), (<span class="hl-string">"divergent"</span>, div),
-                       (<span class="hl-string">"oscillatory"</span>, osc), (<span class="hl-string">"chaotic"</span>, chaos)]:
+for name, series in [("convergent", conv), ("divergent", div),
+                       ("oscillatory", osc), ("chaotic", chaos)]:
     result = classify_trajectory(series)
-    print(f"&#123;name:&lt;12&#125; → &#123;result['bin']&#125;")`} /></pre>
-
-    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>convergent  &rarr; convergent
-divergent   &rarr; divergent
-oscillatory &rarr; oscillatory
-chaotic     &rarr; chaotic</code></pre>
+    print(f"{name:<12} -> {result['bin']}")`} />
 
     <p>Three statistical tests in sequence. The simplicity is deliberate: a classifier that requires tuning 20 parameters costs more to calibrate than the trajectory is worth reading. Three tests, three thresholds, four bins.</p>
 

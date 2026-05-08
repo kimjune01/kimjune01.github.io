@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 10: The Hypothesis Graph — Methodeutics" favicon="🔭">
@@ -104,7 +105,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
           </tr>
           <tr class="border-b border-zinc-800">
             <td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td>
-            <td class="pr-3 text-gray-400">This is load-bearing, no backup</td>
+            <td class="pr-3 text-gray-400">Single point of failure</td>
             <td class="text-gray-400">Test what depends on it &mdash; find the blast radius</td>
           </tr>
           <tr class="border-b border-zinc-800">
@@ -123,7 +124,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p><strong>Convergent:</strong> something compensated. The perturbation was absorbed. The next question is not "test this node harder" but "test a different node." The absorbing mechanism works; the interesting structure is elsewhere. The label redirects.</p>
 
-    <p><strong>Divergent:</strong> this node is load-bearing and nothing compensated. What depends on it? If it fails, what else fails? The edge points downstream.</p>
+    <p><strong>Divergent:</strong> this node is critical and nothing compensated. What depends on it? If it fails, what else fails? The edge points downstream.</p>
 
     <p><strong>Oscillatory:</strong> two constraints are in conflict. The system alternates between satisfying one and violating the other. The edge points to the coupling point between them, not to either subsystem individually.</p>
 
@@ -179,7 +180,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>The classifier takes a trajectory (e-values over time) and returns both a label and an edge.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`import numpy as np
+    <Repl client:load initialCode={`import numpy as np
 from dataclasses import dataclass
 
 @dataclass
@@ -197,10 +198,9 @@ def test_monotone_trend(trajectory, alpha=0.05):
         for j in range(i + 1, n):
             signs.append(np.sign(trajectory[j] - trajectory[i]))
     s = sum(signs)
-    # Fraction of concordant pairs
     total_pairs = n * (n - 1) / 2
     fraction = abs(s) / total_pairs if total_pairs > 0 else 0
-    return fraction > 0.6, s > 0, fraction  # (is_monotone, is_increasing, strength)
+    return fraction > 0.6, s > 0, fraction
 
 def test_curvature(trajectory):
     """Test whether a monotone trajectory is decelerating or constant/accelerating."""
@@ -212,7 +212,6 @@ def test_curvature(trajectory):
     std_accel = np.std(second_diffs)
     if std_accel == 0:
         return "constant", 1.0
-    # Signal-to-noise ratio on the second derivative
     snr = abs(mean_accel) / std_accel
     if snr < 0.5:
         return "indeterminate", snr
@@ -223,7 +222,7 @@ def test_curvature(trajectory):
 def test_spectral_peak(trajectory):
     """Test for a dominant spectral peak via FFT."""
     detrended = trajectory - np.linspace(trajectory[0], trajectory[-1], len(trajectory))
-    spectrum = np.abs(np.fft.rfft(detrended))[1:]  # skip DC
+    spectrum = np.abs(np.fft.rfft(detrended))[1:]
     if len(spectrum) == 0:
         return False, False, 0.0
     peak_idx = np.argmax(spectrum)
@@ -245,7 +244,6 @@ def test_aperiodic(trajectory):
         return False
     autocorr = np.correlate(centered, centered, mode='full')
     autocorr = autocorr[n-1:] / (var * n)
-    # Aperiodic: autocorrelation decays but doesn't reach zero quickly
     mid = len(autocorr) // 4
     if mid == 0:
         return False
@@ -253,88 +251,50 @@ def test_aperiodic(trajectory):
 
 
 def classify_trajectory(trajectory):
-    """Run the kill-condition decision tree.
-
-    Returns a Classification with both a label and an edge.
-    The edge is the next experiment suggested by the classification or misfire.
-    """
-
-    # Step 1: monotone trend
+    """Run the kill-condition decision tree."""
     is_monotone, is_increasing, trend_strength = test_monotone_trend(trajectory)
 
     if is_monotone:
-        # Step 2: curvature
         curvature, snr = test_curvature(trajectory)
-
         if curvature == "decelerating":
-            return Classification(
-                label="convergent",
-                confidence=min(trend_strength, snr / 2),
-                edge="Stabilized. Test a different node.",
-                misfire=None
-            )
+            return Classification("convergent", min(trend_strength, snr / 2),
+                "Stabilized. Test a different node.", None)
         elif curvature == "accelerating" or curvature == "constant":
-            return Classification(
-                label="divergent",
-                confidence=min(trend_strength, snr / 2),
-                edge="Load-bearing. Test what depends on this node.",
-                misfire=None
-            )
-        else:  # indeterminate
-            return Classification(
-                label="monotone",
-                confidence=trend_strength,
-                edge="Run longer to resolve curvature.",
-                misfire=f"Monotone trend detected, curvature indeterminate (SNR={snr:.2f}). "
-                        f"Cannot distinguish deceleration from drift."
-            )
+            return Classification("divergent", min(trend_strength, snr / 2),
+                "Load-bearing. Test what depends on this node.", None)
+        else:
+            return Classification("monotone", trend_strength,
+                "Run longer to resolve curvature.",
+                f"Monotone trend detected, curvature indeterminate (SNR={snr:.2f}). "
+                f"Cannot distinguish deceleration from drift.")
 
-    # Step 3: spectral peaks
     has_peak, is_narrow, concentration = test_spectral_peak(trajectory)
-
     if has_peak:
         if is_narrow:
-            return Classification(
-                label="oscillatory",
-                confidence=concentration,
-                edge="Two subsystems fighting. Test the interface.",
-                misfire=None
-            )
+            return Classification("oscillatory", concentration,
+                "Two subsystems fighting. Test the interface.", None)
         else:
-            return Classification(
-                label="oscillatory",
-                confidence=concentration,
-                edge="Test at different frequency or extend observation window.",
-                misfire=f"Spectral peak detected but broad (concentration={concentration:.2f}). "
-                        f"Noisy cycle or colored noise?"
-            )
+            return Classification("oscillatory", concentration,
+                "Test at different frequency or extend observation window.",
+                f"Spectral peak detected but broad (concentration={concentration:.2f}). "
+                f"Noisy cycle or colored noise?")
 
-    # Step 4: aperiodic structure
     if test_aperiodic(trajectory):
-        return Classification(
-            label="aperiodic",
-            confidence=0.5,
-            edge="Decompose differently. Current partitioning misses the structure.",
-            misfire=None
-        )
+        return Classification("aperiodic", 0.5,
+            "Decompose differently. Current partitioning misses the structure.", None)
 
-    # Step 5: nothing triggered
-    return Classification(
-        label="null",
-        confidence=0.0,
-        edge="Test a different perturbation site.",
-        misfire="No structure detected. Null response or wrong perturbation site."
-    )`} /></pre>
+    return Classification("null", 0.0,
+        "Test a different perturbation site.",
+        "No structure detected. Null response or wrong perturbation site.")
 
-    <p class="text-gray-500 text-sm mt-2 mb-6">Usage and output:</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`# --- Four trajectories, four classifications, four edges ---
+# --- Four trajectories, four classifications, four edges ---
 
 trajectories = {
-    "decelerating": np.cumsum(1.0 / np.arange(1, 51)),         # harmonic: converges
-    "linear drift": np.linspace(0, 10, 50) + np.random.normal(0, 0.5, 50),  # monotone, noisy
-    "clean cycle":  np.sin(np.linspace(0, 6 * np.pi, 100)),        # clean oscillation
-    "flat noise":   np.random.normal(0, 0.1, 50),                  # null
+    "decelerating": np.cumsum(1.0 / np.arange(1, 51)),
+    "linear drift": np.linspace(0, 10, 50) + np.random.normal(0, 0.5, 50),
+    "clean cycle":  np.sin(np.linspace(0, 6 * np.pi, 100)),
+    "flat noise":   np.random.normal(0, 0.1, 50),
 }
 
 for name, traj in trajectories.items():
@@ -345,30 +305,7 @@ for name, traj in trajectories.items():
     print(f"  Edge:       {result.edge}")
     if result.misfire:
         print(f"  Misfire:    {result.misfire}")
-    print()`} /></pre>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>Trajectory: decelerating
-  Label:      convergent
-  Confidence: 0.84
-  Edge:       Stabilized. Test a different node.
-
-Trajectory: linear drift
-  Label:      monotone
-  Confidence: 0.89
-  Edge:       Run longer to resolve curvature.
-  Misfire:    Monotone trend detected, curvature indeterminate (SNR=0.38).
-              Cannot distinguish deceleration from drift.
-
-Trajectory: clean cycle
-  Label:      oscillatory
-  Confidence: 0.72
-  Edge:       Two subsystems fighting. Test the interface.
-
-Trajectory: flat noise
-  Label:      null
-  Confidence: 0.00
-  Edge:       Test a different perturbation site.
-  Misfire:    No structure detected. Null response or wrong perturbation site.</code></pre>
+    print()`} />
 
     <p>The second trajectory is the key case. The trend test fires (monotone, confidence 0.89) but the curvature test misfires (SNR = 0.38, below threshold). The classifier does not guess. It reports the misfire and generates the edge: "run longer." A p-value system would report "significant trend, p &lt; 0.01" and stop. The kill condition says: significant trend, yes, but the <em>type</em> of trend is unresolved. More data is the edge.</p>
 
@@ -378,7 +315,83 @@ Trajectory: flat noise
 
     <p>One classification produces one or two edges. Iterate the loop (classify, follow, classify again) and it builds a graph.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code set:html={`from dataclasses import dataclass, field
+    <Repl client:load initialCode={`import numpy as np
+from dataclasses import dataclass
+
+# --- classify_trajectory (from the block above) ---
+
+@dataclass
+class Classification:
+    label: str
+    confidence: float
+    edge: str
+    misfire: str | None
+
+def test_monotone_trend(trajectory):
+    n = len(trajectory)
+    signs = [np.sign(trajectory[j] - trajectory[i])
+             for i in range(n) for j in range(i+1, n)]
+    s = sum(signs)
+    total_pairs = n * (n - 1) / 2
+    fraction = abs(s) / total_pairs if total_pairs > 0 else 0
+    return fraction > 0.6, s > 0, fraction
+
+def test_curvature(trajectory):
+    diffs = np.diff(trajectory)
+    if len(diffs) < 2: return "indeterminate", 0.0
+    sd = np.diff(diffs)
+    ma, sa = np.mean(sd), np.std(sd)
+    if sa == 0: return "constant", 1.0
+    snr = abs(ma) / sa
+    if snr < 0.5: return "indeterminate", snr
+    return ("decelerating" if ma < 0 else "accelerating"), snr
+
+def test_spectral_peak(trajectory):
+    detrended = trajectory - np.linspace(trajectory[0], trajectory[-1], len(trajectory))
+    spectrum = np.abs(np.fft.rfft(detrended))[1:]
+    if len(spectrum) == 0: return False, False, 0.0
+    peak_val = spectrum[np.argmax(spectrum)]
+    total = np.sum(spectrum)
+    if total == 0: return False, False, 0.0
+    c = peak_val / total
+    return c > 0.3, c > 0.5, c
+
+def test_aperiodic(trajectory):
+    n = len(trajectory)
+    centered = trajectory - np.mean(trajectory)
+    var = np.var(trajectory)
+    if var == 0: return False
+    ac = np.correlate(centered, centered, mode='full')[n-1:] / (var * n)
+    mid = len(ac) // 4
+    return mid > 0 and abs(ac[mid]) > 0.1
+
+def classify_trajectory(trajectory):
+    is_mono, is_inc, strength = test_monotone_trend(trajectory)
+    if is_mono:
+        curv, snr = test_curvature(trajectory)
+        if curv == "decelerating":
+            return Classification("convergent", min(strength, snr/2),
+                "Stabilized. Test a different node.", None)
+        elif curv in ("accelerating", "constant"):
+            return Classification("divergent", min(strength, snr/2),
+                "Load-bearing. Test what depends on this node.", None)
+        else:
+            return Classification("monotone", strength,
+                "Run longer to resolve curvature.",
+                f"Curvature indeterminate (SNR={snr:.2f}).")
+    hp, nar, conc = test_spectral_peak(trajectory)
+    if hp:
+        return Classification("oscillatory", conc,
+            "Two subsystems fighting. Test the interface." if nar
+            else "Test at different frequency or extend window.", None)
+    if test_aperiodic(trajectory):
+        return Classification("aperiodic", 0.5,
+            "Decompose differently.", None)
+    return Classification("null", 0.0,
+        "Test a different perturbation site.",
+        "No structure detected.")
+
+# --- HypothesisGraph ---
 
 @dataclass
 class Node:
@@ -390,7 +403,7 @@ class Node:
 class Edge:
     source: int
     target: int
-    hypothesis: str  # the kill condition that generated this edge
+    hypothesis: str
 
 class HypothesisGraph:
     def __init__(self):
@@ -404,22 +417,17 @@ class HypothesisGraph:
         self.nodes.append(Node(id=node_id, experiment=experiment))
         return node_id
 
-    def classify_node(self, node_id: int, trajectory: np.ndarray):
-        """Classify a node's trajectory and generate edges to next experiments."""
+    def classify_node(self, node_id: int, trajectory):
         classification = classify_trajectory(trajectory)
         self.nodes[node_id].classification = classification
-
-        # The edge is the next experiment
         target_id = self.add_node(experiment=classification.edge)
         self.edges.append(Edge(
-            source=node_id,
-            target=target_id,
+            source=node_id, target=target_id,
             hypothesis=classification.misfire or classification.label
         ))
         return target_id
 
     def frontier(self) -> list[Node]:
-        """Nodes with no classification yet — open experiments."""
         return [n for n in self.nodes if n.classification is None]
 
     def summary(self):
@@ -434,34 +442,22 @@ class HypothesisGraph:
 
 
 # --- Run the loop ---
-
 graph = HypothesisGraph()
 
-# Round 1: perturb node A, observe monotone trajectory with ambiguous curvature
+# Round 1: perturb node A, observe monotone trajectory
 n0 = graph.add_node("Perturb node A")
 traj_0 = np.linspace(0, 5, 30) + np.random.normal(0, 0.8, 30)
 n1 = graph.classify_node(n0, traj_0)
 
 # Round 2: follow the edge — run longer
-traj_1 = np.cumsum(1.0 / np.arange(1, 101))  # longer run reveals deceleration
+traj_1 = np.cumsum(1.0 / np.arange(1, 101))
 n2 = graph.classify_node(n1, traj_1)
 
 # Round 3: convergent — edge says test a different node
-traj_2 = np.sin(np.linspace(0, 4 * np.pi, 80))  # new node oscillates
+traj_2 = np.sin(np.linspace(0, 4 * np.pi, 80))
 n3 = graph.classify_node(n2, traj_2)
 
-graph.summary()`} /></pre>
-
-    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 overflow-x-auto"><code>Nodes: 6  Edges: 3  Frontier: 3
-
-  [0] Perturb node A (monotone)
-    -&gt; [1] Run longer to resolve curvature.
-  [1] Run longer to resolve curvature. (convergent)
-    -&gt; [2] Stabilized. Test a different node.
-  [2] Stabilized. Test a different node. (oscillatory)
-    -&gt; [3] Two subsystems fighting. Test the interface.</code></pre>
+graph.summary()`} />
 
     <p>Three rounds, three edges. The first classification misfired (curvature indeterminate) and generated "run longer." The second succeeded (convergent) and redirected: "test a different node." The third succeeded (oscillatory) and targeted the coupling point. Each step followed from the previous result.</p>
 

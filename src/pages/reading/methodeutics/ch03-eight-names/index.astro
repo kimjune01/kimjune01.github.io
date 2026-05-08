@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 3: Eight Names, One Operation — Methodeutics" favicon="🔭">
@@ -173,29 +174,32 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>This is why the operation is insecure. No deductive guarantee pins down the correct partition. The same observation admits multiple figure-ground splits — Rubin's vase is the literal demonstration: same stimulus, two partitions, both valid, mutually exclusive. Security demands one correct partition. Uberty demands many, each fertile in a different direction.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def partition(observation, prior):
+    <Repl client:load initialCode={`def partition(observation, prior):
     """The common operation: split observation into salient and retained."""
-    salient = &#123;k: v for k, v in observation.items() if v != prior.get(k)&#125;
-    retained = &#123;k: v for k, v in observation.items() if v == prior.get(k)&#125;
+    salient = {k: v for k, v in observation.items() if v != prior.get(k)}
+    retained = {k: v for k, v in observation.items() if v == prior.get(k)}
     return salient, retained
 
 # Gestalt: figure-ground
-scene = &#123;"face": "visible", "vase": "visible", "background": "white"&#125;
-prior = &#123;"face": "hidden", "vase": "visible", "background": "white"&#125;
+scene = {"face": "visible", "vase": "visible", "background": "white"}
+prior = {"face": "hidden", "vase": "visible", "background": "white"}
 figure, ground = partition(scene, prior)
-# figure: &#123;"face": "visible"&#125;, ground: &#123;"vase": "visible", "background": "white"&#125;
+print(f"figure: {figure}")
+print(f"ground: {ground}")
 
 # Debugging: what changed
-after_deploy = &#123;"cpu": "90%", "memory": "4GB", "disk": "50GB", "config": "v2"&#125;
-before_deploy = &#123;"cpu": "30%", "memory": "4GB", "disk": "50GB", "config": "v1"&#125;
+after_deploy = {"cpu": "90%", "memory": "4GB", "disk": "50GB", "config": "v2"}
+before_deploy = {"cpu": "30%", "memory": "4GB", "disk": "50GB", "config": "v1"}
 changed, held = partition(after_deploy, before_deploy)
-# changed: &#123;"cpu": "90%", "config": "v2"&#125;, held: &#123;"memory": "4GB", "disk": "50GB"&#125;
+print(f"changed: {changed}")
+print(f"held: {held}")
 
 # Separation logic: frame inference (simplified)
-heap_after = &#123;"ptr_a": "allocated", "ptr_b": "freed", "ptr_c": "allocated"&#125;
-heap_before = &#123;"ptr_a": "allocated", "ptr_b": "allocated", "ptr_c": "allocated"&#125;
+heap_after = {"ptr_a": "allocated", "ptr_b": "freed", "ptr_c": "allocated"}
+heap_before = {"ptr_a": "allocated", "ptr_b": "allocated", "ptr_c": "allocated"}
 footprint, frame = partition(heap_after, heap_before)
-# footprint: &#123;"ptr_b": "freed"&#125;, frame: &#123;"ptr_a": "allocated", "ptr_c": "allocated"&#125;`} /></pre>
+print(f"footprint: {footprint}")
+print(f"frame: {frame}")`} />
 
     <p>The vocabulary changes (figure/ground, changed/held, footprint/frame) but the role assignment is the same dict comparison every time. The toy flattens real semantics deliberately: it shows the shared role structure, not the domain-specific meaning of each partition. The separation-logic example is the loosest fit: a real frame includes cells read but unchanged, not just cells with different values. The toy version captures the structural roles without full semantics. Chapter 4 formalizes the shared primitive as diff.</p>
 

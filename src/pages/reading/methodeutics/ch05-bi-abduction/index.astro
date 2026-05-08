@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 5: Bi-abduction — Methodeutics" favicon="🔭">
@@ -159,7 +160,7 @@ where:
 
     <p>A simplified analogue outside verification. A function reads and writes keys in a state dictionary. Given explicitly supplied reads and writes (the hard part, which real bi-abduction infers from code), compute which keys must exist beforehand (anti-frame) and which are untouched (frame).</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def bi_abduce(known_state, reads, writes):
+    <Repl client:load initialCode={`def bi_abduce(known_state, reads, writes):
     """Infer the anti-frame and frame for a state-machine transition.
 
     known_state: dict of keys we know exist with their values
@@ -215,23 +216,8 @@ for key in sorted(touched):
     if key in writes:
         print(f"  {key} -> {writes[key]!r}")
     else:
-        print(f"  {key} (read only)")`} /></pre>
-
-    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">Anti-frame (missing preconditions):
-  payment_method — must exist before checkout runs
-
-Frame (untouched state):
-  locale = 'en-US'
-  session_token = 'abc123'
-  theme = 'dark'
-
-Figure (touched by checkout):
-  cart -> []
-  order_id -> 'ord_789'
-  payment_method (read only)
-  user_id (read only)</code></pre>
+        print(f"  {key} (read only)")
+`} />
 
     <p>The function never mentions <code>theme</code>, <code>locale</code>, or <code>session_token</code>, so bi-abduction infers they are untouched: the frame. It reads <code>payment_method</code>, which isn't in the known state, so bi-abduction infers it must exist: the anti-frame. From a known footprint, the system computed the ground and the hypothesis without the observer choosing what to snapshot.</p>
 
@@ -257,7 +243,7 @@ Figure (touched by checkout):
 
     <p>Bi-abduction reasons along a single execution path: one (anti-frame, frame) pair per path. But programs branch. Consider:</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`def process_payment(state):
+    <Repl client:load initialCode={`def process_payment(state):
     if state["payment_method"] == "credit_card":
         # Branch A: reads card_number, writes authorization_code
         validate(state["card_number"])
@@ -265,11 +251,12 @@ Figure (touched by checkout):
     else:
         # Branch B: reads bank_account, writes transfer_id
         verify(state["bank_account"])
-        state["transfer_id"] = transfer(state["bank_account"])`} /></pre>
+        state["transfer_id"] = transfer(state["bank_account"])
+`} />
 
     <p>Branch A touches <code>{'{'}card_number, authorization_code{'}'}</code>. Branch B touches <code>{'{'}bank_account, transfer_id{'}'}</code>. The two branches have different footprints and different frames. Bi-abduction on branch A says <code>card_number</code> must exist. Bi-abduction on branch B says <code>bank_account</code> must exist. Which anti-frame is correct?</p>
 
-    <p>Both, path-conditioned. If <code>payment_method == "credit_card"</code>, require <code>card_number</code>; otherwise require <code>bank_account</code>. The precondition is disjunctive. Bi-abduction gives one answer per path; relating the paths requires understanding that the branch condition itself is load-bearing, that the <em>choice</em> between paths is the real structure.</p>
+    <p>Both, path-conditioned. If <code>payment_method == "credit_card"</code>, require <code>card_number</code>; otherwise require <code>bank_account</code>. The precondition is disjunctive. Bi-abduction gives one answer per path; relating the paths requires understanding that the branch condition itself determines the outcome, that the <em>choice</em> between paths is the real structure.</p>
 
     <p>Not a bug in bi-abduction. Its boundary. The primitive handles one path. When execution forks, you need the diff <em>between</em> branches, not just the diff within each branch.</p>
 

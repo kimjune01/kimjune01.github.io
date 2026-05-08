@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 13: Validators — Methodeutics" favicon="🔭">
@@ -358,9 +359,9 @@ Diagonalization (Cantor)
 
     <p>All four validator types share one interface: accept a claim, return a verdict (alive, dead, or inconclusive) with a trace that names the next step. The code below implements the proof validator's core (grid lookup with kill conditions and escalation targets) as a concrete instance.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`KILL_CONDITIONS = {
+    <Repl client:load initialCode={`KILL_CONDITIONS = {
     "induction":    ("Residual loses structure",           "potential_method"),
-    "contradiction":("¬P doesn't interact with structure", "direct_construction"),
+    "contradiction":("not-P doesn't interact with structure", "direct_construction"),
     "greedy":       ("Local progress destroys substructure","potential_method"),
     "pigeonhole":   ("Same-size sets or need witness",     "probabilistic_method"),
     "probabilistic":("E[X]<1, dependencies, need witness", "second_moment"),
@@ -399,13 +400,7 @@ GRID = {
 
 
 def lookup(claim_type: str, domain: str) -> list[dict]:
-    """Grid lookup with kill conditions. Steps 1-4 of the proof manual.
-
-    Returns candidate techniques, each annotated with:
-      - kill_condition: what would make this technique fail
-      - escalate_to: what to try when it does
-      - alive: True unless a kill condition is pre-checked
-    """
+    """Grid lookup with kill conditions. Steps 1-4 of the proof manual."""
     key = (claim_type, domain)
     if key not in GRID:
         return [{"error": f"No grid entry for ({claim_type}, {domain})"}]
@@ -422,11 +417,7 @@ def lookup(claim_type: str, domain: str) -> list[dict]:
 
 
 def check_symmetry(problem_properties: dict) -> list[str]:
-    """Check for symmetry mismatches. Step 5 of the proof manual.
-
-    problem_properties: dict mapping assumed symmetry to actual property.
-    e.g. {"direction": "directed", "transitivity": "non-transitive"}
-    """
+    """Check for symmetry mismatches. Step 5 of the proof manual."""
     warnings = []
     actuals = set(problem_properties.values())
     for assumed, actual, what_dies in SYMMETRY_CHECKS:
@@ -464,35 +455,15 @@ for c in lookup("existence", "discrete"):
 print("\\n=== Symmetry check ===")
 props = {"direction": "directed", "scope": "global"}
 for w in check_symmetry(props):
-    print(f"  ⚠ {w}")
+    print(f"  Warning: {w}")
 
 print("\\n=== Escalation chain from induction ===")
 chain = escalation_chain("induction")
-print("  " + " → ".join(chain))
+print("  " + " -> ".join(chain))
 
 print("\\n=== Escalation chain from probabilistic ===")
 chain = escalation_chain("probabilistic")
-print("  " + " → ".join(chain))`} /></pre>
-
-    <p class="text-gray-500 text-sm mt-2 mb-6">Output:</p>
-
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300">=== Grid lookup: existence in discrete domain ===
-  pigeonhole            kill: Same-size sets or need witness
-                        escalate: probabilistic_method
-  induction             kill: Residual loses structure
-                        escalate: potential_method
-  probabilistic         kill: E[X]&lt;1, dependencies, need witness
-                        escalate: second_moment
-
-=== Symmetry check ===
-  ⚠ Mismatch: assumes undirected, actually directed. Kills: union-find, spanning trees
-  ⚠ Mismatch: assumes local, actually global. Kills: heuristics, distributed algorithms
-
-=== Escalation chain from induction ===
-  induction &rarr; potential_method &rarr; game_equilibrium
-
-=== Escalation chain from probabilistic ===
-  probabilistic &rarr; second_moment &rarr; lovasz_local_lemma &rarr; derandomization</code></pre>
+print("  " + " -> ".join(chain))`} />
 
     <p><code>escalation_chain</code> makes the linked-list structure explicit. Start with any technique. When it fails, the kill condition names the next. Follow the chain until you reach a technique with no known kill condition: that's the frontier of the field. The <a href="/data/proof-manual.yml">full YAML grid</a> has over a hundred techniques. The code above is a minimal implementation.</p>
 

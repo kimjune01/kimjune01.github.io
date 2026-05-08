@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Base.astro';
 import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
 ---
 
 <Layout title="Ch 2: Security and Uberty — Methodeutics" favicon="🔭">
@@ -94,17 +95,16 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>Feed the same observations to each mode and watch them produce different conclusions at different levels of security.</p>
 
-    <pre class="bg-zinc-800 rounded-lg p-4 text-sm overflow-x-auto my-6"><code class="text-gray-300" set:html={`# Three modes applied to the same observations.
+    <Repl client:load initialCode={`# Three modes applied to the same observations.
 # A server's response times over 10 requests (ms):
 times = [120, 118, 125, 122, 119, 980, 115, 121, 117, 123]
 
 # --- DEDUCTION ---
-# Given: "If latency &gt; 500ms, the request is anomalous."
+# Given: "If latency > 500ms, the request is anomalous."
 # Certain, but adds nothing you didn't already know.
 threshold = 500
-anomalies = [t for t in times if t &gt; threshold]
+anomalies = [t for t in times if t > threshold]
 print(f"Deduction: {len(anomalies)} anomalous request(s).")
-# → 1 anomalous request(s).
 # Security: maximal. Uberty: zero.
 
 # --- INDUCTION ---
@@ -114,7 +114,6 @@ mu = statistics.mean(times)
 sigma = statistics.stdev(times)
 print(f"Induction: mean={mu:.0f}ms, stdev={sigma:.0f}ms")
 print(f"  Normal range: [{mu - 2*sigma:.0f}, {mu + 2*sigma:.0f}]ms")
-# → mean=186ms, stdev=265ms, normal range: [-344, 716]ms
 # The outlier inflates the estimate. Induction extends but stays
 # inside the data's frame — it doesn't ask *why*.
 # Security: moderate. Uberty: moderate.
@@ -133,7 +132,7 @@ for h in hypotheses:
     print(f"  - {h}")
 # None of these are in the data. Each is a *new idea* that would
 # explain the observation if true.
-# Security: minimal. Uberty: maximal.`} /></pre>
+# Security: minimal. Uberty: maximal.`} />
 
     <p>Deduction applies a rule and tells you what you already decided counts as anomalous. From the same data, induction computes a summary and tells you what to expect next. Only abduction asks <em>why</em>, and proposes explanations beyond anything in the data. The explanations might be wrong. That's the price of fertility.</p>
 
