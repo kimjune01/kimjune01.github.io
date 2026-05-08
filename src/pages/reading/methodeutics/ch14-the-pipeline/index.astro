@@ -34,7 +34,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>IRM observes that a classifier trained on one environment fails on another. Standard training minimizes loss. IRM minimizes loss subject to a constraint: the learned features must be invariant across training environments. Features that correlate with the label in environment A but not environment B are discarded. Only features that predict in all environments survive.</p>
 
-    <p>Environment variation is the lever for figure-ground separation (Ch 4). Invariant features are the figure: what is structurally load-bearing. Spurious correlations are the ground: what holds in one environment but not another. IRM automates the tri-abductive split (Ch 6). When a feature helps in one environment and hurts in another (oscillatory, Ch 9), the branching condition is the environment itself. The system splits the hypothesis without a human identifying the confound.</p>
+    <p>Environment variation is the lever for figure-ground separation (Ch 4). Invariant features are the figure: what the system depends on. Spurious correlations are the ground: what holds in one environment but not another. IRM automates the tri-abductive split (Ch 6). When a feature helps in one environment and hurts in another (oscillatory, Ch 9), the branching condition is the environment itself. The system splits the hypothesis without a human identifying the confound.</p>
 
     <hr class="border-zinc-700 my-8"/>
 
@@ -260,7 +260,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
       </table>
     </div>
 
-    <p>The oscillatory case is the most valuable: the investigation found a real lever but applied it too broadly. The split produces a simpler, more targeted hypothesis. Investigations that pass through the oscillatory case once almost always converge on the second pass, because the branching condition narrows scope to where the lever actually works.</p>
+    <p>The oscillatory case is the most instructive: the investigation found a real lever but applied it too broadly. The split produces a simpler, more targeted hypothesis. Investigations that pass through the oscillatory case once almost always converge on the second pass, because the branching condition narrows scope to where the lever actually works.</p>
 
     <hr class="border-zinc-700 my-8"/>
 

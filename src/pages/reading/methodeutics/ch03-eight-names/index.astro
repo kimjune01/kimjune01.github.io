@@ -114,7 +114,7 @@ import Repl from '../../../../components/Repl';
 
     <h3>Bi-abduction (Calcagno et al. 2009)</h3>
 
-    <p>Separation logic describes heap-manipulating programs with assertions <em>P * F</em>, where <em>P</em> is the precondition and <em>F</em> is the frame — the heap fragment the operation doesn't touch. The frame rule: if the operation is safe given <em>P</em>, it stays safe in the presence of <em>F</em>, because <em>F</em> is disjoint and untouched.</p>
+    <p>Separation logic describes heap-manipulating programs with assertions <em>P * F</em>, where <em>P</em> is the precondition and <em>F</em> is the frame: the heap fragment the operation doesn't touch. The frame rule: if the operation is safe given <em>P</em>, it stays safe in the presence of <em>F</em>, because <em>F</em> is disjoint and untouched.</p>
 
     <p>Bi-abduction infers <em>both</em> pieces simultaneously: what precondition is missing (the anti-frame), and what heap fragment survives unchanged (the frame)? Anti-frame is figure; frame is ground. This powers Facebook's <a href="https://fbinfer.com/">Infer</a> static analyzer — millions of lines analyzed compositionally, because the figure-ground split is modular.</p>
 
@@ -126,7 +126,7 @@ import Repl from '../../../../components/Repl';
 
     <h3>Program induction (Lake, Salakhutdinov, Tenenbaum 2015)</h3>
 
-    <p>Bayesian program learning (BPL) sees a single handwritten character and infers a generative program: a stroke sequence, a motor plan. The type is invariant structure — number of strokes, relative positions, topological relations. Token-level variance (pen pressure, speed, slant, jitter) is marginalized out. One example suffices because the model separates what makes the letter that letter (figure) from what makes this instance different from others (ground).</p>
+    <p>Bayesian program learning (BPL) sees a single handwritten character and infers a generative program: a stroke sequence, a motor plan. The type is invariant structure: number of strokes, relative positions, topological relations. Token-level variance (pen pressure, speed, slant, jitter) is marginalized out. One example suffices because the model separates what makes the letter that letter (figure) from what makes this instance different from others (ground).</p>
 
     <p>This is abduction in the Peircean sense: given a surprising observation (a novel character), propose a structural explanation (a program that would produce it). The explanation is insecure (it might be wrong, might hallucinate structure) but maximally fertile. One example, one hypothesis, and the hypothesis is a program.</p>
 

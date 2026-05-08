@@ -45,7 +45,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
 
     <p>Individually, each stream is too noisy to detect the forcing. F1 score per stream: 0.279. Barely above chance for a four-class problem.</p>
 
-    <p>The composed e-value trajectory &mdash; the product across all five streams at each time step &mdash; classified the forcing pattern at F1 = 0.996. The composition reveals shared forcing that individual streams miss.</p>
+    <p>The composed e-value trajectory (the product across all five streams at each time step) classified the forcing pattern at F1 = 0.996. The composition reveals shared forcing that individual streams miss.</p>
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -344,7 +344,7 @@ cum_composed = np.cumprod(e_normal * e_poisson)
 
     <p><strong>Independence</strong> makes the product rule work. If two sensor streams share a hidden common cause that inflates both signals, the product of their e-values overstates the evidence. Gr&uuml;nwald&rsquo;s theorem requires each e-value be valid conditional on all previous data and decisions. Correlated streams violate this: stream B&rsquo;s data is not conditionally independent of stream A&rsquo;s, given the shared cause.</p>
 
-    <p><strong>Identifiability</strong> means the truth is findable. If two hypotheses predict identical observations under every possible experiment, no evidence can distinguish them. The graph has a permanent frontier edge between them. Some systems have symmetries that prevent identification &mdash; gauge invariances in physics, confounders in causal inference.</p>
+    <p><strong>Identifiability</strong> means the truth is findable. If two hypotheses predict identical observations under every possible experiment, no evidence can distinguish them. The graph has a permanent frontier edge between them. Some systems have symmetries that prevent identification: gauge invariances in physics, confounders in causal inference.</p>
 
     <hr class="border-zinc-700 my-8"/>
 

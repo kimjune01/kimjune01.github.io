@@ -147,7 +147,7 @@ import Neighbors from "../../../../components/Neighbors.astro";
           </tr>
           <tr class="border-b border-zinc-800">
             <td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td>
-            <td class="pr-3 text-gray-400">Each new measurement increases the e-value. This knob is load-bearing.</td>
+            <td class="pr-3 text-gray-400">Each new measurement increases the e-value. This knob is critical.</td>
             <td class="text-gray-400">Follow it. This is the bottleneck. Allocate more budget.</td>
           </tr>
           <tr class="border-b border-zinc-800">
@@ -179,14 +179,14 @@ import Neighbors from "../../../../components/Neighbors.astro";
       <li>If grouping helped on small inputs but hurt on large ones, the working set overflows cache at scale. Next experiment: test with explicit cache management.</li>
     </ul>
 
-    <p>Each failure mode generates a directed edge in the hypothesis graph. The current system has none. Slow configurations get ranked low and forgotten. Failure information, the most valuable output the system produces, is discarded.</p>
+    <p>Each failure mode generates a directed edge in the hypothesis graph. The current system has none. Slow configurations get ranked low and forgotten. Failure information, the richest output the system produces, is discarded.</p>
 
     <!-- ============================== -->
     <h2>6. Stop when you can explain, not when you're exhausted (Ch 11)</h2>
 
     <p>Two stopping conditions look alike but differ fundamentally. Theory-based: "Tile size 16 is optimal because the working set fits exactly in L1 cache, and the loop order minimizes TLB misses given this tile." Exhaustion-based: "I tried 500 configurations and this one was the fastest."</p>
 
-    <p>Exhaustion-based stopping fails silently: the search may be stuck in a local basin, and the system cannot detect this because it has no theory of the landscape. Theory-based stopping is falsifiable: if changing cache size should change the optimal tile size but doesn't, the theory is wrong and the search must continue.</p>
+    <p>Exhaustion-based stopping fails silently: the search may be stuck in a local basin, and the system cannot detect this because it has no theory of the search space. Theory-based stopping is falsifiable: if changing cache size should change the optimal tile size but doesn't, the theory is wrong and the search must continue.</p>
 
     <p>Chapter 11's convergence criterion (the hypothesis graph closes when every open edge resolves) gives a structural stopping condition. The optimizer has converged when:</p>
 
