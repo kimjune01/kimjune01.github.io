@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Agent, WebFetch, WebSearch
 
 # Investigate: Hypothesis Graph to PR
 
-Perturb an engineered system, classify the evidence trajectory, follow the edge the kill condition generates. Repeats until the frontier closes or the human redirects. Optionally continues through prework, benchmark, adversarial review, and PR — with a feedback loop that re-enters the hypothesis graph when downstream phases kill a candidate fix.
+Perturb an engineered system, classify the evidence trajectory, follow the edge the kill condition generates. Runs autonomously through all phases — observation, fan-out, extend, prework, benchmark, bug hunt — until the frontier closes, depth 10, or a PR emerges. The only human gate is Phase 8 (ship), because a PR is an external side effect. Everything before it is local, reversible, and should proceed without asking.
 
 ## Dependencies
 
@@ -19,15 +19,15 @@ Phases 1-6 are self-contained — they use only the tools in `allowed-tools`. Ph
 | `/gemini` | Phase 7 (hunt) | Logic-tracing review via Gemini API | Skip — codex alone is sufficient for convergence, just slower |
 | `/bug-hunt` | Phase 7 | Multi-pass adversarial loop | Run codex manually in rounds, track findings in a file |
 
-If the target machine doesn't have `codex` CLI installed, Phases 1-6 still work. Phase 7 degrades to manual review. Phase 8 (ship) only needs `git` and `gh`.
+If the target machine doesn't have `codex` CLI installed, Phases 1-6 still work but Claude's abductions go unfiltered. Expect one-pass overclaiming — downgrade confidence on surviving hypotheses by ~10% and flag in the graph document that codex filtering was unavailable. Phase 7 degrades to manual review (Claude alone, no adversarial second opinion). Phase 8 (ship) only needs `git` and `gh`.
 
 The skill reads no machine-specific paths. All file references are relative to the target system passed as the argument.
 
 ## Theory
 
 - **Hypothesis graph**: [The Hypothesis Graph](https://june.kim/the-hypothesis-graph) — perturb, classify, follow the edge. Kill conditions generate the next hypothesis.
-- **E-value classification**: [Evidence has a trajectory](https://june.kim/evidence-has-a-trajectory) — every experiment produces a trajectory classifiable as convergent, divergent, oscillatory, or chaotic. The shape names the next question.
-- **Modes of reason**: [Modes of Reason](https://june.kim/modes-of-reason) — abduction proposes, deduction traces consequences, induction tests. Label each node's reasoning mode and track confidence accordingly.
+- **E-value classification**: [Evidence has a trajectory](https://june.kim/evidence-has-a-trajectory) — every experiment produces a trajectory classifiable as convergent, divergent, oscillatory, or chaotic. The shape names the next question. Lineage: sequential testing (Wald 1945), e-values and safe anytime-valid inference (Vovk & Wang 2021).
+- **Modes of reason**: [Modes of Reason](https://june.kim/modes-of-reason) — abduction proposes, deduction traces consequences, induction tests. The abduction/deduction/induction split is Peirce's (1878). Label each node's reasoning mode and track confidence accordingly.
 
 ## Input
 
@@ -55,7 +55,7 @@ Establish the baseline. Run the most direct perturbation available.
 2. Run the baseline experiment. Measure.
 3. Classify the trajectory. If divergent from expectation, H₀ is killed. If convergent, the system behaves as expected — stop or redirect.
 4. Write H₀ to the graph document.
-5. Present to the human: "The system diverges from expectation on [measurement]. Where do you want to look first?"
+5. Write H₀ to the graph document. Pick the highest-leverage edge and continue to Phase 2 — don't stop to ask.
 
 ### Phase 2: Fan-out (H₁...Hₖ)
 
@@ -65,7 +65,7 @@ Generate competing hypotheses for the observation. This is abduction — highest
    - The H₀ observation
    - A distinct angle to investigate
    - A concrete perturbation to run (not "explore this direction" — "measure this quantity under this condition")
-   - **Its own copy of the system under test.** Before launching, copy the target directory to `/tmp/interrogate-H{n}/` for each branch. This prevents cross-contamination — one branch's modifications (patches, env vars, generated files) must not affect another branch's measurements.
+   - **Isolation rule.** Measurement-only perturbations (read code, run existing benchmarks, profile) share the original system — no copy needed. Intervention perturbations (apply patches, change env vars, generate files) each get their own copy: `cp -r` the target directory to `/tmp/interrogate-H{n}/`. The distinction matters for cost: most fan-out branches are measurement-only; only branches that modify state need isolation.
 
 2. **Each subagent runs its perturbation and classifies the trajectory:**
 
@@ -87,6 +87,10 @@ Generate competing hypotheses for the observation. This is abduction — highest
    ```
    Fix issues codex finds. Two rounds max per hypothesis.
 
+   **Codex/Gemini review findings are hypothesis generators.** When a reviewer flags a risk, edge case, or untested assumption, don't just "soften the claim" — add the concern as a new open hypothesis in the graph with a concrete perturbation. A reviewer saying "prune might misclassify cache kernels" is an abduction: it proposes a failure mode. Treat it like any other abduction — design a perturbation, run it, classify the trajectory.
+
+   This prevents review feedback from decaying into vague caveats. Each concern either gets tested (and confirmed or killed) or stays visible as an open frontier edge.
+
 4. **Prune.** Kill hypotheses that:
    - Codex disproved (deduction killed the abduction)
    - The experiment refuted (induction killed the abduction)
@@ -94,11 +98,14 @@ Generate competing hypotheses for the observation. This is abduction — highest
 
 5. **Write nodes to graph document.** Each node gets its full record: hypothesis, null, perturbation, trajectory, shape classification, kill condition, edge.
 
-6. **Present to human.** Show the graph state table. The human Attends — they decide which surviving edges to follow, which killed hypotheses to note, whether to fan out again.
+6. **Continue autonomously.** Follow all surviving edges. Prioritize by: cheapest decisive perturbation first. Write the graph state table to the document after each cycle so the human can review asynchronously, but don't stop to present — keep going.
 
-### Phase 2.5: Provenance check (critical hypotheses)
+### Phase 2.5: Provenance check (every conclusive hypothesis)
 
-Before acting on a surviving hypothesis that proposes a code change, check its history and ecosystem context. This step catches gotchas that perturbation alone can't surface.
+**Mandatory on every confirmed or killed hypothesis**, not just those proposing code changes. A hypothesis that reaches a conclusion (confirmed, killed, or refined) must have its provenance checked before the conclusion is trusted. This catches:
+- Deliberate design choices misread as bugs (H₁₂: geohot's REALIZE=0 was intentional)
+- Existing mechanisms that already solve the problem (H₁₃: prune_linear existed but was never applied to LLM loading)
+- Adjacent work by other contributors that the investigation might duplicate or conflict with
 
 1. **Git blame.** When did the current code enter the repo? Who wrote it, and what was the commit message? A deliberate design choice has different weight than a migration default that was never reconsidered.
 
@@ -107,9 +114,9 @@ Before acting on a surviving hypothesis that proposes a code change, check its h
    - Gotchas others hit (CSS extraction, styling, hydration)
    - Whether the issue was fixed, open, or has workarounds
 
-3. **Adjacent clue synthesis.** Combine git history + upstream issues into a risk assessment. A proposed fix that has open bugs against it in the upstream project needs a visual/functional check, not just a timing check.
+3. **Adjacent clue synthesis.** Combine git history + upstream issues into a risk assessment. Check whether different contributors built complementary pieces that nobody connected (e.g., contiguous as fusion barrier + prune as onetime detection, built 18 days apart by different people). The gap between existing mechanisms is often more actionable than building new ones.
 
-4. **Write findings to graph document.** Add a "Provenance" section to the surviving hypothesis with: origin commit, upstream issues found, risk assessment.
+4. **Write findings to graph document.** Add a "Provenance" section to the conclusive hypothesis with: origin commit, upstream issues found, risk assessment, and whether existing mechanisms were overlooked.
 
 ### Phase 3: Extend (H₂...Hₙ)
 
@@ -124,8 +131,9 @@ Follow the surviving edges. Each edge is a new hypothesis generated by a kill co
 
 3. Repeat until:
    - The frontier closes (all edges point to already-classified nodes)
+   - A candidate fix emerges and passes Phase 5.5 (regression check) — proceed to prework and ship pipeline
    - The human redirects
-   - Depth 10 reached (hard stop — present the graph and let the human decide)
+   - Depth 10 reached (hard stop — present the graph)
 
 ### Phase 4: Report
 
@@ -140,7 +148,22 @@ Write the final graph document with:
    - Abduction (proposed from observation): 60-85% confidence
 5. **Pruning log** — what died, which experiment or codex round killed it
 
-Present to human. If the diagnosis implies a code change, ask: "Prework and ship, or stop at the diagnosis?" If stop, the investigation is complete. If ship, continue to Phase 5.
+If the diagnosis implies a code change, continue to Phase 4.5 and the prework/ship pipeline. If the frontier is still open, return to Phase 3. Don't stop to ask — the graph document records the state.
+
+### Phase 4.5: Reframe
+
+Check whether the investigation has produced a load-bearing observation that retires the original framing. This happens when the surviving hypothesis isn't a fix — it's a pattern, a structural insight, or a reframing that makes the original H₀ the wrong question.
+
+1. **Test for reframe.** Does the surviving hypothesis answer the original question, or does it replace it? If H₀ was "why is X slow?" and the surviving hypothesis is "X's tightness is manufactured by a specific human process, not an architectural pattern," the output is an observation, not a code change.
+
+2. **Capture the transferable pattern.** If the investigation reframes, write the observation as:
+   - A memory entry (if it's a durable insight about how a system or team works)
+   - A blog post seed (if it's a transferable pattern worth publishing)
+   - A graph document annotation (always — the reframe is part of the provenance)
+
+3. **Record the reframe** in the graph document. If the reframe retires the original question entirely, halt — the graph is the output. If the reframe opens new edges (it usually does), return to Phase 3 and keep going.
+
+4. **Halt condition.** The investigation terminates when the frontier closes, depth 10, or a PR ships. A reframe that opens no new edges is a natural halt. Don't ask for permission to continue — the graph document records the state for the human to review.
 
 ### Phase 5: Prework
 
@@ -164,6 +187,19 @@ When a surviving hypothesis implies a code change, build the [prework](/prework)
 3. **Integration manifest** (`MANIFEST.md`). One line per artifact: repo, branch, remote, what it hosts.
 
 4. **Derisk.** Run `extract.py` to confirm the bug exists in the target. If it doesn't, the diagnosis was wrong — go back to Phase 2. This is the most important step. Without it, the prework is speculative.
+
+### Phase 5.5: Regression check (before benchmark)
+
+**Mandatory before Phase 6.** Before measuring speedup, verify the fix doesn't break anything. This catches correctness regressions cheaply — before investing in benchmarking and bug hunts.
+
+1. **Output equivalence.** Run `compat.py` — the fix must produce identical results to the baseline. For LLM inference: same token sequences. For numerical code: same outputs within tolerance. If outputs diverge, the fix has a correctness bug — stop and diagnose before proceeding.
+
+2. **Existing test suite.** Run the target project's tests for the affected subsystem. Don't run the entire suite (too slow, too many unrelated failures from missing deps). Target:
+   - Tests that import the changed module
+   - Tests that exercise the affected code path (e.g., `test_jit.py` for JIT changes, `test_gguf.py` for GGUF changes)
+   - Any tests tagged with the feature name (`-k "prune or gguf or jit"`)
+
+3. **Gate.** All tests must pass before proceeding to Phase 6. If tests fail, classify: is it a real regression (fix broke something) or a pre-existing failure (missing deps, hardware-specific skip)? Only real regressions block.
 
 ### Phase 6: Benchmark
 
@@ -218,6 +254,7 @@ Each phase produces a self-contained artifact that is a valid input to any downs
 |-------|----------------|--------------|
 | 1-3 Interrogate | Hypothesis graph (`.md`) | Yes — a diagnosis with provenance |
 | 4 Report | Graph + frontier edges | Yes — diagnosis + what to try next |
+| 4.5 Reframe | Transferable observation | Yes — insight that retires the original question |
 | 5 Prework | Experiment repo | Yes — a validated prototype |
 | 6 Benchmark | Measurement table | Yes — evidence for or against |
 | 7 Bug hunt | Convergence report | Yes — adversarial verification |
@@ -260,10 +297,14 @@ Interrogate → Prework → Benchmark → Bug hunt → Ship        │
 - If someone else's PR addresses the same issue: link to it in the graph document and stop. The investigation becomes evidence for their PR, not a competing one.
 
 **Halt condition:** the outer loop terminates when:
-- Bug hunt converges (both codex and Gemini report zero new findings), OR
+- Bug hunt converges (both codex and Gemini report zero new findings) AND the PR ships, OR
 - The human redirects, OR
+- Frontier closes (all edges classified, no open hypotheses), OR
 - Three consecutive iterations produce the same diagnosis (fixed point), OR
-- An existing PR already addresses the surviving hypothesis (contribute evidence, don't duplicate)
+- An existing PR already addresses the surviving hypothesis (contribute evidence, don't duplicate), OR
+- Depth 10 reached (hard stop — present the graph)
+
+**Do not halt at diagnosis.** If the diagnosis implies a fix, continue through prework → benchmark → regression check → bug hunt → ship. The only human gate is Phase 8 (ship). Everything else runs autonomously.
 
 The tinygrad investigation iterated twice: the first fix (remove GROUP + wider UPCAST) was killed by the bug hunt, re-entered the graph as an oscillatory observation, split into sub-hypotheses, and the surviving fix (UPCAST alone) converged on the second iteration.
 
@@ -277,8 +318,8 @@ Without the outer loop, the first fix ships with a 25% regression on the most co
 - **Codex filters, Claude generates.** Never reverse the roles. Claude's abductions are fertile but insecure. Codex's deductions are sterile but reliable. Use both.
 - **Label provenance.** Every claim gets: which subagent generated it, which experiment tested it, which codex round validated it, which reasoning mode produced it.
 - **Never suppress failures.** A well-characterized dead end (H₁ₐ: fusion hurts) is worth more than an untested hypothesis.
-- **The human Attends between cycles.** Present the prune results before the next fan-out. The human picks which edges to follow.
-- **Keep going to depth 10.** Don't stop after two cycles. Follow every surviving edge until the frontier closes, the human redirects, or depth 10. Each cycle: fan out, run perturbations, codex-filter, prune, write to graph, follow surviving edges. The graph deepens until it converges or hits the wall.
+- **Run autonomously between cycles.** Write the graph state to the document after each cycle, but don't stop to present. Pick the highest-leverage surviving edge and keep going. The human can redirect at any time — the graph is always readable — but the default is forward motion.
+- **Keep going to depth 10.** Don't stop after two cycles. Follow every surviving edge until the frontier closes, the human redirects, or depth 10. Depth = outer-loop iterations (a full pass through interrogate → prework → benchmark → bug-hunt counts as one iteration; phases within an iteration don't increment depth). Each cycle: fan out, run perturbations, codex-filter, prune, write to graph, follow surviving edges. The graph deepens until it converges or hits the wall.
 - **Confidence tracks mode.** Don't claim 95% confidence on an abduction. Don't claim 60% on a deduction. The mode determines the ceiling.
 
 ## E-Value Trajectory Classification
