@@ -49,17 +49,47 @@ Use topics and languages from high-merge repos. Score by issue quality, not repo
 - Issues with active discussion or assigned contributors — someone's on it
 - Feature requests with no maintainer endorsement — inventing problems
 - Issues that need hardware you don't have — can't verify
+- **Repos with `process_depth: shallow`** in their review schema — the pipeline produces investigation-backed PRs. Shallow-review repos can't absorb them. Only add shallow repos if the issue is trivial enough that investigation depth is unnecessary (1-line fix, obvious bug, failing test with known cause).
 
 ## Output
 
 Updated `~/.sweep/repos.json`. Log additions and removals to `~/.sweep/actionable/candidates.jsonl`.
 
+## Diversity selection
+
+Don't just rank by quality and take the top-k. That clusters — you'd end up with 10 Python ML repos. The pipeline learns faster from diverse repos than correlated ones.
+
+After scoring candidates, select the final set using DPP-style diversity. Each candidate repo gets a feature vector:
+
+| Feature | Why it matters |
+|---|---|
+| Language | different toolchains, different review norms |
+| Domain | ML, systems, web, infra, devtools |
+| Process depth | mix of shallow and deep tests different hypotheses |
+| Org size | solo maintainer vs large team, different dynamics |
+| Issue type | bugs, perf, correctness, docs |
+
+**Selection:** parallel with noise. Each agent scores candidates independently, then jitters each score before ranking:
+
+```bash
+jitter=$(python3 -c "import random; print(random.uniform(0.7, 1.3))")
+jittered_score=$(python3 -c "print($score * $jitter)")
+```
+
+LLMs can't generate real randomness — use the shell. The noise prevents convergence: five agents with the same scoring function pick five different repos because each sees a different permutation of the ranking. Dedup at the sweep level: if two agents pick the same repo, one re-rolls.
+
+No central coordinator. No partitioning. Just jittered scores and a dedup pass.
+
+The result: diverse repos without a bottleneck. The noise does what DPP's repulsion kernel does, cheaper.
+
 ## Process
 
 1. Read `~/.sweep/repos.json` and `~/.sweep/retro/*.jsonl`.
 2. Score active repos. Drop dormant ones. Respect cooldowns.
-3. Search for issues on active repos first, then contributed repos, then adjacent, then cold.
-4. Write updated `repos.json` and `candidates.jsonl`.
+3. Search for issues: contributed repos, then adjacent, then cold.
+4. Score candidates by issue quality × repo fit.
+5. Select final set via diversity selection (quality × distance in feature space).
+6. Write updated `repos.json` and `candidates.jsonl`.
 
 ## Rules
 

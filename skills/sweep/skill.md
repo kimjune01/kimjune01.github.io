@@ -56,33 +56,40 @@ Adding a repo sets it to `pending_schema`. Removing sets it to `removed` (kept f
 
 ## Process
 
-### Phase -1: Actionable
-
-Run `/actionable`. Read retro parameters, score active repos, find new candidates, update `repos.json`. This is what closes the loop — retro's lessons feed back into which repos get swept next. Skip if `repos.json` was provided explicitly via argument. In `--dry-run`, actionable reports changes without writing.
-
-Also re-run actionable between phases if active work runs low: fewer than 3 PENDING items across all repos triggers a mid-sweep pass to refill the queue.
-
 ### Phase 0: Preflight
 
 1. `gh auth status` — fail fast on auth issues
-2. For each repo in `repos.json`, verify access: `gh repo view <repo> --json name`
-3. For each repo, check if `/review-schema` has been completed (look for `~/.sweep/repos/<owner>-<repo>/review-schema.md`). If missing, run `/review-schema` for that repo. Review-schema induces and writes the schema autonomously — no user validation gate. Log what was induced, proceed. The user can override with `/review-schema --manual <repo>` later. Don't block the pipeline on human input.
+2. Read `~/.sweep/repos.json` if it exists. These are the known repos.
 
-### Phase 1: Fan out
+### Phase 1: Fan out (concurrent)
 
-Launch one `/triage` agent per repo, in parallel:
+Launch everything in parallel. Don't wait for actionable to finish before investigating known repos.
 
 ```
+# Agent 1: actionable (background)
 Agent({
   subagent_type: "general-purpose",
   run_in_background: true,
-  prompt: "Run /triage [--dry-run] --limit N on <repo>.
-           Write results to <repo-dir>/TRIAGE_GRAPH.md.
-           When done, write a one-line summary per item to stdout."
+  prompt: "Run /actionable. Find new repos, update repos.json.
+           For each new repo, run /review-schema.
+           Report additions when done."
 })
+
+# Agents 2–N: triage on known repos (background, one per repo)
+for repo in repos.json:
+  Agent({
+    subagent_type: "general-purpose",
+    isolation: "worktree",
+    run_in_background: true,
+    prompt: "Run /triage [--dry-run] --limit N on <repo>.
+             Write results to <repo-dir>/TRIAGE_GRAPH.md.
+             When done, write a one-line summary per item to stdout."
+  })
 ```
 
-Each agent runs in its own working directory (`~/.sweep/repos/<owner>-<repo>/`). No worktree needed since triage creates its own worktrees for investigations.
+Actionable searches for new work while triage investigates existing work. When actionable finishes and adds new repos, spawn triage agents for them into the same pool. No sequential gates — the pipeline fills from the front and drains from the back simultaneously.
+
+Each triage agent runs in its own working directory (`~/.sweep/repos/<owner>-<repo>/`). Triage creates its own worktrees for investigations within each repo.
 
 ### Phase 2: Cross-reference (post-hoc)
 
@@ -141,10 +148,12 @@ After all phases complete, set up a recurring wake-up to keep the pipeline alive
 ```
 CronCreate({
   cron: "*/5 * * * *",
-  prompt: "/sweep --check",
+  prompt: "/sweep --check --concurrency N [--dry-run]",
   recurring: true
 })
 ```
+
+Pass the same flags from the original invocation into the heartbeat prompt — including `--dry-run` if set. **Always create the heartbeat, even in dry-run.** Dry-run still needs the pipeline to keep cooking — checking agent progress, re-running actionable, collecting results. The only thing dry-run skips is remote side effects (no PRs, no pushes). The heartbeat is local.
 
 The heartbeat re-enters sweep every 5 minutes. Idempotency means re-entry is cheap — it checks for new PR outcomes, pushes the next drip entry if a slot opened, and re-runs actionable if the queue is low. Stops when the session ends (session-only, not durable).
 
@@ -157,3 +166,4 @@ The heartbeat re-enters sweep every 5 minutes. Idempotency means re-entry is che
 - **Idempotent.** Running sweep twice skips repos whose triage is already complete (TRIAGE_GRAPH.md exists with all outcomes filled).
 - **Auth first.** Verify access to every repo before launching any agents.
 - **All PRs route through /drip.** No direct `gh pr create` during active pipeline runs. 14 manual PRs in 2 days triggered a ban warning. The drip queue exists to prevent this — enforce it.
+- **Never recommend closing a stale PR.** No-review age is a signal to ping, rebase, or break up — not to close. Closing destroys optionality. Only recommend closing when a maintainer explicitly rejects it or the approach is superseded by another merged PR.

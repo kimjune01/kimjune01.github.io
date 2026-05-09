@@ -93,6 +93,8 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 | You got banned or warned on this repo | Cooldown active (check retro parameters) |
 | Heuristic / performance tuning without device-diverse CI | Can't validate across hardware. geohot: "no on all heuristic changes" |
 | Net-addition performance optimization | "We never trade complexity for speed." Only perf work that deletes lines |
+| Requires pre-discussion or design alignment | Politics. If the fix isn't obvious from the issue, skip it |
+| Requires off-platform communication (Discord, mailing list, etc.) | Pipeline only speaks GitHub. If the contribution process routes through another channel, skip the repo |
 
 Mark killed items as `SKIP` in the scan table with the reason. They don't enter Phase 2.
 
