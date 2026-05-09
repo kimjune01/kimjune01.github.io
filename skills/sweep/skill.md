@@ -33,20 +33,18 @@ A list of repos, either:
 
 ## State file
 
-`~/.sweep/repos.jsonl` tracks the active repo list and per-repo status:
+`~/.sweep/repos.jsonl` tracks the active repo list and per-repo status. Append-only, one event per line, last-action-wins per repo:
 
-```json
-{
-  "repos": [
-    {"repo": "tinygrad/tinygrad", "status": "triaged", "added": "2026-05-08"},
-    {"repo": "google-gemini/gemini-cli", "status": "in_progress", "added": "2026-05-08"}
-  ]
-}
+```jsonl
+{"ts": "2026-05-08T00:00:00Z", "action": "add", "repo": "tinygrad/tinygrad", "status": "triaged", "cooldown_until": "2026-05-22"}
+{"ts": "2026-05-09T08:00:00Z", "action": "add", "repo": "astral-sh/ruff", "status": "ready"}
+{"ts": "2026-05-09T12:00:00Z", "action": "triage", "repo": "astral-sh/ruff", "status": "triaged"}
+{"ts": "2026-05-09T12:00:00Z", "action": "evict", "repo": "python-attrs/attrs", "status": "evicted", "reason": "0 labeled issues"}
 ```
 
-Statuses: `pending_schema` → `ready` → `in_progress` → `triaged`
+Actions: `add`, `promote`, `triage`, `evict`. Statuses: `pending_review` → `ready` → `triaged`. Also: `monitoring`, `evicted`.
 
-Adding a repo sets it to `pending_schema`. Removing sets it to `removed` (kept for history, skipped on future runs).
+To read current state: parse all lines, key by repo, take last entry. Filter `action != "evict"` for active repos.
 
 ## Output
 
@@ -133,13 +131,23 @@ NO ACTION
   tinygrad/tinygrad #7020 — TinyJit wrong values (already fixed)
 ```
 
-### Phase 4: Drip (full run only)
+### Phase 4: Quality gates (dry-run runs everything except push)
 
-For each repo with "ready to ship" items, load its drip queue:
+Dry-run captures the full pipeline without emitting. Every gate below is a local operation — only the push at the end is a remote side effect.
+
+For each readiness record in `~/.sweep/triage-dry-run/<number>-pr.md`:
+
+1. **Staleness check.** Verify the issue is still open. Check for competing PRs that landed since triage.
+2. **Test gate.** Checkout default branch, run test — must fail. Checkout fix branch, run test — must pass.
+3. **Gemini volley.** Send diff + PR title + body + test + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max.
+4. **Voice crosscheck.** Fetch 5 recently merged PRs from different contributors. Shuffle the candidate in as a 6th entry. Send to `/gemini`: "One may be AI-generated. Which ones, and why?" If identified, rewrite tells only (no checklist). Re-shuffle, re-test. Five rounds max. If still detectable: surface to the human.
+5. **Push** (full run only). `git push`, `gh pr create`. In dry-run, log what would be pushed and stop.
+
+For full runs, load drip queues per repo:
 - `~/.sweep/drip-queue/tinygrad-tinygrad.jsonl`
 - `~/.sweep/drip-queue/google-gemini-gemini-cli.jsonl`
 
-Each repo gets its own independent drip cadence. One open PR per repo at a time. The repos don't interfere with each other's pacing.
+Each repo gets its own independent drip cadence. One open PR per repo at a time.
 
 ### Phase 5: Heartbeat
 

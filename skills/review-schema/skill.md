@@ -97,7 +97,7 @@ Induced from 47 merged PRs + 12 reviewed-and-rejected PRs (2026-04 to 2026-05).
 
 ### 1. Gather PR history
 
-Check `repos.jsonl` for the latest `last_fetched` timestamp for this repo. On first run, fetch the full window. On subsequent runs, fetch only what's new.
+Parse `repos.jsonl` (last-action-wins per repo) for this repo's `last_fetched` timestamp. On first run, fetch the full window. On subsequent runs, fetch only what's new. After fetching, append a `fetch` event with the new timestamp.
 
 ```bash
 # First run: full window
