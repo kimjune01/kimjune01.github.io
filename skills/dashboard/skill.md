@@ -121,4 +121,4 @@ Consistent across all elements:
 
 - Read-only. Never modify state files.
 - Degrade gracefully. Missing files = empty sections.
-- One file. The server is a single Python script written to `/tmp/sweep-dashboard-server.py`. No package installs.
+- One file. The server is a single Python script written to `~/.sweep/dashboard.py`. No package installs.
