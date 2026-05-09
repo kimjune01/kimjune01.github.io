@@ -8,7 +8,7 @@ When I got [investigate](/investigate) working, I got excited. [Hypothesis graph
 
 The maintainer batch-closed everything. "I'm not reading anything written by AI." The fixes were correct (net zero lines, 47-59% speedup) but the communication was wrong. Eleven PRs in two days. No tests. No tone matching. Any self-respecting engineer would look away.
 
-I am not reasonable and don't respect myself a lot. But I am tenacious. The PRs weren't mergeable because my skills were weak, not the methodology. Iterative review pushes merge-readiness from [43% to 91%](/does-iteration-mitigate-slop-slope). Investigate automates engineering. They weren't composing. What if they could?
+Unreasonable, tenacious. The PRs failed because my skills were weak. The methodology was sound. Iterative review pushes merge-readiness from [43% to 91%](/does-iteration-mitigate-slop-slope). Investigate automates engineering. The pieces existed separately. What if they composed?
 
 ## Closed loop
 
@@ -22,7 +22,7 @@ Nodes are shared across investigations.
 
 </div>
 
-### Independent investigations aren't
+### Shared state
 
 The naive dispatcher routes: read the issue list, assign each to an agent, collect results.
 
@@ -77,7 +77,7 @@ No human watches. Every handoff gets a gemini volley: send the output, apply fee
 
 ### The lineup
 
-"I'm not reading anything written by AI." Format matching isn't enough. The goal: remove prose habits that make reviewers evaluate the author instead of the patch. Claude writes "clean" prose that's its own tell. No typos, no shortcuts, perfect parallel structure, hedges like "it's worth noting."
+"I'm not reading anything written by AI." Format matching falls short. The goal: remove prose habits that make reviewers evaluate the author instead of the patch. Claude writes "clean" prose that's its own tell. No typos, no shortcuts, perfect parallel structure, hedges like "it's worth noting."
 
 After tone matching, the PR body goes through a lineup: shuffle it with 5 real PRs from the repo, unlabeled, and ask a second model which one is AI. If it can't tell, pass. If it can, the explanation names the tells: "this one hedges where the others assert," "this one explains what the diff already shows." Fix the tells, re-shuffle, re-test. Five rounds max. [Detection is a wasting asset under feedback](/slop-detection): any checklist you give the rewriter becomes the exploit surface. The lineup diagnoses. If it's still detectable after five rounds, surface to the human. Some repos have a voice Claude can't fake.
 
@@ -114,9 +114,9 @@ I am still not reasonable. I haven't hit the hard cases. When I do, the logs wil
 | #16116 | +12/-1 | MATVEC test and fix | "last warning before I ban you" |
 | #16117 | +11/-1 | PTX test and fix | "test passes in master too" (Qazalin) |
 
-The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in under a minute. The rejection trajectory: volume → AI detection → "I'm not reading" → ban warning. By PR #10, the maintainer was evaluating the contributor, not the code. #16094 had an [18-hypothesis investigation](https://github.com/kimjune01/tinygrad-experiments/blob/master/realize/HYPOTHESIS_GRAPH.md) behind it, 12.4x speedup verified across backends and architectures, multi-turn correctness tested. Closed without a word.
+The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in under a minute. The rejection trajectory: volume → AI detection → "I'm not reading" → ban warning. By PR #10, the maintainer was evaluating the contributor. #16094 had an [18-hypothesis investigation](https://github.com/kimjune01/tinygrad-experiments/blob/master/realize/HYPOTHESIS_GRAPH.md) behind it, 12.4x speedup verified across backends and architectures, multi-turn correctness tested. Closed without a word.
 
-I wasn't the first. A search for "AI slop" in tinygrad's PR comments turns up a graveyard: #15491 (29% scheduling speedup, +46/-18, benchmarked, 434 tests passing: "DO NOT SUBMIT AI SLOP"), #14364 (kernel optimizer: "AI slop not worth considering"), #15553 (CDNA4 fix: "AI slop, just close"), and a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). One PR (#15576, +3/-3) got through with "lol early AI wrote those tests, but since there's tests, merged." He knows. He merges when the diff is cheap enough to verify by inspection, regardless of tooling. The gate isn't AI. It's attention cost.
+I wasn't the first. A search for "AI slop" in tinygrad's PR comments turns up a graveyard: #15491 (29% scheduling speedup, +46/-18, benchmarked, 434 tests passing: "DO NOT SUBMIT AI SLOP"), #14364 (kernel optimizer: "AI slop not worth considering"), #15553 (CDNA4 fix: "AI slop, just close"), and a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). One PR (#15576, +3/-3) got through with "lol early AI wrote those tests, but since there's tests, merged." He knows. He merges when the diff is cheap enough to verify by inspection, regardless of tooling. The gate is attention cost.
 
 ---
 
