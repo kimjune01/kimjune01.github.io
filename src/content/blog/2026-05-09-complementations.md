@@ -37,7 +37,6 @@ If you're on this list and want off, open an issue or email me. If you should be
 | [AkiKurisu](https://github.com/AkiKurisu) | [akikurisu.com](https://www.akikurisu.com) | agent harness design |
 | [frankxai](https://github.com/frankxai) | [frankx.ai](https://frankx.ai) | multi-agent systems, sovereign AI |
 | [leecalcote](https://github.com/leecalcote) | [layer5.io](https://layer5.io) | AGENTS.md, Claude Code, Gemini CLI |
-| [corvid-agent](https://github.com/corvid-agent) | [corvidlabs](https://corvidlabs.github.io/corvid-agent/blog.html) | decentralized AI agents |
 | [imran-siddique](https://github.com/imran-siddique) | [imransiddique.com](https://imransiddique.com) | agentic architecture, safety |
 | [karlb](https://github.com/karlb) | [karl.berlin](https://www.karl.berlin) | LLMs + simpler software |
 | [nooscraft](https://github.com/nooscraft) | [noos.blog](https://noos.blog) | AI-assisted PRs, agent news |
@@ -46,4 +45,4 @@ If you're on this list and want off, open an issue or email me. If you should be
 | [pdurlej](https://github.com/pdurlej) | [pdurlej.pl](https://pdurlej.pl) | AI workflows, prompt engineering |
 | [kimjune01](https://github.com/kimjune01) | [june.kim](https://june.kim) | cognition, contribution pipeline |
 
-6045 GitHub contributors crawled on May 9, 2026. 76 had blogs. 16 posted in the last 6 months. 12 write about AI. These are the ones the crawler found so far. The filter: rejected for AI-assisted contributions, active blog, at least one post substantially about LLMs or agents. The [crawler](https://github.com/kimjune01/june.kim/blob/master/scripts/complementations-crawler.sh) and [data](https://github.com/kimjune01/june.kim/blob/master/data/complementations.jsonl) are public.
+6045 GitHub contributors crawled on May 9, 2026. 76 had blogs. 16 posted in the last 6 months. 11 write about AI. These are the ones the crawler found so far. The filter: rejected for AI-assisted contributions, active blog, at least one post substantially about LLMs or agents. The [crawler](https://github.com/kimjune01/june.kim/blob/master/scripts/complementations-crawler.sh) and [data](https://github.com/kimjune01/june.kim/blob/master/data/complementations.jsonl) are public.
