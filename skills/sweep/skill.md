@@ -148,7 +148,7 @@ After all phases complete, set up a recurring wake-up to keep the pipeline alive
 ```
 CronCreate({
   cron: "*/5 * * * *",
-  prompt: "/sweep --check --concurrency N [--dry-run]. Progress ALL phases: collect completed agent results (Phase 2→3), write readiness records for CONFIRMED items (Phase 3→4), load drip queue (Phase 4→5). Don't stop at investigation — every CONFIRMED item needs a readiness record in ~/.sweep/triage-dry-run/<number>-pr.md with branch, title, body, and test command.",
+  prompt: "/sweep --check --concurrency N [--dry-run]. Progress all phases: collect agent results, write readiness records for CONFIRMED items to ~/.sweep/triage-dry-run/<number>-pr.md, load drip queue. Every CONFIRMED item needs a record.",
   recurring: true
 })
 ```
