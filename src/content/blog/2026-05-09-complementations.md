@@ -4,9 +4,9 @@ title: "Complementations"
 tags: cognition, methodology
 ---
 
-There are people out there using AI to contribute to open source. They submit PRs with passing CI to repos they don't own, across multiple projects, without compensation. Some get merged. Some get "DO NOT SUBMIT AI SLOP." They keep going.
+People use AI to contribute to open source. PRs with passing CI, repos they don't own, multiple projects, no compensation. Some get merged. Some get "DO NOT SUBMIT AI SLOP." They keep going.
 
-I know they exist because I found them in the graveyard. GitHub PR comments are searchable. The rejection language is consistent: "AI slop", "do not use AI", "I'm not reading anything written by AI." Behind each rejection is a diff that passed CI. The code was correct. The prose was wrong.
+I found them in the graveyard. GitHub PR comments are searchable. The rejection language is consistent: "AI slop", "do not use AI", "I'm not reading anything written by AI." Behind each rejection, a diff that passed CI. Code correct. Prose wrong.
 
 But the graveyard is just one source. The signal is readable without looking at rejections:
 
@@ -17,13 +17,13 @@ But the graveyard is just one source. The signal is readable without looking at 
 
 Excess attention, tooling good enough to give away, interests adjacent to the repos they contribute to. Early.
 
-I am one of them. I submitted [14 PRs to tinygrad in 48 hours](/sweep-and-triage#case-study-tinygrad). One merged. The rest taught me more about open source review culture than a year of reading about it would have. I built a [pipeline](https://github.com/kimjune01/sweep) that finds issues, investigates them, shapes PRs to match the review culture, and ships one at a time. It runs while I sleep.
+One of them. [14 PRs to tinygrad in 48 hours](/sweep-and-triage#case-study-tinygrad), one merged, the rest more instructive than a year of reading. Built a [pipeline](https://github.com/kimjune01/sweep) that finds issues, investigates them, shapes PRs to match the review culture, ships one at a time. Runs while I sleep.
 
 The pipeline is [copyleft](/general-intelligence). Anyone can run it. But running it alone is lonely. I went looking for others.
 
 ## What complementation means
 
-Neither pipeline is complete alone. The AI perceives, caches, triages, and transmits. The human filters, attends, and consolidates. Together they [cover every slot](/general-intelligence#complementation). The curve cups upward because each cycle sharpens the next.
+Neither pipeline is complete alone. The AI perceives, caches, triages, and transmits; the human filters, attends, and consolidates. Together they [cover every slot](/general-intelligence#complementation). Each cycle sharpens the next. The curve cups upward.
 
 These people figured that out by shipping PRs and getting rejected and shipping more. The proof of work is the contribution history. The diffs.
 
