@@ -75,6 +75,9 @@ After scoring candidates, select the final set using DPP-style diversity. Each c
 | Process depth | mix of shallow and deep tests different hypotheses |
 | Org size | solo maintainer vs large team, different dynamics |
 | Issue type | bugs, perf, correctness, docs |
+| **Hypothesis gap** | which of H0-H6 does this repo test that existing repos don't? |
+
+**Hypothesis-driven selection (retro 2026-05-09):** The pipeline is an experiment, not a merge optimizer. Each repo is a perturbation. Select repos that fill gaps in the hypothesis coverage, not just feature-vector distance. Ask "which hypothesis does this test?" before "will this merge?" Specifically: fast-review repos test H3 (pacing), solo maintainers test H2/H5, AI-friendly repos test H4. A repo that fills a hypothesis gap is worth more than a high-merge-probability repo that duplicates an existing condition.
 
 **Selection:** parallel with noise. Each agent scores candidates independently, then jitters each score before ranking:
 
