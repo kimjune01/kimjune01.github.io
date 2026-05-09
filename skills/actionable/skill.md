@@ -43,10 +43,13 @@ gh search issues --label "help wanted" --language <lang> --sort created
 
 Use topics and languages from high-merge repos. Score by issue quality, not repo familiarity.
 
+**Cold search limitations (retro 2026-05-09):** Generic keyword trawling (`help wanted` + language) fails for compiler/optimizer niches — 10 agents across 2 rounds yielded zero candidates. The skillset (graph rewrite, dtype handling, AST manipulation) is too narrow for generic labels. **Prefer targeted monitoring** of specific repos (ruff, pyright, cuelang, zig) over keyword searches. Adjacent-repo expansion from high-merge orgs (e.g., withastro org → prettier-plugin-astro) produces better candidates than cold search.
+
 ## What to skip
 
 - Issues with no maintainer response — until they engage, you don't know if they want it fixed
 - Issues with active discussion or assigned contributors — someone's on it
+- **Issues with an existing open PR** — always run `gh pr list --repo OWNER/REPO --search "KEYWORD" --state open` before scoring. If a PR exists and was updated in the last 30 days, skip. If stale (>30 days, no reviews), note as opportunity to pick up the stalled work. Retro 2026-05-09: gemini-cli #25693 and #25689 both had competing PRs (#25728, #25729) that triage agents discovered only after full investigation.
 - Feature requests with no maintainer endorsement — inventing problems
 - Issues that need hardware you don't have — can't verify
 - **Repos with `process_depth: shallow`** in their review schema — the pipeline produces investigation-backed PRs. Shallow-review repos can't absorb them. Only add shallow repos if the issue is trivial enough that investigation depth is unnecessary (1-line fix, obvious bug, failing test with known cause).
@@ -54,6 +57,8 @@ Use topics and languages from high-merge repos. Score by issue quality, not repo
 ## Output
 
 Updated `~/.sweep/repos.json`. Log additions and removals to `~/.sweep/actionable/candidates.jsonl`.
+
+**Dashboard reminder:** after every tick, remind the user to check the dashboard at `http://localhost:8321/`.
 
 ## Diversity selection
 
@@ -91,10 +96,29 @@ The result: diverse repos without a bottleneck. The noise does what DPP's repuls
 5. Select final set via diversity selection (quality × distance in feature space).
 6. Write updated `repos.json` and `candidates.jsonl`.
 
+## Eviction policy
+
+The roster grows. It shouldn't grow forever. Evict repos that aren't producing value.
+
+**Eviction triggers** (check on every actionable tick):
+
+| Trigger | Threshold | Action |
+|---|---|---|
+| No merged PR in 30 days | last merge > 30d ago | evict |
+| All issues KILLED or BLOCKED | zero PENDING or CONFIRMED items | evict |
+| Cooldown active with no end date | permanent ban | evict |
+| Three consecutive rejections | 3 closed-without-merge in a row | evict |
+| Repo archived or deleted upstream | `gh repo view` fails | evict |
+| Process depth downgraded to shallow | retro reclassified after rejections | evict |
+
+**Eviction means:** status → `evicted` in `repos.json`. Drip queue drains naturally (don't abandon open PRs). State files kept in `~/.sweep/repos/<owner>-<repo>/` for reference. The repo can be re-added manually with `--add` but doesn't come back automatically.
+
+**Soft eviction (demotion):** repos that aren't evicted but aren't producing get deprioritized. If a repo has open issues but no progress in 14 days, it drops below new candidates in the ranking. It stays on the roster but stops getting agent time until something changes (new issue, maintainer activity, retro parameter update).
+
 ## Rules
 
 - **Respect cooldowns.** If retro says cooldown, don't add the repo.
-- **Cap at 10 active repos.** The human needs to be able to review drip output.
+- **Cap at 24 active repos.** Eviction keeps the roster under the cap. If at cap and a better candidate appears, evict the lowest-performing active repo to make room.
 - **Never your own repos.** Filter out repos where you are the owner. The pipeline is for contributing to other people's projects.
 - **Cold discovery needs human approval.** Repos the agent hasn't touched before get `pending_review`.
 - **Issue-first.** Don't add a repo unless there's a specific issue worth investigating. Repos without actionable issues are noise.
