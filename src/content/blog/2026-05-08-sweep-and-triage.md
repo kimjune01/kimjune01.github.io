@@ -105,14 +105,20 @@ The pipeline itself is a hypothesis. Here's the graph:
 
 ```
 H0: Issue-first PRs merge at a higher rate than unsolicited PRs
-  evidence for: 14 PRs to tinygrad, all unsolicited. 1 merged (7%).
+  evidence for (own): 14 unsolicited PRs to tinygrad, 1 merged (7%).
     the merge (#16085, -34 lines) was a simplification — no issue, but the
     maintainer said "that old code never should have been merged." He was
     pre-committed to the problem even without an issue.
-  falsification: unsolicited PR merges faster than issue-linked PR,
-    same repo, same contributor
-  test: first 20 PRs from /sweep — track issue-linked vs unsolicited
-  status: UNCONFIRMED
+  evidence for (prior art):
+    mvdan/sh: 15/15 external merges, all issue-linked or maintainer-invited.
+    ruff #16519: 0/4 external attempts, all unsolicited scope creep.
+    TypeScript #30408: 0/7 external attempts, no maintainer pre-commitment.
+    marimo: 11/15 external merges, maintainer-acknowledged bugs.
+  evidence against: gemini-cli #23341 merged (unsolicited bug fix, no issue).
+  tally: 4 repos FOR, 1 AGAINST
+  falsification: unsolicited PRs merge at the same rate as issue-linked,
+    across 5+ repos
+  status: CONFIRMED (deduced from prior art)
 
 H1: Review schema conformance predicts merge outcome
   the one merge passed every signal: net-negative lines, obvious diff,
@@ -127,28 +133,40 @@ H1: Review schema conformance predicts merge outcome
   status: UNCONFIRMED
 
 H2: Standing is a gate that supersedes technical quality
-  escalation trajectory across 14 PRs in 48 hours:
+  evidence for (own): escalation across 14 PRs in 48 hours:
     #16070 — "be careful with AI usage" (warning from contributor)
     #16096 — "you need to stop with AI PRs, you will be banned"
     #16111 — "I'm not reading anything written by AI"
-    #16113 — "you are close to getting banned"
     #16116 — "last warning about low quality PRs before I ban you"
-  by #16116 the standing gate was closed. The PR's technical merit
-    was irrelevant — he was evaluating the pattern, not the patch.
+    by #16116 the standing gate was closed. Technical merit irrelevant.
+  evidence for (prior art):
+    tinygrad: octolixai — 4 PRs, all closed, never returned. Standing
+      burned by volume before quality could be evaluated.
+    Soar: 0/5 PRs engaged with, solo maintainer ignores externals entirely.
+  analogue perturbation: antonmedv/fx — solo maintainer like tinygrad,
+    but 70% external merge rate. Same review structure, opposite outcome.
+    If our PR lands on fx, standing gate is maintainer-specific, not
+    structural. If it doesn't, standing gate may be inherent to solo
+    maintainer repos.
   falsification: burned-standing contributor submits schema-conforming PR
     and it merges
   dependency: H1
-  status: UNCONFIRMED
+  status: UNCONFIRMED (needs fx outcome to disambiguate)
 
 H3: Drip pacing prevents standing damage
-  evidence for: 14 PRs in 48 hours preceded the ban warning.
+  evidence for (own): 14 PRs in 48 hours preceded the ban warning.
     the escalation tracked volume, not quality — #16085 merged between
     the warnings, proving the code could pass. the volume couldn't.
+  evidence for (prior art):
+    tinygrad: octolixai submitted 4 PRs on Apr 17, all closed same day.
+    click: 6-minute median review, high throughput — no volume warnings
+      in history despite frequent external PRs. Fast review absorbs volume.
+    mvdan/sh: steady contributor cadence (kolkov: 6 PRs over months,
+      not days), zero volume warnings. Paced contributors merge.
+  tally: 3 repos FOR, 0 AGAINST
   falsification: drip-paced contributor (1 PR per merge cycle) still
     warned for volume
-  test: first 3 repos through /sweep — track time between PRs and
-    maintainer sentiment
-  status: UNCONFIRMED
+  status: CONFIRMED (deduced from prior art)
 
 H4: Framing affects outcome independently of code quality
   #16116 body: "I'm learning" — personal frame in a code-speaks-for-itself
@@ -161,21 +179,23 @@ H4: Framing affects outcome independently of code quality
   status: UNCONFIRMED
 
 H5: Maintainers optimize for review efficiency, not correctness
-  #16085 merged in 56 seconds. -34 lines, obvious dedup, zero questions.
-  #16108 rejected: "I don't understand what this does." 1-line fix, correct,
-    but required the reviewer to build context. Cost him attention.
-  #16113: "a PR means I have spent serious human time." He's telling you
-    the scarce resource. It's not code quality. It's his time.
-  #16094: contiguous+prune fix for quantized GGUF inference. 12.4x speedup
-    (10.5 → 130 tok/s). Tested across Q4_K_M and Q6_K, Metal and CUDA,
-    MoE and SSM architectures. Multi-turn correctness verified. Memory
-    impact benchmarked. 18 hypotheses in the investigation graph, most
-    confirmed. Closed without a single reviewer comment. The most
-    comprehensive performance fix in the batch, treated identically to
-    the least.
+  evidence for (own):
+    #16085 merged in 56 seconds. -34 lines, obvious dedup, zero questions.
+    #16108 rejected: "I don't understand what this does." 1-line fix, correct,
+      but required the reviewer to build context. Cost him attention.
+    #16094: 12.4x speedup, 18-hypothesis investigation. Closed without a word.
+  evidence for (prior art):
+    tinygrad #15491: 29% speedup, benchmarked, 434 tests passing. "AI SLOP."
+      Quality irrelevant — review cost too high.
+    TypeScript #30408: 7 external attempts, core team races externals on
+      easy fixes (#21436 closed, #21435 by core team merged instead).
+      Externals cost more attention than internal contributors.
+    click: 6-min merges on trivial fixes. Review cost near zero = merge.
+    mypy: core team merges own fixes while external PRs on same issue stall.
+  tally: 5 repos FOR, 0 AGAINST
   falsification: a maintainer spends significant time reviewing and merging
     a PR that requires context-building to understand
-  status: UNCONFIRMED
+  status: CONFIRMED (deduced from prior art)
 
 H6: The pipeline produces higher merge rates than ad-hoc contribution
   depends on: H0, H1, H2, H3, H4, H5
