@@ -52,7 +52,7 @@ Scale added three problems: shared state, CI cost, social pacing. The graph solv
 
 ## Concurrent scale
 
-The pipeline starts from issues, not repos. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria:
+The pipeline starts from issues. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria:
 
 - Bugs with reproducers
 - Performance regressions with benchmarks
@@ -79,7 +79,7 @@ No human watches. Every handoff gets a gemini volley: send the output, apply fee
 
 "I'm not reading anything written by AI." Format matching isn't enough. The goal: remove prose habits that make reviewers evaluate the author instead of the patch. Claude writes "clean" prose that's its own tell. No typos, no shortcuts, perfect parallel structure, hedges like "it's worth noting."
 
-After tone matching, the PR body goes through a lineup: shuffle it with 5 real PRs from the repo, unlabeled, and ask a second model which one is AI. If it can't tell, pass. If it can, the explanation names the tells: "this one hedges where the others assert," "this one explains what the diff already shows." Fix the tells, re-shuffle, re-test. Five rounds max. [Detection is a wasting asset under feedback](/slop-detection): any checklist you give the rewriter becomes the exploit surface. The lineup diagnoses, not prescribes. If it's still detectable after five rounds, surface to the human. Some repos have a voice Claude can't fake.
+After tone matching, the PR body goes through a lineup: shuffle it with 5 real PRs from the repo, unlabeled, and ask a second model which one is AI. If it can't tell, pass. If it can, the explanation names the tells: "this one hedges where the others assert," "this one explains what the diff already shows." Fix the tells, re-shuffle, re-test. Five rounds max. [Detection is a wasting asset under feedback](/slop-detection): any checklist you give the rewriter becomes the exploit surface. The lineup diagnoses. If it's still detectable after five rounds, surface to the human. Some repos have a voice Claude can't fake.
 
 ### The bottleneck shifts
 
