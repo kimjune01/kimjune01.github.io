@@ -116,7 +116,14 @@ I am still not reasonable. I haven't hit the hard cases. When I do, the logs wil
 
 The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in under a minute. The rejection trajectory: volume → AI detection → "I'm not reading" → ban warning. By PR #10, the maintainer was evaluating the contributor. #16094 had an [18-hypothesis investigation](https://github.com/kimjune01/tinygrad-experiments/blob/master/realize/HYPOTHESIS_GRAPH.md) behind it, 12.4x speedup verified across backends and architectures, multi-turn correctness tested. Closed without a word.
 
-I wasn't the first. A search for "AI slop" in tinygrad's PR comments turns up a graveyard: #15491 (29% scheduling speedup, +46/-18, benchmarked, 434 tests passing: "DO NOT SUBMIT AI SLOP"), #14364 (kernel optimizer: "AI slop not worth considering"), #15553 (CDNA4 fix: "AI slop, just close"), and a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). One PR (#15576, +3/-3) got through with "lol early AI wrote those tests, but since there's tests, merged." He knows. He merges when the diff is cheap enough to verify by inspection, regardless of tooling. The gate is attention cost.
+I was the latest. A search for "AI slop" in tinygrad's PR comments turns up a graveyard:
+
+- #15491: 29% scheduling speedup, +46/-18, benchmarked, 434 tests passing. "DO NOT SUBMIT AI SLOP."
+- #14364: kernel optimizer. "AI slop, not worth considering."
+- #15553: CDNA4 fix. "AI slop, just close."
+- #15576: +3/-3. "lol early AI wrote those tests, but since there's tests, merged."
+
+And a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). #15576 is the tell: he knows, and merges when the diff is cheap enough to verify by inspection. The gate is attention cost.
 
 ---
 
