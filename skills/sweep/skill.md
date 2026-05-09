@@ -157,6 +157,25 @@ Pass the same flags from the original invocation into the heartbeat prompt — i
 
 The heartbeat re-enters sweep every 5 minutes. Idempotency means re-entry is cheap — it checks for new PR outcomes, pushes the next drip entry if a slot opened, and re-runs actionable if the queue is low. Stops when the session ends (session-only, not durable).
 
+## Eviction (runs every tick)
+
+The roster grows via `/actionable`. Sweep prunes it. Check every heartbeat tick, before launching triage agents.
+
+| Trigger | Action |
+|---------|--------|
+| All issues KILLED or BLOCKED, no PENDING/CONFIRMED items | evict |
+| Cooldown active with no end date (permanent ban) | evict |
+| Three consecutive PR rejections, no merges | evict |
+| Repo archived or deleted upstream | evict |
+| No open items AND no open PRs by user | evict |
+| Status is `dormant` for >14 days | evict |
+
+**Eviction means:** status → `evicted` in `repos.json`. Drip queue drains (don't abandon open PRs). State files kept for reference. Repo can be re-added with `--add`.
+
+**Competing-PR eviction:** If the only actionable issue on a repo has a competing open PR, and the repo has no other items, demote to `monitoring`. Don't evict — the competing PR might stall.
+
+**Apply now.** On each `--check` tick, scan `repos.json` for eviction triggers before doing anything else. Log evictions to `~/.sweep/actionable/candidates.jsonl`.
+
 ## Rules
 
 - **Never ask the user.** Sweep runs autonomously. If you have a hunch, act on it. If you're uncertain, skip it and move on. Log what you skipped and why. The user reads the punch list at the end, not a questionnaire in the middle.
