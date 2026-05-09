@@ -148,14 +148,14 @@ After all phases complete, set up a recurring wake-up to keep the pipeline alive
 ```
 CronCreate({
   cron: "*/5 * * * *",
-  prompt: "/sweep --check --concurrency N [--dry-run]",
+  prompt: "/sweep --check --concurrency N [--dry-run]. Progress ALL phases: collect completed agent results (Phase 2→3), write readiness records for CONFIRMED items (Phase 3→4), load drip queue (Phase 4→5). Don't stop at investigation — every CONFIRMED item needs a readiness record in ~/.sweep/triage-dry-run/<number>-pr.md with branch, title, body, and test command.",
   recurring: true
 })
 ```
 
-Pass the same flags from the original invocation into the heartbeat prompt — including `--dry-run` if set. **Always create the heartbeat, even in dry-run.** Dry-run still needs the pipeline to keep cooking — checking agent progress, re-running actionable, collecting results. The only thing dry-run skips is remote side effects (no PRs, no pushes). The heartbeat is local.
+Pass the same flags from the original invocation into the heartbeat prompt — including `--dry-run` if set. **Always create the heartbeat, even in dry-run.** Dry-run still needs the pipeline to keep cooking — checking agent progress, collecting results, writing readiness records. The only thing dry-run skips is remote side effects (no PRs, no pushes). The heartbeat is local.
 
-The heartbeat re-enters sweep every 5 minutes. Idempotency means re-entry is cheap — it checks for new PR outcomes, pushes the next drip entry if a slot opened, and re-runs actionable if the queue is low. Stops when the session ends (session-only, not durable).
+**The heartbeat prompt must remind all phases.** Agents tend to stop after investigation (Phase 2). The prompt explicitly tells sweep to progress through collect (Phase 3) and present (Phase 4) on every tick. A CONFIRMED item without a readiness record is an incomplete pipeline — drip has nothing to push.
 
 ## Eviction (runs every tick)
 
