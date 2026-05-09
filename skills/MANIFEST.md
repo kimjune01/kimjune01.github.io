@@ -6,16 +6,16 @@ Canonical paths, schemas, and side-effect policy for the skill pipeline.
 
 | Artifact | Path | Format | Owner (writes) | Readers |
 |----------|------|--------|----------------|---------|
-| Drip queue | `/tmp/drip-queue/<owner>-<repo>.jsonl` | JSONL, append-only | triage (enqueue), drip (status transitions) | drip, retro |
-| Retro parameters | `/tmp/retro/<owner>-<repo>.jsonl` | JSONL, append-only, last-value-wins per key | retro | triage, drip |
-| Structured event log | `/tmp/sweep-log/<owner>-<repo>.jsonl` | JSONL, append-only | triage, investigate, drip, sweep | retro |
-| Sweep repo list | `/tmp/sweep/repos.json` | JSON (single object) | discover, sweep | discover, sweep, dashboard |
-| Discovery candidates | `/tmp/discover/candidates.jsonl` | JSONL, append-only | discover | retro |
-| Per-repo sweep dir | `/tmp/sweep/<owner>-<repo>/` | directory | sweep, triage | sweep, retro |
+| Drip queue | `~/.sweep/drip-queue/<owner>-<repo>.jsonl` | JSONL, append-only | triage (enqueue), drip (status transitions) | drip, retro |
+| Retro parameters | `~/.sweep/retro/<owner>-<repo>.jsonl` | JSONL, append-only, last-value-wins per key | retro | triage, drip |
+| Structured event log | `~/.sweep/sweep-log/<owner>-<repo>.jsonl` | JSONL, append-only | triage, investigate, drip, sweep | retro |
+| Sweep repo list | `~/.sweep/repos.json` | JSON (single object) | actionable, sweep | actionable, sweep, dashboard |
+| Discovery candidates | `~/.sweep/actionable/candidates.jsonl` | JSONL, append-only | actionable | retro |
+| Per-repo sweep dir | `~/.sweep/repos/<owner>-<repo>/` | directory | sweep, triage | sweep, retro |
 | Triage graph | `TRIAGE_GRAPH.md` (working dir) | Markdown | triage (Phase 3 merge) | triage, investigate, retro |
 | Per-agent results | `TRIAGE_RESULT.T<number>.md` (worktree) | Markdown | investigate (per-agent) | triage (Phase 3, then deleted) |
 | Hypothesis graph | `HYPOTHESIS_GRAPH.md` (working dir) | Markdown | investigate | retro |
-| Readiness records | `/tmp/triage-dry-run/<number>-pr.md` | Markdown | investigate, triage | drip |
+| Readiness records | `~/.sweep/triage-dry-run/<number>-pr.md` | Markdown | investigate, triage | drip |
 | Sweep graph | `SWEEP_GRAPH.md` (working dir) | Markdown | sweep | retro |
 
 ## JSONL schemas
@@ -32,7 +32,7 @@ Canonical paths, schemas, and side-effect policy for the skill pipeline.
 {"ts":"ISO8601","key":"dotted.key.name","value":"any","reason":"str"}
 ```
 
-Known keys: `merge_rate`, `cooldown_until`, `scoring.maintainer_filed_bonus`, `scoring.skip_categories`, `drip.pace_days`, `drip.title_format`.
+Known keys: `merge_rate`, `cooldown_until`, `scoring.maintainer_filed_bonus`, `scoring.skip_categories`, `drip.title_format`.
 
 ### Structured event log entry
 
@@ -46,7 +46,7 @@ Events: `item_scored`, `item_killed`, `agent_spawned`, `hypothesis_classified`, 
 
 | Skill | Local | Remote |
 |-------|-------|--------|
-| `/review-schema` | writes review schema to `/tmp/sweep/<owner>-<repo>/review-schema.md` | none |
+| `/review-schema` | writes review schema to `~/.sweep/repos/<owner>-<repo>/review-schema.md` | none |
 | `/triage` | writes `TRIAGE_GRAPH.md`, readiness records, event log | none (dry-run default). Full run: enqueues to drip only |
 | `/investigate` | writes `HYPOTHESIS_GRAPH.md`, per-agent results, event log | **standalone**: push + PR (Phase 8, human-gated). **pipeline**: readiness record only |
 | `/drip` | writes queue transitions, event log | push branches, create PRs (human-gated or `--push`) |

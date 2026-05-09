@@ -32,7 +32,7 @@ Every skill in the pipeline emits logs. `/retro` reads them all:
 | `/sweep` | worklog | Repos added/removed, review-schema decisions |
 | `/triage` | `TRIAGE_GRAPH.md` + worklog | Items scored, killed, investigated. Kill reasons. |
 | `/investigate` | `HYPOTHESIS_GRAPH.md` + worklog | Hypotheses classified, perturbations run, CI results, trajectory shapes |
-| `/drip` | `/tmp/drip-queue/<owner>-<repo>.jsonl` + worklog | PRs pushed, merged, rejected, timing |
+| `/drip` | `~/.sweep/drip-queue/<owner>-<repo>.jsonl` + worklog | PRs pushed, merged, rejected, timing |
 | GitHub | `gh pr list --author @me --state all` | Reviewer comments, merge/close reasons, time to response |
 
 Also reads: memory files (existing lessons), skill definitions (current parameters).
@@ -53,14 +53,13 @@ Only write a memory if the lesson transfers across sessions. If it's repo-specif
 
 ### 2. Parameter files (per-repo)
 
-Written to `/tmp/retro/<repo>.jsonl`. One object per parameter update, append-only. Read by triage and drip on the next cycle (last value wins per key).
+Written to `~/.sweep/retro/<repo>.jsonl`. One object per parameter update, append-only. Read by triage and drip on the next cycle (last value wins per key).
 
 ```jsonl
 {"ts":"2026-05-09T01:00:00Z","key":"merge_rate","value":0.09,"reason":"1/11 PRs merged"}
 {"ts":"2026-05-09T01:00:00Z","key":"cooldown_until","value":"2026-05-22","reason":"ban warning from geohot"}
 {"ts":"2026-05-09T01:00:00Z","key":"scoring.maintainer_filed_bonus","value":2,"reason":"maintainer-filed issues merge 3x more"}
 {"ts":"2026-05-09T01:00:00Z","key":"scoring.skip_categories","value":["hardware","design_proposals"],"reason":"can't reproduce, can't verify"}
-{"ts":"2026-05-09T01:00:00Z","key":"drip.pace_days","value":7,"reason":"one PR per merge cycle"}
 {"ts":"2026-05-09T01:00:00Z","key":"drip.title_format","value":"terse","reason":"matched repo voice from merged PRs"}
 ```
 
@@ -109,7 +108,7 @@ Each skill must emit structured log entries at decision points. `/retro` can onl
 | Tone rewrite | `/drip` |
 | Repo added/removed | `/sweep` |
 
-All structured events append to `/tmp/sweep-log/<repo>.jsonl` as one JSON object per line:
+All structured events append to `~/.sweep/sweep-log/<repo>.jsonl` as one JSON object per line:
 
 ```jsonl
 {"ts":"2026-05-08T22:30:00Z","skill":"triage","event":"item_killed","repo":"tinygrad/tinygrad","number":16086,"reason":"hardware_only"}

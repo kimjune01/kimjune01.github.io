@@ -25,7 +25,7 @@ If no repo is given, use the current directory's `origin` remote.
 
 ## Output
 
-- **Dry run:** Full pipeline runs locally — scan, investigate, bug-hunt, collect. `TRIAGE_GRAPH.md` with findings, failing tests, candidate fixes. No remote side effects. Readiness records in `/tmp/triage-dry-run/`.
+- **Dry run:** Full pipeline runs locally — scan, investigate, bug-hunt, collect. `TRIAGE_GRAPH.md` with findings, failing tests, candidate fixes. No remote side effects. Readiness records in `~/.sweep/triage-dry-run/`.
 - **Full run:** Same as dry run, plus: candidates added to `/drip` queue. Triage never touches remotes directly — `/drip` handles all PR creation and pacing.
 
 Shared artifact: `TRIAGE_GRAPH.md` in the working directory — the unified hypothesis graph across all investigated items. This is the coordination file and the checkpoint for resume.
@@ -49,13 +49,12 @@ Before doing anything, check for existing state:
 
 Before scoring, check for retro-derived parameters that adjust behavior:
 
-1. Read `/tmp/retro/<owner>-<repo>.jsonl` if it exists. Parse last-value-wins per key.
+1. Read `~/.sweep/retro/<owner>-<repo>.jsonl` if it exists. Parse last-value-wins per key.
 2. Apply overrides to scoring and behavior:
    - `scoring.maintainer_filed_bonus` → adjusts maintainer-filed issue score
    - `scoring.skip_categories` → extends the kill list
    - `cooldown_until` → if today < cooldown date, halt with "Cooldown active until {date}"
    - `merge_rate` → informs pacing expectations (logged, not enforced)
-   - `drip.pace_days` → passed through to drip queue metadata
 3. Log which parameters were loaded. If no retro file exists, proceed with defaults.
 
 ### Phase 1: Scan
@@ -111,7 +110,9 @@ Mark killed items as `SKIP` in the scan table with the reason. They don't enter 
    - Cross-references between related items
    - Recommended investigation order (prioritize: reproducible locally > correctness > maintainer filed > stale = forgotten = opportunity)
 
-7. Proceed to Phase 2.
+7. **Gemini volley.** Send the scan table and kill decisions to `/gemini`: "Review these triage decisions. Any items killed that should be investigated? Any items kept that are a waste of time? Any cross-references missed?" Apply feedback, re-send. Five rounds max.
+
+8. Proceed to Phase 2.
 
 ### Phase 2: Investigate (parallel)
 
@@ -182,7 +183,7 @@ As agents complete:
 
 **Resume check:** If the scan table already has outcomes for all items and a punch list exists at the end of `TRIAGE_GRAPH.md`, present it. Otherwise, generate from current state.
 
-For each candidate, write a readiness record to `/tmp/triage-dry-run/<number>-pr.md`:
+For each candidate, write a readiness record to `~/.sweep/triage-dry-run/<number>-pr.md`:
 - Branch name
 - Base commit (master SHA at time of investigation)
 - Test command that fails on base: `python3 -m pytest <test> -k <name>`
@@ -207,8 +208,8 @@ Format as a punch list, not a report. One line per item, action verb first.
 
 For each "ready to ship" item, add it to the `/drip` queue:
 
-1. Write the PR description to `/tmp/triage-dry-run/<number>-pr.md` (same as dry run).
-2. Add the entry to `/tmp/drip-queue/<owner>-<repo>.jsonl` with the branch, title, body, and status `queued`.
+1. Write the PR description to `~/.sweep/triage-dry-run/<number>-pr.md` (same as dry run).
+2. Add the entry to `~/.sweep/drip-queue/<owner>-<repo>.jsonl` with the branch, title, body, and status `queued`.
 3. Run `/drip --check` to push the first item if no open PRs exist.
 
 The drip queue handles pacing from here. One PR at a time, 15-minute heartbeat, tone-matched to the repo. Triage's job is done when the queue is loaded.
@@ -219,7 +220,7 @@ The graph file is the shared state. Convention:
 
 - **Node IDs:** `T<issue_number>.H<hypothesis_number>` (e.g., `T16107.H0.6a`)
 - **Cross-references:** When one investigation's finding affects another, add an edge: `T16109.H0 → T16107.H0.6a (same root cause)`
-- **Statuses:** PENDING, IN_PROGRESS, CONFIRMED, KILLED, BLOCKED, SHIPPED
+- **Statuses:** PENDING, IN_PROGRESS, CONFIRMED, KILLED, BLOCKED, SHIPPED, SKIP. Use these exact strings in the scan table's Status column and section headers — the dashboard parses them. Don't use OPEN/CLOSED/other variants. Items we're not acting on (hardware-only, external PRs, tracking issues, stale) get SKIP, not PENDING.
 - **Concurrency:** Agents write to per-item result files (`TRIAGE_RESULT.T<number>.md`), never to the shared graph. Phase 3 merges results into `TRIAGE_GRAPH.md` sequentially. No concurrent writes.
 
 No database. No service. The file is the data structure.

@@ -20,4 +20,6 @@ Consider this: do you still read research papers from abstract to conclusion, or
 
 There's nothing wrong with reading cover to cover on any subject, other than you're missing out on skimming on other adjacent topics. AI agents allow us to choose an arbitrary level of depth of understanding over any number of subjects. The best I can do is to assume that my primary audience is an AI agent.
 
+Regardless of how you respond to the ever-increasing volume of AI writing, whatever you put out there will be subject to the same filter that you impose on the writing. What will remain is the substance, not style, of prose. AI can tell the difference, while you're stuck discerning on matters of style.
+
 If you were at a buffet, would you learn more about culinary arts by eating a whole Prime Rib, or a bite of each dish they had to offer? If you were cooking a 12-course meal, would you expect your guests to clean the plate for every dish you cooked?

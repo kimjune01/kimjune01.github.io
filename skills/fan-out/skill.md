@@ -16,7 +16,7 @@ When the problem has multiple plausible approaches and you don't know which one 
    [result + "Is this correct? Is this novel? Is this trivial? What breaks it?"]
    PROMPT_EOF
    ```
-   If codex finds issues, fix and re-volley. Two rounds max per candidate.
+   If codex finds issues, fix and re-volley. Five rounds max per candidate.
 
 3. **Prune.** Kill candidates that:
    - Codex proved wrong

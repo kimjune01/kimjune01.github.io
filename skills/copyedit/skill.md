@@ -11,14 +11,16 @@ Humanize → tighten → readability → flavor → codex → sharpen, in a loop
 
 ## Process
 
-Each skill step runs as an opus subagent with access to the skill definition and the post. Subagents report proposed changes — they don't edit the file directly. The orchestrator merges results between steps, applying mechanical fixes and flagging judgment calls for the user.
+Steps run serially — each builds on the previous one's output. No parallel scans. The pipeline is a chain, not a fan-out.
 
 1. Read the file. Note the word count.
-2. **Parallel scan: humanize + tighten + readability.** Launch three opus subagents simultaneously, each reading its own skill definition from `/Users/junekim/.claude/skills/{humanize,tighten,readability}/skill.md` and the post. Each returns proposed changes with exact original text, proposed replacement, and rationale. Merge results: apply non-conflicting mechanical fixes, resolve overlaps by preferring the more specific proposal, flag argument-touching changes for the user.
-3. **Flavor.** Launch an opus subagent to scan for unlinked pop culture refs, proper nouns, named theories, historical figures. It searches the web and returns proposed links. Apply all links directly.
-4. **Codex review.** Send the current state to codex (`/codex`). Apply feedback you agree with directly. Present only the ambiguous or debatable points to the user for judgment. If codex flags low credence on a claim, launch a research subagent to substantiate before dismissing or applying.
-5. **Sharpen.** Launch an opus subagent with the sharpen skill definition. It returns proposed hedge compressions. Apply lazy-hedge fixes directly. This step especially matters right after codex, because the instinctive way to apply codex's overclaim fixes is to stack qualifiers, and stacked qualifiers turn prose to mush. See [feedback_narrow_and_bold.md](~/.claude/projects/-Users-junekim-Documents-june-kim/memory/feedback_narrow_and_bold.md).
-6. **Convergence check.** Launch a humanize subagent on the result. If it finds anything, go back to step 2. If a third round still produces substantive changes, stop and flag for the user — the post may have structural issues the pipeline is oscillating around. Otherwise, report final word count vs original and stop.
+2. **Humanize.** Launch an opus subagent with the humanize skill definition and the post. It returns proposed changes. Apply mechanical fixes directly, flag argument-touching changes for the user. Re-read the file.
+3. **Tighten.** Launch an opus subagent with the tighten skill definition and the current post (after humanize). Apply fixes directly. Re-read.
+4. **Readability.** Launch an opus subagent with the readability skill definition and the current post. Apply fixes directly. Re-read.
+5. **Flavor.** Launch an opus subagent to scan for unlinked pop culture refs, proper nouns, named theories, historical figures. It searches the web and returns proposed links. Apply all links directly. Re-read.
+6. **Codex review.** Send the current state to codex (`/codex`). Apply feedback you agree with directly. Present only the ambiguous or debatable points to the user for judgment. If codex flags low credence on a claim, launch a research subagent to substantiate before dismissing or applying. Re-read.
+7. **Sharpen.** Launch an opus subagent with the sharpen skill definition. Apply lazy-hedge fixes directly. This step especially matters right after codex, because the instinctive way to apply codex's overclaim fixes is to stack qualifiers, and stacked qualifiers turn prose to mush. See [feedback_narrow_and_bold.md](~/.claude/projects/-Users-junekim-Documents-june-kim/memory/feedback_narrow_and_bold.md). Re-read.
+8. **Convergence check.** Launch a humanize subagent on the result. If it finds anything, go back to step 2. If a third round still produces substantive changes, stop and flag for the user — the post may have structural issues the pipeline is oscillating around. Otherwise, report final word count vs original and stop.
 
 ## Rules
 

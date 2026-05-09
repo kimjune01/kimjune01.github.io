@@ -23,7 +23,7 @@ Eleven PRs in two days gets you banned. One PR per merge cycle builds contributo
 
 **Composition:** `drip; drip = drip` — the queue file is the checkpoint. Running drip twice transitions at most one entry per run (idempotent within a pacing window).
 
-**Standalone use:** The queue file is the interface. Any process that appends valid JSONL entries to `/tmp/drip-queue/<owner>-<repo>.jsonl` can feed drip — triage, manual `drip add`, a script, or another skill. Drip doesn't care who enqueued the entry.
+**Standalone use:** The queue file is the interface. Any process that appends valid JSONL entries to `~/.sweep/drip-queue/<owner>-<repo>.jsonl` can feed drip — triage, manual `drip add`, a script, or another skill. Drip doesn't care who enqueued the entry.
 
 **Pipeline composition:** `sweep(repos) = foreach(repo, drip(triage(review_schema(repo))))`. Each function is idempotent. Queue is per-repo. No shared mutable state between repos.
 
@@ -34,7 +34,7 @@ Eleven PRs in two days gets you banned. One PR per merge cycle builds contributo
 
 ## State file
 
-`/tmp/drip-queue/<owner>-<repo>.jsonl` — one JSON object per queue entry, append-only:
+`~/.sweep/drip-queue/<owner>-<repo>.jsonl` — one JSON object per queue entry, append-only:
 
 ```jsonl
 {"ts":"2026-05-09T00:00:00Z","action":"enqueue","branch":"matvec-test-and-fix","title":"fix MATVEC: reject equal-range elementwise reduces","body":"I'm learning","status":"queued"}
@@ -83,14 +83,16 @@ Or read from `triage-dry-run/<number>-pr.md` files.
 
 ### Check cycle
 
-0. Read `/tmp/retro/<owner>-<repo>.jsonl` if it exists. Check `cooldown_until` — if today < cooldown date, halt with "Cooldown active until {date}." Check `drip.pace_days` — if the last PR was pushed fewer than `pace_days` ago, skip push and report "Pacing: next push eligible on {date}." Check `drip.title_format` for tone guidance.
-1. Read `/tmp/drip-queue/<owner>-<repo>.jsonl`
+0. Read `~/.sweep/retro/<owner>-<repo>.jsonl` if it exists. Check `cooldown_until` — if today < cooldown date, halt with "Cooldown active until {date}." Check `drip.title_format` for tone guidance.
+1. Read `~/.sweep/drip-queue/<owner>-<repo>.jsonl`
 2. For each entry with status `open`: check if the PR was merged or closed. Update status.
 3. Count entries with status `open`. If < `max_open` and there are `queued` entries:
    - Take the next `queued` entry
+   - **Staleness check (hard block).** Before pushing, verify the issue is still open: `gh issue view <number> --repo <repo> --json state`. If closed, mark `status: "issue_closed"`, skip. Check for competing PRs: `gh pr list --repo <repo> --search "<keywords>"`. If someone else landed a fix, mark `status: "superseded"`, skip. The gap between triage and push can be days — the world moves.
    - **Test gate (hard block).** The readiness record must include a test command. Run it:
      1. Checkout the repo's default branch. Run the test. It must **fail**. If it passes, mark `status: "test_passes_on_master"`, skip, report. The bug is already fixed or the test is wrong.
      2. Checkout the fix branch. Run the test. It must **pass**. If it fails, mark `status: "test_fails_on_fix"`, skip, report. The fix is broken.
+   - **Gemini volley (final review).** Send the full package to `/gemini` — diff, PR title, PR body, test commands, original issue link: "You are a maintainer seeing this PR for the first time. Would you merge it? What questions would you ask? What's missing?" Apply feedback, re-send. Five rounds max. [Won't converge to zero findings](/does-iteration-mitigate-slop-slope) — iterate until the structure is sound. This is the last pass before a real human sees the PR.
    - `git push fork <branch>` (branch must exist locally)
    - `gh pr create --repo <repo> --title <title> --body <body> --head <user>:<branch>`
    - Update entry: status → `open`, pushed_at → now, pr_number → result
@@ -102,7 +104,7 @@ Before creating the PR, read the 5 most recently merged PRs on the repo. Match t
 
 ### Voice crosscheck (hard block)
 
-After tone matching, run an adversarial detection test. Fetch 5 recently merged PR titles and bodies from different contributors. Shuffle the candidate into the lineup as a 6th entry with no label. Send to `/codex` or `/gemini`:
+After tone matching, run an adversarial detection test. Fetch 5 recently merged PR titles and bodies from different contributors. Shuffle the candidate into the lineup as a 6th entry with no label. Send to `/gemini`:
 
 ```
 Here are 6 PR descriptions from a repo. One may be AI-generated. Which ones, and why?
@@ -110,7 +112,7 @@ If you can't tell, say so.
 ```
 
 - If the reviewer can't pick out the candidate: pass.
-- If the reviewer identifies it: the explanation names the tells. Rewrite to fix them, re-shuffle, re-test. Two rounds max.
+- If the reviewer identifies it: the explanation names the tells. Rewrite to fix them, re-shuffle, re-test. Five rounds max.
 - If it's still detectable after two rounds: surface to the human. Some repos have a voice Claude can't imitate, and forcing it makes it worse.
 
 ## Integration with /triage
@@ -162,6 +164,8 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 - **Branch needs rebase:** skip the entry, mark `status: "needs_rebase"`, report. The user rebases manually, then `/drip` picks it up next cycle.
 - **Test passes on master:** skip the entry, mark `status: "test_passes_on_master"`, report. The bug was already fixed upstream, or the test is wrong. Don't push.
 - **Test fails on fix:** skip the entry, mark `status: "test_fails_on_fix"`, report. The fix is broken. Don't push.
+- **Issue already closed:** skip the entry, mark `status: "issue_closed"`, report. Someone else fixed it.
+- **Superseded by another PR:** skip the entry, mark `status: "superseded"`, report with link to the competing PR.
 - **Fork remote missing:** stop, report. The user sets up the fork.
 - **PR creation fails (permissions):** mark `status: "error"`, report the `gh` error. Don't retry.
 - **PR closed by maintainer:** mark `status: "closed"`, advance to next entry. Don't reopen.

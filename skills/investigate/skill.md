@@ -15,9 +15,9 @@ Phases 1-6 are self-contained — they use only the tools in `allowed-tools`. Ph
 
 | Skill | Used in | Purpose | Fallback if missing |
 |-------|---------|---------|-------------------|
-| `/codex` | Phase 2 (filter), Phase 7 (hunt) | Structural review via codex CLI | `cat <<'EOF' \| codex exec -` directly |
-| `/gemini` | Phase 7 (hunt) | Logic-tracing review via Gemini API | Skip — codex alone is sufficient for convergence, just slower |
-| `/bug-hunt` | Phase 7 | Multi-pass adversarial loop | Run codex manually in rounds, track findings in a file |
+| `/codex` | Phase 2 (filter) | Structural review of hypotheses | `cat <<'EOF' \| codex exec -` directly |
+| `/gemini` | Phase 7 (hunt) | Adversarial logic-tracing review | Skip — codex can substitute, just weaker on logic tracing |
+| `/bug-hunt` | Phase 7 | Multi-pass adversarial loop (codex impl, gemini review) | Run manually in rounds |
 
 If the target machine doesn't have `codex` CLI installed, Phases 1-6 still work but Claude's abductions go unfiltered. Expect one-pass overclaiming — downgrade confidence on surviving hypotheses by ~10% and flag in the graph document that codex filtering was unavailable. Phase 7 degrades to manual review (Claude alone, no adversarial second opinion). Phase 8 (ship) only needs `git` and `gh`.
 
@@ -85,7 +85,7 @@ Generate competing hypotheses for the observation. This is abduction — highest
    [hypothesis + perturbation + result]
    EOF
    ```
-   Fix issues codex finds. Two rounds max per hypothesis.
+   Fix issues codex finds. Five rounds max per hypothesis.
 
    **Codex/Gemini review findings are hypothesis generators.** When a reviewer flags a risk, edge case, or untested assumption, don't just "soften the claim" — add the concern as a new open hypothesis in the graph with a concrete perturbation. A reviewer saying "prune might misclassify cache kernels" is an abduction: it proposes a failure mode. Treat it like any other abduction — design a perturbation, run it, classify the trajectory.
 
@@ -148,6 +148,8 @@ Write the final graph document with:
    - Abduction (proposed from observation): 60-85% confidence
 5. **Pruning log** — what died, which experiment or codex round killed it
 
+6. **Gemini volley.** Send the hypothesis graph to `/gemini`: "Review this diagnosis. Is the causal chain sound? Any overclaimed conclusions? Any alternative explanations that fit the same evidence? Any experiments that should have been run but weren't?" Apply feedback, re-send. Five rounds max. The volley [won't converge to zero findings](/does-iteration-mitigate-slop-slope) — it oscillates. That's fine. Iterate enough that the structure is sound; unresolved gaps become frontier edges in the graph.
+
 If the diagnosis implies a code change, continue to Phase 4.5 and the prework/ship pipeline. If the frontier is still open, return to Phase 3. Don't stop to ask — the graph document records the state.
 
 ### Phase 4.5: Reframe
@@ -182,6 +184,8 @@ When a surviving hypothesis implies a code change, build the [prework](/prework)
 
 2. **Derisk.** Run `extract.py` to confirm the bug exists in the target. If it doesn't, the diagnosis was wrong — go back to Phase 2. This is the most important step. Without it, the prework is speculative.
 
+3. **Gemini volley.** Send the fix diff + the original issue to `/gemini`: "Does this fix solve the reported problem? Does it introduce new risks? Is it the minimal change, or is there unnecessary scope creep?" Apply feedback, re-send. Five rounds max.
+
 ### Phase 5.5: Regression check (before benchmark)
 
 **Mandatory before Phase 6.** Before measuring speedup, verify the fix doesn't break anything. This catches correctness regressions cheaply — before investing in benchmarking and bug hunts.
@@ -193,7 +197,7 @@ When a surviving hypothesis implies a code change, build the [prework](/prework)
    - Tests that exercise the affected code path (e.g., `test_jit.py` for JIT changes, `test_gguf.py` for GGUF changes)
    - Any tests tagged with the feature name (`-k "prune or gguf or jit"`)
 
-3. **Gate.** All tests must pass before proceeding to Phase 6. If tests fail, classify: is it a real regression (fix broke something) or a pre-existing failure (missing deps, hardware-specific skip)? Only real regressions block.
+3. **Gate.** All tests must pass before proceeding to Phase 6. If tests fail, classify: is it a real regression (fix broke something) or a pre-existing failure (missing deps, hardware-specific skip)? Only real regressions block. Feed compiler/test errors back to the implementer and let it fix mechanically — [compiler feedback has 0% false-positive rate vs ~40% for LLM reviewers](/does-iteration-mitigate-slop-slope).
 
 ### Phase 6: Benchmark
 
@@ -221,7 +225,7 @@ This is the feedback loop that /forge doesn't have. The bug hunt doesn't just ve
 
 **This is the only phase that requires human approval.** Everything before it is local and reversible. A PR is an external side effect — it's visible to other people, triggers CI on their hardware, and occupies reviewer attention. Present the full package and wait for a go/no-go.
 
-**Pipeline mode vs standalone.** When called from `/triage` or `/sweep`, investigate does NOT ship directly. Instead, write a readiness record to `/tmp/triage-dry-run/<number>-pr.md` (branch, base commit, test commands, diff, PR draft) and return. `/drip` handles all remote operations — pushing, PR creation, tone matching, pacing. When running standalone (user invoked `/investigate` directly), Phase 8 ships as described below.
+**Pipeline mode vs standalone.** When called from `/triage` or `/sweep`, investigate does NOT ship directly. Instead, write a readiness record to `~/.sweep/triage-dry-run/<number>-pr.md` (branch, base commit, test commands, diff, PR draft) and return. `/drip` handles all remote operations — pushing, PR creation, tone matching, pacing. When running standalone (user invoked `/investigate` directly), Phase 8 ships as described below.
 
 Present to the human:
 - The diff (should be small — if it's not, the prework missed something)

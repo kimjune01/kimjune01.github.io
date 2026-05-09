@@ -41,6 +41,19 @@ Same trick as the aliases above: classic names, modern (here, GNU) implementatio
 
 Pairs naturally with `findutils` (GNU find/xargs/locate) and `gnu-sed`. For `sed` in particular, `brew install gnu-sed` + `alias sed=gsed` is the cleanest option if you don't need BSD portability.
 
+## Disable AI attribution in commits
+
+Claude Code adds `Co-Authored-By: Claude` to every commit by default. For open-source contributions this can trigger slop detectors and get your PRs rejected on style rather than substance. Disable it in `~/.claude/settings.json`:
+
+```json
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}
+```
+
 ## Block the destructive operations before they run
 
 Agents move fast. A handful of Bash commands are catastrophic when the agent is wrong and the shell is permissive. Hooks block them first. Add to `~/.claude/settings.json`:
@@ -63,6 +76,10 @@ Agents move fast. A handful of Bash commands are catastrophic when the agent is 
           {
             "type": "command",
             "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command'); if echo \"$cmd\" | grep -qE 'git[[:space:]]+commit.*--amend'; then echo '{\"systemMessage\":\"Warning: git commit --amend modifies history. Only use if commit hasn'\\''t been pushed.\"}'; fi"
+          },
+          {
+            "type": "command",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command'); if echo \"$cmd\" | grep -qE 'gh[[:space:]]+(repo|issue)[[:space:]]+delete'; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"gh delete is irreversible. Run it yourself.\"}}'; fi"
           }
         ]
       }

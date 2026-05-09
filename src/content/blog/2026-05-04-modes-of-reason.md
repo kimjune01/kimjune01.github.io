@@ -59,7 +59,7 @@ Eight entries across six fields circle the same pattern: given an observation, s
 
 - **Aristotle (~350 BC)**: formalized deduction (syllogistic logic). Discussed induction (*epagoge*) but didn't elevate it to a method.
 - **[Francis Bacon](https://en.wikipedia.org/wiki/Novum_Organum) (1620)**: *Novum Organum*. Foregrounded induction as systematic method. Two modes now.
-- **[Peirce](https://archive.org/details/pragmatismasprin0000peir) (1903)**: the trichotomy. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
+- **[Peirce](/reading/scientific-method/peirce-1878/) (1903)**: the trichotomy. Three and only three, argued on mathematical grounds (monadic, dyadic, triadic relations are irreducible).
 - **[Popper](https://en.wikipedia.org/wiki/The_Logic_of_Scientific_Discovery) (1934)**: rejected induction entirely. All science is deduction from conjectures, but where conjectures come from, he doesn't say. (Abduction. Popper just didn't use the word.)
 - **[Zilberstein et al.](https://arxiv.org/abs/2305.04842) (2024)**: tri-abduction. Abduction gains a branching degree of freedom.
 
@@ -92,3 +92,6 @@ The monoid [broke in Soar](/diagnosis-soar) because the abductive morphism (Obse
 
 That's a [different post](/abduction).
 
+---
+
+*For [Charles Sanders Peirce](https://en.wikipedia.org/wiki/Charles_Sanders_Peirce) (1839–1914), who named the third mode and spent thirty years writing in solitude, rejected from polite society, unrecognized for it.*

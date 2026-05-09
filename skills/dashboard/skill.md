@@ -21,15 +21,15 @@ Default: start server on port 8321, open `http://localhost:8321` in the browser.
 
 ## Sources
 
-- `/tmp/sweep/repos.json` — repo statuses
-- `/tmp/drip-queue/*.jsonl` — queue entries by status
-- `/tmp/retro/*.jsonl` — active parameters (last-value-wins per key)
-- `/tmp/sweep-log/*.jsonl` — last 20 events
+- `~/.sweep/repos.json` — repo statuses
+- `~/.sweep/drip-queue/*.jsonl` — queue entries by status
+- `~/.sweep/retro/*.jsonl` — active parameters (last-value-wins per key)
+- `~/.sweep/sweep-log/*.jsonl` — last 20 events
 - `TRIAGE_GRAPH.md` / `HYPOTHESIS_GRAPH.md` — grep status markers
 
 ## Targeting
 
-- **No argument:** read `/tmp/sweep/repos.json` for the active repo list.
+- **No argument:** read `~/.sweep/repos.json` for the active repo list.
 - **`<owner/repo>`:** show state for one repo only.
 - **`<path>`:** treat as a sweep directory containing `repos.json`.
 

@@ -29,11 +29,11 @@ A list of repos, either:
 - `--dry-run` — passed through to each `/triage` invocation
 - `--limit N` — max items per repo (passed through to `/triage`)
 - `--add <repo>` — add a repo to the sweep. Runs `/review-schema` for it, then starts triage.
-- `--remove <repo>` — remove a repo from the sweep. Stops any running triage agent for it, keeps existing results in `/tmp/sweep/<owner>-<repo>/` for reference. Does not delete drip queues (they drain naturally).
+- `--remove <repo>` — remove a repo from the sweep. Stops any running triage agent for it, keeps existing results in `~/.sweep/repos/<owner>-<repo>/` for reference. Does not delete drip queues (they drain naturally).
 
 ## State file
 
-`/tmp/sweep/repos.json` tracks the active repo list and per-repo status:
+`~/.sweep/repos.json` tracks the active repo list and per-repo status:
 
 ```json
 {
@@ -50,7 +50,7 @@ Adding a repo sets it to `pending_schema`. Removing sets it to `removed` (kept f
 
 ## Output
 
-- Per repo: `TRIAGE_GRAPH.md` and `/tmp/drip-queue/<owner>-<repo>.jsonl`
+- Per repo: `TRIAGE_GRAPH.md` and `~/.sweep/drip-queue/<owner>-<repo>.jsonl`
 - Cross-repo: `SWEEP_GRAPH.md` in the working directory with cross-references between repos
 - Punch list: unified view across all repos, sorted by score
 
@@ -58,13 +58,15 @@ Adding a repo sets it to `pending_schema`. Removing sets it to `removed` (kept f
 
 ### Phase -1: Discover
 
-Run `/discover`. Read retro parameters, score active repos, find new candidates, update `repos.json`. This is what closes the loop — retro's lessons feed back into which repos get swept next. Skip if `repos.json` was provided explicitly via argument. In `--dry-run`, discover reports changes without writing.
+Run `/actionable`. Read retro parameters, score active repos, find new candidates, update `repos.json`. This is what closes the loop — retro's lessons feed back into which repos get swept next. Skip if `repos.json` was provided explicitly via argument. In `--dry-run`, actionable reports changes without writing.
+
+Also re-run actionable between phases if active work runs low: fewer than 3 PENDING items across all repos triggers a mid-sweep pass to refill the queue.
 
 ### Phase 0: Preflight
 
 1. `gh auth status` — fail fast on auth issues
 2. For each repo in `repos.json`, verify access: `gh repo view <repo> --json name`
-3. For each repo, check if `/review-schema` has been completed (look for `/tmp/sweep/<owner>-<repo>/review-schema.md`). If missing, run `/review-schema` for that repo — this induces the review culture from PR history, then validates with the user. Run review-schema **serially**, one repo at a time, since each requires user validation. Do not fan out triage until all repos have a review schema.
+3. For each repo, check if `/review-schema` has been completed (look for `~/.sweep/repos/<owner>-<repo>/review-schema.md`). If missing, run `/review-schema` for that repo — this induces the review culture from PR history, then validates with the user. Run review-schema **serially**, one repo at a time, since each requires user validation. Do not fan out triage until all repos have a review schema.
 
 ### Phase 1: Fan out
 
@@ -80,7 +82,7 @@ Agent({
 })
 ```
 
-Each agent runs in its own working directory (`/tmp/sweep/<owner>-<repo>/`). No worktree needed since triage creates its own worktrees for investigations.
+Each agent runs in its own working directory (`~/.sweep/repos/<owner>-<repo>/`). No worktree needed since triage creates its own worktrees for investigations.
 
 ### Phase 2: Cross-reference (post-hoc)
 
@@ -127,8 +129,8 @@ NO ACTION
 ### Phase 4: Drip (full run only)
 
 For each repo with "ready to ship" items, load its drip queue:
-- `/tmp/drip-queue/tinygrad-tinygrad.jsonl`
-- `/tmp/drip-queue/google-gemini-gemini-cli.jsonl`
+- `~/.sweep/drip-queue/tinygrad-tinygrad.jsonl`
+- `~/.sweep/drip-queue/google-gemini-gemini-cli.jsonl`
 
 Each repo gets its own independent drip cadence. One open PR per repo at a time. The repos don't interfere with each other's pacing.
 
