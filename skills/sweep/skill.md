@@ -73,21 +73,29 @@ Agent({
            Report additions when done."
 })
 
-# Agents 2–N: triage on known repos (background, one per repo)
+# Agents 2–N: one per repo, full pipeline (background)
 for repo in repos.jsonl:
   Agent({
     subagent_type: "general-purpose",
-    isolation: "worktree",
     run_in_background: true,
-    prompt: "Run /triage [--dry-run] --limit N on <repo>.
-             Write results to <repo-dir>/TRIAGE_GRAPH.md.
-             When done, write a one-line summary per item to stdout."
+    prompt: "Full triage pipeline for <repo> [--dry-run]:
+             1. Fork (gh repo fork --clone=false) if not already forked.
+             2. Clone to ~/Documents/<repo-name> if not already cloned.
+             3. Scan issues: competing PRs, scoring, kill list.
+             4. For each actionable issue:
+                a. /investigate — read code, find root cause, write fix, create branch.
+                b. Test gate — fail on master, pass on fix.
+                c. /codex — structural review of the fix.
+                d. /bug-hunt — adversarial verification.
+             5. Write branch pointer to ~/.sweep/drip-queue/<owner>-<repo>.jsonl.
+             6. Update ~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md with outcomes.
+             The branch IS the artifact. No PR descriptions — drip writes those from the diff at push time."
   })
 ```
 
-Actionable searches for new work while triage investigates existing work. When actionable finishes and adds new repos, spawn triage agents for them into the same pool. No sequential gates — the pipeline fills from the front and drains from the back simultaneously.
+Each agent runs the full pipeline end-to-end: scan → investigate → implement → test → review → queue. The output is a branch pointer in the drip queue, not a document. Agents that only produce TRIAGE_GRAPH.md without branches have not completed the pipeline.
 
-Each triage agent runs in its own working directory (`~/.sweep/repos/<owner>-<repo>/`). Triage creates its own worktrees for investigations within each repo.
+Actionable searches for new work while triage agents investigate and implement on existing repos. When actionable finishes and adds new repos, spawn triage agents for them into the same pool.
 
 ### Phase 2: Cross-reference (post-hoc)
 
@@ -167,14 +175,20 @@ After all phases complete, set up a recurring wake-up to keep the pipeline alive
 ```
 CronCreate({
   cron: "*/5 * * * *",
-  prompt: "/sweep --check --dry-run. Progress all phases: eviction checks, collect agent results (branches), run quality gates on queued branches, advance drip queue.",
+  prompt: "/sweep --check --dry-run. Eviction checks. Spawn agents for repos with TRIAGE_GRAPH.md but no drip queue branch (stalled pipelines). Run quality gates on queued branches. Advance drip queue.",
   recurring: true
 })
 ```
 
 Pass the same flags from the original invocation into the heartbeat prompt — including `--dry-run` if set. **Always create the heartbeat, even in dry-run.** Dry-run still needs the pipeline to keep cooking — checking agent progress, collecting results, writing readiness records. The only thing dry-run skips is remote side effects (no PRs, no pushes). The heartbeat is local.
 
-**The heartbeat prompt must remind all phases.** Agents tend to stop after investigation (Phase 2). The prompt explicitly tells sweep to progress through qualify (Phase 4) and quality gates (Phase 5) on every tick. A confirmed fix without a branch pointer in the drip queue is an incomplete pipeline.
+**The heartbeat checks for incomplete pipelines.** On each tick:
+1. Eviction checks (before anything else).
+2. For repos with TRIAGE_GRAPH.md but no branch pointer in the drip queue: the pipeline stalled at triage. Spawn a new agent to run the full pipeline (fork → clone → investigate → implement → test → review → queue).
+3. For repos with queued branches: run quality gates (staleness, test, Gemini volley, codex crosscheck).
+4. For repos with fully qualified branches: in dry-run, log what would push. In full run, push via drip.
+
+A repo with a TRIAGE_GRAPH.md but no branch is an incomplete pipeline — the agent reported findings but didn't implement fixes.
 
 ## Eviction (runs every tick)
 
