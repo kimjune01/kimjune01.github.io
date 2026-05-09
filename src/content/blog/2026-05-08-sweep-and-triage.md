@@ -74,7 +74,7 @@ Run this on enough machines across enough repos and the bottleneck is no longer 
 
 The pipeline is [copyleft](https://github.com/kimjune01/sweep). Anyone can run it. An army of contributors all running sweep concurrently, each with their own seeds, their own review schemas, their own standing progression — issues get found and fixed at a rate no single maintainer could match. The merge history becomes a trust graph. Standing compounds across repos. The pipeline is the contributor.
 
-Every phase checks existing state before acting. Kill the process, restart tomorrow. The graph is the resume point. The [experiment artifacts](https://github.com/kimjune01/tinygrad-experiments) from the tinygrad investigations are public. Every skill emits structured logs, so a dashboard snapshots the pipeline state at any point.
+Every phase checks existing state before acting. Kill the process, restart tomorrow. The graph is the resume point. The [experiment artifacts](https://github.com/kimjune01/tinygrad-experiments) from the tinygrad investigations are public. The [pipeline state](https://github.com/kimjune01/sweep) — repos, triage graphs, drip queues, retro parameters — is public too. Every skill emits structured logs, so a dashboard snapshots the pipeline state at any point.
 
 I am still not reasonable. I haven't hit the hard cases. Once I do, the logs will show it and the skills, improved.
 
