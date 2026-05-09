@@ -1,114 +1,107 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 500" style="background-color: #ffffff; font-family: monospace;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 480" style="font-family: 'SF Mono', 'Fira Code', monospace;">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#000000"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
     </marker>
-    <marker id="arrow-down" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 0 L 5 10 z" fill="#666666"/>
+    <marker id="arrow-retro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
     </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
   </defs>
 
-  <style>
-    .box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
-    .box-dashed { fill: #ffffff; stroke: #000000; stroke-width: 1.5; stroke-dasharray: 6,4; }
-    .group-box { fill: #fafafa; stroke: #999999; stroke-width: 1.5; stroke-dasharray: 8,4; }
-    .line-main { stroke: #000000; stroke-width: 1.5; fill: none; }
-    .line-retro { stroke: #000000; stroke-width: 2; fill: none; }
-    .line-log { stroke: #666666; stroke-width: 1.5; fill: none; stroke-dasharray: 4,4; }
-    text { fill: #000000; font-size: 14px; text-anchor: middle; }
-    .text-bold { font-weight: bold; }
-    .text-small { font-size: 11px; fill: #555555; }
-    .text-left { text-anchor: start; }
-  </style>
+  <!-- Background -->
+  <rect width="1100" height="480" rx="12" fill="url(#bg)"/>
 
-  <rect x="390" y="80" width="340" height="230" rx="8" class="group-box"/>
-  <text x="405" y="100" class="text-bold text-left" fill="#666666" font-size="12">INVESTIGATE PHASE (Parallel)</text>
+  <!-- Investigate group -->
+  <rect x="380" y="55" width="350" height="245" rx="10" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="400" y="78" fill="#475569" font-size="10" font-weight="600" letter-spacing="1.5">INVESTIGATE</text>
 
-  <rect x="80" y="160" width="120" height="80" rx="4" class="box"/>
-  <text x="140" y="195" class="text-bold">SWEEP</text>
-  <text x="140" y="215" font-size="12">Find candidates</text>
-  <text x="140" y="230" class="text-small">(repos/issues)</text>
+  <!-- SWEEP -->
+  <rect x="70" y="145" width="130" height="75" rx="8" fill="#f1f5f9" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="135" y="175" fill="#3b82f6" font-size="13" font-weight="700" text-anchor="middle">SWEEP</text>
+  <text x="135" y="195" fill="#475569" font-size="10" text-anchor="middle">Find candidates</text>
 
-  <rect x="250" y="160" width="120" height="80" rx="4" class="box"/>
-  <text x="310" y="195" class="text-bold">TRIAGE</text>
-  <text x="310" y="215" font-size="12">Score &amp; kill</text>
-  <text x="310" y="230" class="text-small">Spawn parallel</text>
+  <!-- TRIAGE -->
+  <rect x="245" y="145" width="115" height="75" rx="8" fill="#f1f5f9" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="302" y="175" fill="#8b5cf6" font-size="13" font-weight="700" text-anchor="middle">TRIAGE</text>
+  <text x="302" y="195" fill="#475569" font-size="10" text-anchor="middle">Score &amp; kill</text>
 
-  <rect x="420" y="120" width="80" height="40" rx="4" class="box"/>
-  <text x="460" y="145" font-size="12">Agent A</text>
+  <!-- Agents -->
+  <rect x="410" y="100" width="80" height="36" rx="6" fill="#f1f5f9" stroke="#334155" stroke-width="1"/>
+  <text x="450" y="123" fill="#334155" font-size="11" text-anchor="middle">Agent A</text>
 
-  <rect x="420" y="180" width="80" height="40" rx="4" class="box"/>
-  <text x="460" y="205" font-size="12">Agent B</text>
+  <rect x="410" y="165" width="80" height="36" rx="6" fill="#f1f5f9" stroke="#334155" stroke-width="1"/>
+  <text x="450" y="188" fill="#334155" font-size="11" text-anchor="middle">Agent B</text>
 
-  <rect x="420" y="240" width="80" height="40" rx="4" class="box"/>
-  <text x="460" y="265" font-size="12">Agent C</text>
+  <rect x="410" y="230" width="80" height="36" rx="6" fill="#f1f5f9" stroke="#334155" stroke-width="1"/>
+  <text x="450" y="253" fill="#334155" font-size="11" text-anchor="middle">Agent C</text>
 
-  <rect x="550" y="110" width="160" height="180" rx="4" class="box"/>
-  <text x="630" y="130" class="text-bold" font-size="12">HYPOTHESIS GRAPH</text>
-  <text x="630" y="145" class="text-small">(Central Artifact)</text>
+  <!-- Hypothesis Graph -->
+  <rect x="540" y="85" width="170" height="200" rx="8" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>
+  <text x="625" y="108" fill="#10b981" font-size="11" font-weight="700" text-anchor="middle">HYPOTHESIS GRAPH</text>
 
-  <circle cx="590" cy="180" r="4" fill="#000000"/>
-  <circle cx="635" cy="165" r="4" fill="#000000"/>
-  <circle cx="635" cy="220" r="4" fill="#000000"/>
-  <circle cx="675" cy="205" r="4" fill="#000000"/>
-  <circle cx="660" cy="255" r="4" fill="#000000"/>
-  <path d="M 590 180 L 635 165 M 590 180 L 635 220 M 635 165 L 675 205 M 635 220 L 675 205 M 635 220 L 660 255" class="line-main" stroke-width="1"/>
+  <!-- Graph nodes and edges -->
+  <circle cx="580" cy="155" r="5" fill="#10b981" opacity="0.8"/>
+  <circle cx="625" cy="140" r="5" fill="#10b981" opacity="0.8"/>
+  <circle cx="625" cy="200" r="5" fill="#10b981" opacity="0.8"/>
+  <circle cx="670" cy="180" r="5" fill="#10b981" opacity="0.8"/>
+  <circle cx="650" cy="240" r="5" fill="#10b981" opacity="0.8"/>
+  <circle cx="595" cy="220" r="4" fill="#10b981" opacity="0.5"/>
+  <path d="M 580 155 L 625 140 M 580 155 L 625 200 M 625 140 L 670 180 M 625 200 L 670 180 M 625 200 L 650 240 M 595 220 L 625 200 M 595 220 L 650 240" stroke="#10b981" stroke-width="1" fill="none" opacity="0.4"/>
 
-  <rect x="770" y="140" width="130" height="120" rx="4" class="box-dashed"/>
-  <text x="835" y="170" class="text-bold">LINEUP GATE</text>
-  <text x="835" y="195" font-size="12">Adversarial</text>
-  <text x="835" y="210" font-size="12">Voice Check</text>
-  <text x="835" y="235" class="text-small">(AI vs Real PRs)</text>
+  <!-- LINEUP GATE -->
+  <rect x="770" y="130" width="125" height="105" rx="8" fill="#f1f5f9" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="832" y="160" fill="#f59e0b" font-size="12" font-weight="700" text-anchor="middle">LINEUP</text>
+  <text x="832" y="180" fill="#475569" font-size="10" text-anchor="middle">Adversarial</text>
+  <text x="832" y="195" fill="#475569" font-size="10" text-anchor="middle">voice check</text>
+  <text x="832" y="218" fill="#475569" font-size="9" text-anchor="middle">AI vs real PRs</text>
 
-  <rect x="940" y="160" width="100" height="80" rx="4" class="box"/>
-  <text x="990" y="195" class="text-bold">DRIP</text>
-  <text x="990" y="215" font-size="12">(Publish)</text>
-  <text x="990" y="230" class="text-small">Max 1 PR/repo</text>
+  <!-- DRIP -->
+  <rect x="935" y="145" width="105" height="75" rx="8" fill="#f1f5f9" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="987" y="175" fill="#ef4444" font-size="13" font-weight="700" text-anchor="middle">DRIP</text>
+  <text x="987" y="195" fill="#475569" font-size="10" text-anchor="middle">1 PR / repo</text>
 
-  <line x1="200" y1="200" x2="242" y2="200" class="line-main" marker-end="url(#arrow)"/>
+  <!-- Main flow arrows -->
+  <line x1="200" y1="182" x2="238" y2="182" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <path d="M 370 200 L 395 200 M 395 140 L 395 260" class="line-main"/>
-  <line x1="395" y1="140" x2="412" y2="140" class="line-main" marker-end="url(#arrow)"/>
-  <line x1="395" y1="200" x2="412" y2="200" class="line-main" marker-end="url(#arrow)"/>
-  <line x1="395" y1="260" x2="412" y2="260" class="line-main" marker-end="url(#arrow)"/>
+  <path d="M 360 182 L 388 182 M 388 118 L 388 248" stroke="#475569" stroke-width="1.5" fill="none"/>
+  <line x1="388" y1="118" x2="404" y2="118" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="388" y1="183" x2="404" y2="183" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="388" y1="248" x2="404" y2="248" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <line x1="500" y1="140" x2="542" y2="140" class="line-main" marker-end="url(#arrow)"/>
-  <line x1="500" y1="200" x2="542" y2="200" class="line-main" marker-end="url(#arrow)"/>
-  <line x1="500" y1="260" x2="542" y2="260" class="line-main" marker-end="url(#arrow)"/>
+  <line x1="490" y1="118" x2="534" y2="118" stroke="#475569" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="490" y1="183" x2="534" y2="183" stroke="#475569" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="490" y1="248" x2="534" y2="248" stroke="#475569" stroke-width="1" marker-end="url(#arrow)"/>
 
-  <line x1="710" y1="200" x2="762" y2="200" class="line-main" marker-end="url(#arrow)"/>
+  <line x1="710" y1="182" x2="764" y2="182" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="895" y1="182" x2="929" y2="182" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <line x1="900" y1="200" x2="932" y2="200" class="line-main" marker-end="url(#arrow)"/>
+  <!-- Log lines (subtle) -->
+  <line x1="135" y1="330" x2="987" y2="330" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
 
-  <line x1="140" y1="340" x2="990" y2="340" class="line-log"/>
+  <line x1="135" y1="220" x2="135" y2="325" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="302" y1="220" x2="302" y2="325" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="450" y1="266" x2="450" y2="325" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="625" y1="285" x2="625" y2="325" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="832" y1="235" x2="832" y2="325" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="987" y1="220" x2="987" y2="325" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
 
-  <line x1="140" y1="240" x2="140" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
-  <line x1="310" y1="240" x2="310" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
-  <line x1="460" y1="280" x2="460" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
-  <line x1="630" y1="290" x2="630" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
-  <line x1="835" y1="260" x2="835" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
-  <line x1="990" y1="240" x2="990" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+  <!-- ALL LOGS down arrow -->
+  <line x1="560" y1="330" x2="560" y2="375" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="590" y="360" fill="#334155" font-size="9">ALL LOGS</text>
 
-  <text x="160" y="325" font-size="10" fill="#666666">logs</text>
-  <text x="330" y="325" font-size="10" fill="#666666">logs</text>
-  <text x="480" y="325" font-size="10" fill="#666666">logs</text>
-  <text x="650" y="325" font-size="10" fill="#666666">logs</text>
-  <text x="855" y="325" font-size="10" fill="#666666">logs</text>
+  <!-- RETRO -->
+  <rect x="430" y="380" width="260" height="60" rx="10" fill="#f1f5f9" stroke="#f59e0b" stroke-width="2"/>
+  <text x="560" y="405" fill="#f59e0b" font-size="13" font-weight="700" text-anchor="middle">RETRO</text>
+  <text x="560" y="425" fill="#475569" font-size="10" text-anchor="middle">Compress lessons back to pipeline</text>
 
-  <line x1="560" y1="340" x2="560" y2="385" class="line-log" marker-end="url(#arrow-down)"/>
-  <text x="595" y="370" font-size="10" fill="#666666">ALL LOGS</text>
+  <!-- Retro feedback loop -->
+  <path d="M 1040 182 L 1065 182 L 1065 410 L 698 410" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrow-retro)"/>
+  <path d="M 430 410 L 45 410 L 45 182 L 62 182" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#arrow-retro)"/>
 
-  <rect x="430" y="390" width="260" height="60" rx="8" class="box" fill="#ffffff"/>
-  <text x="560" y="415" class="text-bold">RETRO PASS</text>
-  <text x="560" y="435" font-size="12">Compress lessons back to pipeline</text>
-
-  <path d="M 1040 200 L 1070 200 L 1070 420 L 698 420" class="line-retro" marker-end="url(#arrow)"/>
-
-  <path d="M 430 420 L 50 420 L 50 200 L 72 200" class="line-retro" marker-end="url(#arrow)"/>
-
-  <rect x="800" y="410" width="100" height="20" fill="#ffffff"/>
-  <text x="850" y="424" font-size="12" fill="#000000">Trigger retro</text>
-
-  <rect x="180" y="410" width="160" height="20" fill="#ffffff"/>
-  <text x="260" y="424" font-size="12" fill="#000000">Lessons update skills</text>
+  <text x="850" y="408" fill="#f59e0b" font-size="9" text-anchor="middle">trigger retro</text>
+  <text x="240" y="408" fill="#f59e0b" font-size="9" text-anchor="middle">lessons update skills</text>
 </svg>

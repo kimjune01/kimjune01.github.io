@@ -10,7 +10,7 @@ The maintainer batch-closed everything. "I'm not reading anything written by AI.
 
 I am not reasonable and don't respect myself a lot. But I am tenacious. The PRs weren't mergeable because my skills were weak, not the methodology. Iterative review pushes merge-readiness from [43% to 91%](/does-iteration-mitigate-slop-slope). Investigate automates engineering. They weren't composing. What if they could?
 
-## The turn
+## Closed loop
 
 Five agents on five bugs in parallel. The tree broke. Agent A discovered RDNA4's [WMMA](https://gpuopen.com/learn/using_matrix_core_amd_rdna4/) maps operands differently than RDNA3. Agent B was about to push a perturbation assuming all AMD GPUs share the same mapping. Without the agents talking, B wastes a CI run discovering what A already knew.
 
@@ -48,9 +48,9 @@ Perfect work can still fail. Flood a maintainer's inbox and the "AI slop" reflex
 
 Tone mismatch is subtler. A repo where merged PRs are terse one-liners ("fix X") rejects a three-paragraph explanation with benchmark tables, even if the content is correct. `/drip` samples recently merged PRs and matches the voice: length, formatting, level of detail.
 
-Scale introduced three problems the single-agent version didn't have: shared state, CI cost, social pacing. The shared graph solved the first; dedup solved the second; drip solved the third. The question is whether it can run unattended.
+Scale added three problems: shared state, CI cost, social pacing. The graph solved the first; dedup the second; drip the third. Can it run unattended?
 
-## The prestige
+## Concurrent scale
 
 The pipeline starts from issues, not repos. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria: bugs with reproducers, performance regressions with benchmarks, "help wanted" labels nobody claimed. Retro's parameters decide where to look next. Repos where PRs merge get more attention; repos on cooldown get skipped.
 
