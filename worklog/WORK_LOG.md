@@ -362,3 +362,53 @@ H26 correction: sequential delegation does NOT kill the log factor. Root delegat
 ### 03:00 — tinygrad matvec investigation → PR
 
 Investigated tinygrad LLaMA inference gap. Root cause: MV_ROWS_PER_THREAD=4 (never tuned) wastes 87% of cache lines on matvec. Fix: 4→16, +62-105% bandwidth. PR #16072 (CI passed). First fix (GROUP removal) killed by bug hunt for nn.Linear regression (oscillatory). Surviving fix: one number. Renamed /interrogate → /investigate, extended skill with prework→benchmark→hunt→ship pipeline + feedback loop. Blog post drafted. Experiment repo: github.com/kimjune01/tinygrad-matvec-experiment
+
+## 2026-05-08
+
+### 01:00 — tinygrad pattern matcher → CPython JIT investigation
+
+tinygrad pattern matcher investigation → CPython JIT investigation. Filed faster-cpython/ideas#738. Found the smoking gun: _GUARD_IP__PUSH_FRAME (optimizer.c:1111) emits monomorphic call guards that break on polymorphic dispatch. tinygrad's rewrite loop calls 9 different compiled_match functions per iteration — the guard fails on iteration 2, trace exits, cycle never converges. Building CPython from source with JIT to prototype Option B: skip callee inlining at polymorphic sites (chain_depth > 0). LLVM 21 installed, CPython configure done, make running. PR #16096 (skip_op, -10-15%) is live on tinygrad. Experiment repo at github.com/kimjune01/tinygrad-pareto-frontier with 17 hypotheses, 5 turbo versions, and the full CPython JIT investigation.
+
+### 08:15 — CPython JIT investigation: optimized build reframes the picture
+
+CPython JIT investigation (issue #149564): Established baseline on 3.16 optimized build — JIT provides -5.8% improvement for tinygrad rewrite (was ±0% on 3.14). Debug build showed +54% regression (Py_DEBUG artifact, not production). Traced mechanism: monomorphic IP guard at _GUARD_IP__PUSH_FRAME deoptimizes at polymorphic call sites via _COLD_DYNAMIC_EXIT. Corrected the cascading re-trace model from the previous investigation — dynamic exits don't cascade. Frame penalty perturbation confirmed intermediate frames help. Mono ceiling is -19%, gap is ~13pp. Updated hypothesis graph, investigation docs, and drafted issue comment (saved to ISSUE_COMMENT_149564.md, needs manual posting due to PAT scope).
+
+### 09:30 — tinygrad H₁₃–H₁₆ investigation
+
+Continued hypothesis graph from CPython floor. H₁₃ (dtype): only 38 patterns have root dtype constraints, not redundant — low priority. H₁₄ (len(src)): 91% of len checks looked redundant because GroupOp.Binary/Unary/Ternary imply fixed arity. But UOps DON'T enforce arity — `UOp(Ops.ADD, ..., (x,))` with 1 source is legal. Skip_len gave -5.5% on micro-bench but +5.4% on end-to-end because rewriting intermediates have wrong arity. KILLED. H₁₆ (dtype early_reject): rejects 26.7% of match() calls but only saves ~1% because dtype rejections are cheap failures (compiled matcher checks dtype early). CONVERGENT but marginal. Frontier narrowing — skip_op (-3.2 to -4.0%) and CPython 3.16 JIT (-5.8%) remain the only significant wins. Updated HYPOTHESIS_GRAPH.md and CPYTHON_FLOOR.md with all findings.
+
+### 11:15 — mega-matcher prototype: -18% on ADD rewrite
+
+Built hand-written mega-matcher for ADD (20 patterns merged into 1 function). Eliminates polymorphic dispatch and shares common prefix checks (len, s0/s1 caching). Results:
+
+| Python | JIT | Original | Mega | Delta |
+|---|---|---|---|---|
+| 3.14.4 | N/A | 2,545ns | 2,014ns | -20.9% |
+| 3.16.0 | off | 2,505ns | 2,027ns | -19.1% |
+| 3.16.0 | on | 2,383ns | 1,981ns | -16.9% |
+
+Consistent -18% across 3 runs on micro-bench. Correctness passes on all configurations. End-to-end monkey-patch showed +8.8% overhead (likely from patching artifacts, not the matcher itself). Bitmask approach explored but killed — frozenset.issubset is already near-optimal in CPython. The win comes from function call elimination and shared prefix checks. Code at bench_mega_match.py in tinygrad-pareto-frontier.
+
+### 12:30 — automated mega-matcher: prototype works, automation blocked on code generation
+
+Automated mega-matcher generator implemented in upat.py. Core approach: for each op with ≥5 patterns, call _get_code per-pattern, rename _fxn→_f{i} and dyn_lookup keys, concatenate bodies into one function. 25 ops successfully mega-matched (including ADD, MUL). Basic tests pass (softmax, conv2d+relu).
+
+Two issues blocked full validation:
+1. Indentation: multi-line pattern bodies (if ... : / nested children) break when prefix-factored into shared len==2 block. String-based code manipulation is fragile.
+2. Namespace collisions: re.sub renaming of `a0` catches unintended matches in some pattern matchers, causing behavioral changes that fail spec verification.
+
+Without prefix factoring or local caching (naive concatenation): only -1.5% vs hand-written -18%. The difference is entirely from redundant `uop.src[0]` / `uop.src[1]` accesses — ~100+ per rewrite that the hand-written version eliminates with `_s0, _s1 = uop.src`.
+
+Next: the code generation needs to work at the AST level (not string manipulation) to handle indentation correctly. Or: modify `_get_code` to accept a `prefix_vars` dict that tells the renderer to use pre-bound locals instead of attribute chains. This is a cleaner integration point than post-hoc string replacement.
+
+### 22:30 — tinygrad investigation + skill development
+
+Session: tinygrad investigation + skill development. Merged: #16085 (onnx dedup). Closed by geohot: #16107 (post-TC heuristic, net 0 lines, 47-59% speedup), #16108 (dtype fix), #16109 (gfx12 experiment), #16111 (MATVEC fix), #16096 (mega-matcher), #16094 (GGUF), #16072 (MV_ROWS), #16070 (warp reduce). Reopened: #16113 (failing tests for MATVEC + PTX bf16), #16114 (issue with repros). Hypothesis graph: H0.6a root cause identified (RDNA4 WMMA swizzle lane mapping), H0.6b confirmed (both-axis UPCAST safe), H0.6c killed (UNROLL(0,4) unsafe on gfx12). New skills: /triage (repo dispatcher with shared hypothesis graph). Updated skills: /investigate (graph-first, CI-as-lab, test-before-fix rules). Gemini-cli #24736 LGTM from rmedranollamas, awaiting maintainer merge. Blog draft: draft/triage-dispatch.md (the dispatcher problem).
+
+### 00:25 — Triage dry run results
+
+Triage dry run: 4/5 agents complete. #6909 bf16 autocast (fix: map to unsigned short), #12296 max backward underflow (fix: promote counting dtype), #11908 beam cache invalidation (fix: 7 env vars in cache key), #12409 where nan gradient (partial fix: SQRT/LOG2 guarded, RECIPROCAL/MUL blocked by symbolic zero tracking). #13409 ScatterND still running. geohot warned "close to getting banned" — bar is merge-ready on first read, one PR at a time. Stockpiling locally, will ship when timing is right. Blog draft updated with test-before-fix, ban risk, chameleon tone-matching sections.
+
+### 02:30 — Codex pipeline review
+
+Codex reviewed all 5 pipeline skills (sweep/triage/investigate/drip/retro). 8 findings: (1) transmit boundary contradictory — investigate pushes draft PRs but drip is supposed to be sole transmitter, (2) state paths disagree across skills (.json vs .jsonl, different /tmp paths), (3) mise-en-place not included in review but load-bearing, (4) parallel writes to TRIAGE_GRAPH.md need per-agent result files not shared MD, (5) cache schemas undefined, (6) retro parameters not wired back into triage/drip forward pass, (7) investigate overpowered relative to triage in pipeline mode, (8) human gates inconsistent across skills. Next session: create manifest.jsonl with canonical paths, schemas, side-effect policy. Fix all path disagreements. Wire retro output into triage/drip input.

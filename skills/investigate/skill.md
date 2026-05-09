@@ -167,26 +167,20 @@ Check whether the investigation has produced a load-bearing observation that ret
 
 ### Phase 5: Prework
 
-When a surviving hypothesis implies a code change, build the [prework](/prework) artifacts before touching production. The experiment repo IS the prework — it was built during the investigation. Formalize it.
+When a surviving hypothesis implies a code change, build the [prework](/prework) artifacts before touching production. Keep all prework in one directory: `prework/<slug>/` in the worktree (e.g., `prework/matvec-stride/`). The directory ships with the branch and gets deleted when the PR merges. Only create a standalone experiment repo when the prework needs to outlive the PR — provenance for a controversial change, or a reusable benchmark that applies across repos.
 
-1. **Experiment repo.** Consolidate the investigation artifacts into a standalone repo:
+1. **Prework artifacts.** Build these in `prework/<slug>/`:
    - `reference.py` — ground truth (numpy, BLAS, or known-good implementation)
-   - `propose.py` — the candidate fix as a pure function, no target codebase dependency
+   - `propose.py` — the candidate fix as a pure function
    - `validate.py` — propose matches reference for all test cases
    - `extract.py` — dumps the target system's actual behavior for comparison
    - `compat.py` — proves the fix doesn't change correctness (numerical equivalence, output identity)
    - `bench.py` — measures the fix against the baseline
    - `shapes.py` — test matrix covering the target shapes AND regression shapes
 
-2. **Transformation design doc** (`TRANSFORM.md`). Maps the candidate fix onto the target codebase:
-   - Which files to touch
-   - Which option to take if there are multiple intervention points
-   - What NOT to change
-   - Verification plan
+   For simple fixes (one-liner, obvious correctness), skip the full artifact set. Write a failing test and the fix. The prework scales with the risk of the change.
 
-3. **Integration manifest** (`MANIFEST.md`). One line per artifact: repo, branch, remote, what it hosts.
-
-4. **Derisk.** Run `extract.py` to confirm the bug exists in the target. If it doesn't, the diagnosis was wrong — go back to Phase 2. This is the most important step. Without it, the prework is speculative.
+2. **Derisk.** Run `extract.py` to confirm the bug exists in the target. If it doesn't, the diagnosis was wrong — go back to Phase 2. This is the most important step. Without it, the prework is speculative.
 
 ### Phase 5.5: Regression check (before benchmark)
 
@@ -227,6 +221,8 @@ This is the feedback loop that /forge doesn't have. The bug hunt doesn't just ve
 
 **This is the only phase that requires human approval.** Everything before it is local and reversible. A PR is an external side effect — it's visible to other people, triggers CI on their hardware, and occupies reviewer attention. Present the full package and wait for a go/no-go.
 
+**Pipeline mode vs standalone.** When called from `/triage` or `/sweep`, investigate does NOT ship directly. Instead, write a readiness record to `/tmp/triage-dry-run/<number>-pr.md` (branch, base commit, test commands, diff, PR draft) and return. `/drip` handles all remote operations — pushing, PR creation, tone matching, pacing. When running standalone (user invoked `/investigate` directly), Phase 8 ships as described below.
+
 Present to the human:
 - The diff (should be small — if it's not, the prework missed something)
 - The benchmark table
@@ -234,7 +230,7 @@ Present to the human:
 - The PR title and body draft
 - Any existing PRs found by the idempotency guard
 
-If approved:
+If approved (standalone mode only):
 
 1. Commit the minimal fix.
 2. Push the experiment repo to a public remote (it's the provenance for the PR).
@@ -258,7 +254,8 @@ Each phase produces a self-contained artifact that is a valid input to any downs
 | 5 Prework | Experiment repo | Yes — a validated prototype |
 | 6 Benchmark | Measurement table | Yes — evidence for or against |
 | 7 Bug hunt | Convergence report | Yes — adversarial verification |
-| 8 Ship | PR with provenance | Yes — contribution with full trail |
+| 8 Ship (standalone) | PR with provenance | Yes — contribution with full trail |
+| 8 Ship (pipeline) | Readiness record | Yes — candidate for `/drip` queue |
 
 **Composition rule:** the output of phase N is the input to phase N+1, but any phase can also accept its input from an external source. You can run Phase 7 (bug hunt) on a fix you wrote by hand — it doesn't require Phases 1-6. You can start at Phase 5 (prework) if you already have a diagnosis from a conversation. The phases compose; they don't require sequential execution.
 
@@ -321,6 +318,9 @@ Without the outer loop, the first fix ships with a 25% regression on the most co
 - **Run autonomously between cycles.** Write the graph state to the document after each cycle, but don't stop to present. Pick the highest-leverage surviving edge and keep going. The human can redirect at any time — the graph is always readable — but the default is forward motion.
 - **Keep going to depth 10.** Don't stop after two cycles. Follow every surviving edge until the frontier closes, the human redirects, or depth 10. Depth = outer-loop iterations (a full pass through interrogate → prework → benchmark → bug-hunt counts as one iteration; phases within an iteration don't increment depth). Each cycle: fan out, run perturbations, codex-filter, prune, write to graph, follow surviving edges. The graph deepens until it converges or hits the wall.
 - **Confidence tracks mode.** Don't claim 95% confidence on an abduction. Don't claim 60% on a deduction. The mode determines the ceiling.
+- **Graph-first on new evidence.** Any new evidence that changes a node's status — CI result, measurement, code trace — must be written to the graph document before anything else happens. Not "should I update the graph?" — write it. The graph is the checkpoint; if it's not written, the investigation isn't real. Then classify the trajectory, follow the edge, design the next perturbation. The human reviews the graph asynchronously; they should never have to prompt "update the hypothesis graph."
+- **CI is a perturbation surface.** When the system under investigation has CI with hardware you don't own (GPUs, architectures, OSes), treat CI as a remote lab. Push a draft PR per investigation, one commit per perturbation. Watch CI results, classify, update the graph, push the next perturbation. The loop is: perturb → push → watch → classify → update graph → next perturbation. The only human gate is Phase 8 (ship).
+- **Fail on master, pass with fix.** When the investigation finds a bug, write a test and a fix. Verify locally: the test must fail on master and pass with the fix. Ship both in one PR. A test that passes on master proves nothing — we learned this by shipping one and getting called out by a reviewer.
 
 ## E-Value Trajectory Classification
 

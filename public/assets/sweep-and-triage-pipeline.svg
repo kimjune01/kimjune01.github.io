@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 500" style="background-color: #ffffff; font-family: monospace;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#000000"/>
+    </marker>
+    <marker id="arrow-down" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 0 L 5 10 z" fill="#666666"/>
+    </marker>
+  </defs>
+
+  <style>
+    .box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+    .box-dashed { fill: #ffffff; stroke: #000000; stroke-width: 1.5; stroke-dasharray: 6,4; }
+    .group-box { fill: #fafafa; stroke: #999999; stroke-width: 1.5; stroke-dasharray: 8,4; }
+    .line-main { stroke: #000000; stroke-width: 1.5; fill: none; }
+    .line-retro { stroke: #000000; stroke-width: 2; fill: none; }
+    .line-log { stroke: #666666; stroke-width: 1.5; fill: none; stroke-dasharray: 4,4; }
+    text { fill: #000000; font-size: 14px; text-anchor: middle; }
+    .text-bold { font-weight: bold; }
+    .text-small { font-size: 11px; fill: #555555; }
+    .text-left { text-anchor: start; }
+  </style>
+
+  <rect x="390" y="80" width="340" height="230" rx="8" class="group-box"/>
+  <text x="405" y="100" class="text-bold text-left" fill="#666666" font-size="12">INVESTIGATE PHASE (Parallel)</text>
+
+  <rect x="80" y="160" width="120" height="80" rx="4" class="box"/>
+  <text x="140" y="195" class="text-bold">SWEEP</text>
+  <text x="140" y="215" font-size="12">Find candidates</text>
+  <text x="140" y="230" class="text-small">(repos/issues)</text>
+
+  <rect x="250" y="160" width="120" height="80" rx="4" class="box"/>
+  <text x="310" y="195" class="text-bold">TRIAGE</text>
+  <text x="310" y="215" font-size="12">Score &amp; kill</text>
+  <text x="310" y="230" class="text-small">Spawn parallel</text>
+
+  <rect x="420" y="120" width="80" height="40" rx="4" class="box"/>
+  <text x="460" y="145" font-size="12">Agent A</text>
+
+  <rect x="420" y="180" width="80" height="40" rx="4" class="box"/>
+  <text x="460" y="205" font-size="12">Agent B</text>
+
+  <rect x="420" y="240" width="80" height="40" rx="4" class="box"/>
+  <text x="460" y="265" font-size="12">Agent C</text>
+
+  <rect x="550" y="110" width="160" height="180" rx="4" class="box"/>
+  <text x="630" y="130" class="text-bold" font-size="12">HYPOTHESIS GRAPH</text>
+  <text x="630" y="145" class="text-small">(Central Artifact)</text>
+
+  <circle cx="590" cy="180" r="4" fill="#000000"/>
+  <circle cx="635" cy="165" r="4" fill="#000000"/>
+  <circle cx="635" cy="220" r="4" fill="#000000"/>
+  <circle cx="675" cy="205" r="4" fill="#000000"/>
+  <circle cx="660" cy="255" r="4" fill="#000000"/>
+  <path d="M 590 180 L 635 165 M 590 180 L 635 220 M 635 165 L 675 205 M 635 220 L 675 205 M 635 220 L 660 255" class="line-main" stroke-width="1"/>
+
+  <rect x="770" y="140" width="130" height="120" rx="4" class="box-dashed"/>
+  <text x="835" y="170" class="text-bold">LINEUP GATE</text>
+  <text x="835" y="195" font-size="12">Adversarial</text>
+  <text x="835" y="210" font-size="12">Voice Check</text>
+  <text x="835" y="235" class="text-small">(AI vs Real PRs)</text>
+
+  <rect x="940" y="160" width="100" height="80" rx="4" class="box"/>
+  <text x="990" y="195" class="text-bold">DRIP</text>
+  <text x="990" y="215" font-size="12">(Publish)</text>
+  <text x="990" y="230" class="text-small">Max 1 PR/repo</text>
+
+  <line x1="200" y1="200" x2="242" y2="200" class="line-main" marker-end="url(#arrow)"/>
+
+  <path d="M 370 200 L 395 200 M 395 140 L 395 260" class="line-main"/>
+  <line x1="395" y1="140" x2="412" y2="140" class="line-main" marker-end="url(#arrow)"/>
+  <line x1="395" y1="200" x2="412" y2="200" class="line-main" marker-end="url(#arrow)"/>
+  <line x1="395" y1="260" x2="412" y2="260" class="line-main" marker-end="url(#arrow)"/>
+
+  <line x1="500" y1="140" x2="542" y2="140" class="line-main" marker-end="url(#arrow)"/>
+  <line x1="500" y1="200" x2="542" y2="200" class="line-main" marker-end="url(#arrow)"/>
+  <line x1="500" y1="260" x2="542" y2="260" class="line-main" marker-end="url(#arrow)"/>
+
+  <line x1="710" y1="200" x2="762" y2="200" class="line-main" marker-end="url(#arrow)"/>
+
+  <line x1="900" y1="200" x2="932" y2="200" class="line-main" marker-end="url(#arrow)"/>
+
+  <line x1="140" y1="340" x2="990" y2="340" class="line-log"/>
+
+  <line x1="140" y1="240" x2="140" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+  <line x1="310" y1="240" x2="310" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+  <line x1="460" y1="280" x2="460" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+  <line x1="630" y1="290" x2="630" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+  <line x1="835" y1="260" x2="835" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+  <line x1="990" y1="240" x2="990" y2="335" class="line-log" marker-end="url(#arrow-down)"/>
+
+  <text x="160" y="325" font-size="10" fill="#666666">logs</text>
+  <text x="330" y="325" font-size="10" fill="#666666">logs</text>
+  <text x="480" y="325" font-size="10" fill="#666666">logs</text>
+  <text x="650" y="325" font-size="10" fill="#666666">logs</text>
+  <text x="855" y="325" font-size="10" fill="#666666">logs</text>
+
+  <line x1="560" y1="340" x2="560" y2="385" class="line-log" marker-end="url(#arrow-down)"/>
+  <text x="595" y="370" font-size="10" fill="#666666">ALL LOGS</text>
+
+  <rect x="430" y="390" width="260" height="60" rx="8" class="box" fill="#ffffff"/>
+  <text x="560" y="415" class="text-bold">RETRO PASS</text>
+  <text x="560" y="435" font-size="12">Compress lessons back to pipeline</text>
+
+  <path d="M 1040 200 L 1070 200 L 1070 420 L 698 420" class="line-retro" marker-end="url(#arrow)"/>
+
+  <path d="M 430 420 L 50 420 L 50 200 L 72 200" class="line-retro" marker-end="url(#arrow)"/>
+
+  <rect x="800" y="410" width="100" height="20" fill="#ffffff"/>
+  <text x="850" y="424" font-size="12" fill="#000000">Trigger retro</text>
+
+  <rect x="180" y="410" width="160" height="20" fill="#ffffff"/>
+  <text x="260" y="424" font-size="12" fill="#000000">Lessons update skills</text>
+</svg>
