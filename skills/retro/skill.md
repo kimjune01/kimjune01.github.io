@@ -17,11 +17,11 @@ In the [Natural Framework](/the-natural-framework), Consolidate reads from Trans
 |-------|--------|--------------|
 | Logs from any subset of pipeline skills | Per-repo hypothesis graphs, memory entries, parameter files, skill patches | Yes — lessons from whatever logs exist |
 
-**Identity:** retro on an empty log set is a no-op. No logs, no lessons, no writes.
+**Identity:** retro on a repo with no local logs and no GitHub PR history (own or others') is a no-op. Prior art search may run but produces an empty graph if the repo has no closed PRs.
 
-**Composition:** `retro(A) + retro(B) = retro(A ∪ B)` — parameter files are last-value-wins per key, memories dedup by topic, skill patches are idempotent edits.
+**Composition:** `retro(A) + retro(B) = retro(A ∪ B)` — parameter files are last-value-wins per key, memories dedup by topic, skill patches are idempotent edits. Hypothesis graphs are per-repo and keyed by PR number: re-running retro on the same repo updates existing entries (idempotent per PR) and appends new ones. Prior art entries are keyed by `PR#contributor` to prevent duplicates across passes.
 
-**Standalone use:** Run `/retro <repo>` with only a worklog and `gh pr list` output. No triage graph, no drip queue, no sweep state required. Retro compresses whatever logs it finds.
+**Standalone use:** Run `/retro <repo>` with only `gh` access. No triage graph, no drip queue, no sweep state required. With zero local logs, retro still produces a hypothesis graph from prior art (other contributors' outcomes) and pre-registrations (predictions for queued fixes). The minimum useful retro is prior art + pre-registration — no own outcomes needed.
 
 ## What it reads
 
