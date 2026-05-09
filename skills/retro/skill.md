@@ -15,7 +15,7 @@ In the [Natural Framework](/the-natural-framework), Consolidate reads from Trans
 
 | Input | Output | Valid alone? |
 |-------|--------|--------------|
-| Logs from any subset of pipeline skills | Memory entries, parameter files, skill patches | Yes — lessons from whatever logs exist |
+| Logs from any subset of pipeline skills | Per-repo hypothesis graphs, memory entries, parameter files, skill patches | Yes — lessons from whatever logs exist |
 
 **Identity:** retro on an empty log set is a no-op. No logs, no lessons, no writes.
 
@@ -39,7 +39,59 @@ Also reads: memory files (existing lessons), skill definitions (current paramete
 
 ## What it writes
 
-Three kinds of durable artifacts, in decreasing volatility:
+Four kinds of durable artifacts, in decreasing volatility:
+
+### 0. Per-repo hypothesis graph (the primary output)
+
+Written to `~/.sweep/repos/<owner>-<repo>/RETRO_GRAPH.md`. One graph per repo, updated on each retro pass. This is retro's main job: explain *why* each PR merged or didn't, linked to the meta-hypotheses from the [blog post](/sweep-and-triage).
+
+The meta-hypotheses (from the pipeline's own hypothesis graph):
+
+```
+H0: Issue-first PRs merge at higher rate than unsolicited
+H1: Review schema conformance predicts merge outcome
+H2: Standing is a gate that supersedes technical quality
+H3: Drip pacing prevents standing damage
+H4: Framing affects outcome independently of code quality
+H5: Maintainers optimize for review efficiency, not correctness
+H6: The pipeline produces higher merge rates than ad-hoc
+```
+
+For each PR outcome, classify which hypotheses it provides evidence for or against:
+
+```markdown
+# Retro Graph: owner/repo
+
+## PR #N — title (MERGED|CLOSED|OPEN)
+
+| Hypothesis | Evidence | Direction |
+|------------|----------|-----------|
+| H0 (issue-first) | PR addressed #123, maintainer-filed | FOR |
+| H1 (schema) | net deletion, tests included | FOR |
+| H2 (standing) | first PR to repo, no prior relationship | NEUTRAL |
+| H5 (efficiency) | 2 lines, merged in 56s | FOR |
+
+Reviewer quote: "Cool!"
+```
+
+Each PR is a data point. Each repo accumulates a trajectory. Cross-repo, the meta-graph aggregates: how many FOR vs AGAINST per hypothesis, across how many repos. This is what tells us whether the pipeline works — not merge count, but *which hypotheses the outcomes confirm or falsify.*
+
+**New repos with no PR outcomes yet:** write a pre-registration. What does the hypothesis graph predict will happen when the first PR ships? Which hypotheses are being tested? What would falsify them?
+
+```markdown
+## Pre-registration: ruff #16519 (not yet shipped)
+
+Predictions:
+- H0: issue-first (maintainer-labeled). Predict: merge rate > unsolicited baseline.
+- H1: schema conformance unknown (first contribution, no review schema yet).
+- H2: standing = zero. Predict: no standing gate if fix is small.
+- H5: 5 lines, mechanical regex addition. Predict: fast review if reviewer trusts the pattern.
+
+Falsification: PR rejected despite issue-first + small diff + collaborator endorsement.
+```
+
+The pre-registration makes the test explicit before the outcome is known. Retro then updates it with what actually happened.
+
 
 ### 1. Memory entries (cross-session)
 
@@ -95,14 +147,21 @@ Examples from prior sessions:
    - Ignored: note the timing and scope
    - Banned/warned: extract the exact quote and trigger
 
-3. **Diff against existing parameters.** What changed since the last retro? If merge rate dropped, why? If a new category appeared in the kill list, what triggered it?
+3. **Build per-repo hypothesis graphs.** For each repo with PR outcomes:
+   - Create or update `~/.sweep/repos/<owner>-<repo>/RETRO_GRAPH.md`
+   - For each PR, classify evidence for/against H0-H6
+   - For repos with no outcomes yet, write pre-registrations for queued fixes
+   - Cross-reference: does this repo's evidence change the aggregate picture?
 
-4. **Compress into artifacts.**
+4. **Diff against existing parameters.** What changed since the last retro? If merge rate dropped, why? If a new category appeared in the kill list, what triggered it?
+
+5. **Compress into artifacts.**
+   - Per-repo hypothesis evidence → `RETRO_GRAPH.md`
    - Cross-session lessons → memory entries
    - Repo-specific parameters → parameter files
    - Operational changes → skill definition patches
 
-5. **Log the retro itself.** Append to worklog: what was read, what was written, what changed. The retro is itself a loggable event.
+6. **Log the retro itself.** Append to worklog: what was read, what was written, what changed. The retro is itself a loggable event.
 
 ## Logging contract for upstream skills
 
