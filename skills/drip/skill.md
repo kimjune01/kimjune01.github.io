@@ -113,9 +113,9 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
 
 Before creating the PR, read the 5 most recently merged PRs on the repo. Match the title format, body length, and level of detail. If the queued entry's title or body doesn't match, rewrite it to fit. The chameleon rule from `/triage` applies here too.
 
-### Voice crosscheck (hard block)
+### Codex crosscheck (hard block)
 
-After tone matching, run an adversarial detection test. Fetch 5 recently merged PR titles and bodies from different contributors. Shuffle the candidate into the lineup as a 6th entry with no label. Send to `/gemini`:
+After tone matching, run an adversarial detection test. Fetch 5 recently merged PR titles and bodies from different contributors. Shuffle the candidate into the lineup as a 6th entry with no label. Send to `/codex` (GPT-5.5 is the best performer at AI-likeness detection among SOTA models):
 
 ```
 Here are 6 PR descriptions from a repo. One may be AI-generated. Which ones, and why?

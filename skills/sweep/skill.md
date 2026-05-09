@@ -152,8 +152,8 @@ For each branch pointer in `~/.sweep/drip-queue/<owner>-<repo>.jsonl`:
 1. **Staleness check.** Verify the issue is still open. Check for competing PRs that landed since triage.
 2. **Test gate.** Checkout default branch, run test — must fail. Checkout fix branch, run test — must pass.
 3. **PR description.** Generate from the real diff + issue context. Tone-match against 5 recent merged PRs from the repo.
-4. **Gemini volley.** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max.
-5. **Voice crosscheck.** Shuffle the generated description into a lineup of 5 real merged PR descriptions. Send to `/gemini`: "One may be AI-generated. Which ones, and why?" If identified, rewrite tells only (no checklist). Five rounds max. If still detectable: surface to the human.
+4. **Gemini volley.** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max. Gemini is best at tracing logic and catching scope issues.
+5. **Codex crosscheck.** Shuffle the generated description into a lineup of 5 real merged PR descriptions. Send to `/codex`: "One may be AI-generated. Which ones, and why?" Codex (GPT-5.5) is the best performer at AI-likeness detection among SOTA models. If identified, rewrite tells only (no checklist). Re-shuffle, re-test. Five rounds max. If still detectable: surface to the human.
 6. **Push** (full run only). `git push`, `gh pr create`. In dry-run, log what would be pushed and stop.
 
 PR descriptions are a **drip concern**, not a triage concern. Triage produces branches. Drip generates descriptions from diffs at push time.
