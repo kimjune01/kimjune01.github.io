@@ -29,7 +29,7 @@ Every skill in the pipeline emits logs. `/retro` reads them all:
 
 | Skill | Log location | What to look for |
 |-------|-------------|-----------------|
-| `/sweep` | worklog | Repos added/removed, review-schema decisions |
+| `/sweep` | `~/.sweep/SWEEP_LOG.md` + `~/.sweep/repos.jsonl` | Repos added/evicted, PRs pushed/merged/closed, agent failures, concurrency, model split changes, cross-repo findings |
 | `/triage` | `TRIAGE_GRAPH.md` + worklog | Items scored, killed, investigated. Kill reasons. |
 | `/investigate` | `HYPOTHESIS_GRAPH.md` + worklog | Hypotheses classified, perturbations run, CI results, trajectory shapes |
 | `/drip` | `~/.sweep/drip-queue/<owner>-<repo>.jsonl` + worklog | PRs pushed, merged, rejected, timing |

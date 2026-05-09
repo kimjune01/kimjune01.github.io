@@ -59,7 +59,9 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 
 ### Phase 1: Scan
 
-1. **Competing PR check (step 0).** Before fetching the full issue list, check for existing PRs on every candidate issue: `gh pr list --repo <repo> --search "<issue-number>" --state open`. If a PR exists and was updated in the last 30 days, mark the issue SKIP. This runs before scoring, not after investigation. Three competing-PR catches on gemini-cli proved this is the biggest waste of agent time.
+1. **Competing PR check (step 0).** Before fetching the full issue list, check for existing PRs on every candidate issue:
+   - **Open PRs:** `gh pr list --repo <repo> --search "<issue-number>" --state open`. If a PR exists and was updated in the last 30 days, mark the issue SKIP. Three competing-PR catches on gemini-cli proved this is the biggest waste of agent time.
+   - **Closed-unmerged body count:** `~/.sweep/bin/body-count <repo> <issue-number>`. Returns `verdict: "skip"` at 3+ distinct unmerged authors — the issue is a bot magnet. Mark SKIP without further investigation.
 
 2. Fetch open PRs and issues. Check `repos.jsonl` for `last_fetched` timestamp. On first scan, fetch everything. On re-scan, use `--search "updated:>YYYY-MM-DD"` to pull only items with new activity:
    - `gh pr list --repo <repo> --state open --search "updated:>YYYY-MM-DD" --json number,title,author,labels,reviewDecision,statusCheckRollup,comments,updatedAt,isDraft`

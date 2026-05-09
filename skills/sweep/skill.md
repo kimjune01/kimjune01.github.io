@@ -1,7 +1,7 @@
 ---
 name: sweep
 description: Fan out /triage across multiple repos in parallel. One triage per repo, shared cross-repo findings, unified drip queues.
-argument-hint: <repos-file-or-list> [--dry-run] [--limit N]
+argument-hint: <repos-file-or-list> [--dry-run] [--limit N] [--pipeline] [--monitor]
 allowed-tools: Read, Write, Edit, Bash, Agent, Glob
 ---
 
@@ -28,6 +28,7 @@ A list of repos, either:
 - Inline list: `/sweep tinygrad/tinygrad google-gemini/gemini-cli withastro/compiler`
 - `--dry-run` — passed through to each `/triage` invocation
 - `--limit N` — max items per repo (passed through to `/triage`)
+- `--concurrency N` — max subagents to spawn per pipeline tick (default 10). This is a per-tick spawn cap, not a global concurrent limit — we can't reliably count running subagents from the tick prompt. Stored in `~/.sweep/config.json`.
 - `--add <repo>` — add a repo to the sweep. Runs `/review-schema` for it, then starts triage.
 - `--remove <repo>` — remove a repo from the sweep. Stops any running triage agent for it, keeps existing results in `~/.sweep/repos/<owner>-<repo>/` for reference. Does not delete drip queues (they drain naturally).
 
@@ -51,6 +52,19 @@ To read current state: parse all lines, key by repo, take last entry. Filter `ac
 - Per repo: `TRIAGE_GRAPH.md` and `~/.sweep/drip-queue/<owner>-<repo>.jsonl`
 - Cross-repo: `SWEEP_GRAPH.md` in the working directory with cross-references between repos
 - Punch list: unified view across all repos, sorted by score
+- Sweep log: `~/.sweep/SWEEP_LOG.md` — append-only log of sweep events
+
+## Sweep log
+
+`~/.sweep/SWEEP_LOG.md` is the sweep-specific work log. Same format as `/log` entries (`## date` / `### HH:MM — summary`), but scoped to sweep events only. Append after every meaningful state change:
+
+- PRs pushed, merged, closed, or rejected
+- Repos triaged, evicted, or promoted
+- Skill updates, concurrency changes, model split changes
+- Agent failure patterns (half-finished, batch failures)
+- Cross-repo findings
+
+The sweep log lives at `~/.sweep/SWEEP_LOG.md`, not in the repo work log. Sweep events are high-volume and would drown the project work log. The project work log (`worklog/WORK_LOG.md`) gets a summary entry per session, not per tick.
 
 ## Process
 
@@ -77,23 +91,41 @@ Agent({
 for repo in repos.jsonl:
   Agent({
     subagent_type: "general-purpose",
+    model: "opus",
     run_in_background: true,
     prompt: "Full triage pipeline for <repo> [--dry-run]:
              1. Fork (gh repo fork --clone=false) if not already forked.
              2. Clone to ~/Documents/<repo-name> if not already cloned.
              3. Scan issues: competing PRs, scoring, kill list.
-             4. For each actionable issue:
-                a. /investigate — read code, find root cause, write fix, create branch.
-                b. Test gate — fail on master, pass on fix.
-                c. /codex — structural review of the fix.
-                d. /bug-hunt — adversarial verification.
-             5. Write branch pointer to ~/.sweep/drip-queue/<owner>-<repo>.jsonl.
-             6. Update ~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md with outcomes.
-             The branch IS the artifact. No PR descriptions — drip writes those from the diff at push time."
+             4. For the best actionable issue:
+                a. Read code, understand the problem, gather relevant file contents.
+                b. Send problem + code to /codex: 'Here is issue #N. Here are the relevant files. Implement a minimal fix.' Apply codex's output — edit the files yourself based on codex's response.
+                c. Test gate — run tests if feasible.
+                d. Send the fix diff to /gemini: 'Review this fix for logic errors, missed edge cases, inverted conditions.'
+                e. ITERATE: If codex or gemini suggest changes, apply them yourself (edit files), then re-send to the reviewer. Max 3 rounds. If gemini still rejects after 3 rounds, skip this issue and try the next one.
+             5. IMMEDIATELY after reviews pass: git add + git commit. Do not narrate, do not summarize, do not ask. Commit.
+             6. Write branch pointer to ~/.sweep/drip-queue/<owner>-<repo>.jsonl.
+             7. Write TRIAGE_GRAPH.md to ~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md.
+             
+             CRITICAL: Steps 5-7 are UNCONDITIONAL after step 4 passes. The codex/gemini feedback is a mid-point, not an endpoint. Your job is not done until the drip queue entry exists. If you end without writing a drip queue file, you have failed.
+             
+             You have full permission to edit files, run commands, and commit. Never ask for confirmation. Never report feedback and stop. Apply → iterate → commit → write artifacts."
   })
 ```
 
 Each agent runs the full pipeline end-to-end: scan → investigate → implement → test → review → queue. The output is a branch pointer in the drip queue, not a document. Agents that only produce TRIAGE_GRAPH.md without branches have not completed the pipeline.
+
+**Model split — opus orchestrates, codex implements, gemini gates:**
+
+Orchestration is token-cheap but judgment-heavy. Opus picks better issues and understands problems deeper — the cost difference vs. sonnet is negligible for scan/read/pick work. The expensive tokens are in implementation, and those go to codex.
+
+| Phase | Model | Role |
+|-------|-------|------|
+| Scan, pick, read code | **Opus** (agent) | Judgment — issue selection, competing PR analysis, problem understanding |
+| Implement fix | **Codex** (GPT-5.5 via `/codex`) | Structural reasoning — writes the actual fix code |
+| Quality gate | **Gemini** (3.1 Pro via `/gemini`) | Logic tracing — catches inverted conditions, missed branches |
+
+Steps 4b and 4d are **hard blocks**. A branch without codex implementation + gemini gate is a half-finished artifact. Do not queue it.
 
 Actionable searches for new work while triage agents investigate and implement on existing repos. When actionable finishes and adds new repos, spawn triage agents for them into the same pool.
 
@@ -149,6 +181,22 @@ Triage agents run the full pipeline per item: `/investigate` (read code, find ro
 
 The branch is the artifact. It contains the diff, commits, and test changes. Everything downstream reads from it.
 
+**Commit at implementation time.** Agents must `git add` + `git commit` as the final step of implementation, before writing the drip queue entry. An uncommitted branch is not an artifact — it's a half-finished workspace. The drip queue entry should reference a commit SHA.
+
+**Post-agent verification (self-healing).** After each triage agent completes, the pipeline tick checks the filesystem — not the agent's report. For each repo that was assigned to an agent:
+
+```bash
+# Does ~/Documents/<repo> exist with a fix branch and uncommitted changes?
+cd ~/Documents/<repo> && git status --short
+# If uncommitted changes exist on a fix branch: commit them
+# If committed but no drip queue file: write one
+# If drip queue file exists: done
+```
+
+This makes half-finished agents a recoverable state, not a failure. The agent did the work — the pipeline finishes the paperwork. No second agent needed, just a filesystem check after each completion notification. Agents that self-report correctly skip this step (idempotent). Agents that don't get cleaned up automatically.
+
+**Drip queues are per repo.** Each repo has its own independent queue at `~/.sweep/drip-queue/<owner>-<repo>.jsonl` with its own pacing. One open PR per repo at a time, but multiple repos can have open PRs simultaneously. Getting banned from one repo doesn't affect others.
+
 **Repo clones live in `~/Documents/`.** Fork the repo on GitHub (`gh repo fork --clone=false`), clone to `~/Documents/<repo-name>`, create the fix branch. This is where the code lives — the branch pointer in the drip queue references this local path.
 
 ### Phase 5: Quality gates (dry-run runs everything except push)
@@ -168,29 +216,56 @@ PR descriptions are a **drip concern**, not a triage concern. Triage produces br
 
 For full runs, load drip queues per repo. Each repo gets its own independent drip cadence. One open PR per repo at a time.
 
-### Phase 5: Heartbeat
+### Phase 5: Heartbeat (two crons)
 
-After all phases complete, set up a recurring wake-up to keep the pipeline alive:
+After all phases complete, set up two recurring wake-ups with separated concerns:
 
 ```
+# Pipeline tick — fast, does work
 CronCreate({
-  cron: "*/5 * * * *",
-  prompt: "/sweep --check --dry-run. Eviction checks. Spawn agents for repos with TRIAGE_GRAPH.md but no drip queue branch (stalled pipelines). Run quality gates on queued branches. Advance drip queue.",
+  cron: "*/2 * * * *",
+  prompt: "/sweep --pipeline. Three mandatory actions every tick — do ALL, never skip:
+           1. SPAWN up to --concurrency subagents (default 10, from ~/.sweep/config.json) for untriaged ready repos. model:opus, opus+codex+gemini split. Per-tick cap, not global.
+           2. RUN /drip on EVERY unblocked queued branch. Check org gate, then push.
+           3. Spawn impl subagents for stalled pipelines. Counts against per-tick cap.
+           'Idle' = zero ready repos AND zero queued branches AND zero stalled pipelines.",
+  recurring: true
+})
+
+# Monitor tick — slow, checks state
+CronCreate({
+  cron: "23 * * * *",
+  prompt: "/sweep --monitor. Use /drip --check on each repo with an open PR to check for reviews, comments, CI status, merges, or closures — /drip handles reviewer feedback and follow-up commits. Run eviction checks per the eviction table in the sweep skill. Check competing PRs on blocked items. Update SWEEP_GRAPH.md and ~/.sweep/SWEEP_LOG.md with state changes. If a PR merged, /drip advances the next queued branch for that repo. If a PR was rejected, log to /retro. Max 50 GitHub API calls.",
   recurring: true
 })
 ```
 
-Pass the same flags from the original invocation into the heartbeat prompt — including `--dry-run` if set. **Always create the heartbeat, even in dry-run.** Dry-run still needs the pipeline to keep cooking — checking agent progress, collecting results, writing readiness records. The only thing dry-run skips is remote side effects (no PRs, no pushes). The heartbeat is local.
+Pass `--dry-run` into both if set on the original invocation. **Always create both crons, even in dry-run.** Dry-run still needs the pipeline to keep cooking — the only thing it skips is remote side effects (no PRs, no pushes).
 
-**The heartbeat checks for incomplete pipelines.** On each tick:
-1. Eviction checks (before anything else).
-2. For repos with TRIAGE_GRAPH.md but no branch pointer in the drip queue: the pipeline stalled at triage. Spawn a new agent to run the full pipeline (fork → clone → investigate → implement → test → review → queue).
-3. For repos with queued branches: run quality gates (staleness, test, Gemini volley, codex crosscheck).
-4. For repos with fully qualified branches: in dry-run, log what would push. In full run, push via drip.
+#### `--pipeline` tick (every 2 minutes)
 
-A repo with a TRIAGE_GRAPH.md but no branch is an incomplete pipeline — the agent reported findings but didn't implement fixes.
+Fast tick for advancing work. **Keep the work queue saturated.** Don't wait for running agents to finish before spawning new ones — agents are independent.
 
-## Eviction (runs every tick)
+1. **Spawn up to `--concurrency` subagents this tick.** Use `model: "opus"`. Read `~/.sweep/config.json` for the cap (default 10). This is a per-tick spawn limit — spawn up to N new subagents each tick regardless of what's running from prior ticks. Pick order: warm leads first, then high-star.
+2. **Run `/drip` on every unblocked queued branch.** Check org gate, then push. Branches sitting in the queue are wasted work — push them.
+3. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). These count against the concurrency cap.
+4. **If all three are empty:** report idle. `/actionable` runs on the monitor tick (hourly), not here — it's too expensive for a 2-minute cadence.
+
+#### `--monitor` tick (hourly at :23)
+
+Slow tick matching review cadence. Checks external state.
+
+1. **Run `/drip --check` on each repo with an open PR.** Drip handles the full checkup: fetch reviewer comments, classify feedback, address changes requested, push follow-up commits, run gemini volley on updates. The monitor tick invokes drip, drip does the work.
+2. **Run eviction checks** per the eviction table below.
+3. **Check competing PRs** on blocked items — competing PR merged? Issue closed? Unblock or kill.
+4. **Update `SWEEP_GRAPH.md` and `~/.sweep/SWEEP_LOG.md`** with state changes.
+5. **If a PR was merged:** `/drip` advances the next queued branch for that repo. Update repos.jsonl.
+6. **If a PR was rejected:** log to `/retro` for the hypothesis graph. Check if approach needs revision or issue should be killed.
+7. **If the roster has zero untriaged repos**, run `/actionable` to expand. Hourly cadence is right for discovery — it's expensive but infrequent.
+
+**Why two crons:** Pipeline work (spawning agents, running tests) completes in minutes. PR reviews take hours to days. Polling PRs every 2 minutes wastes context on "no change" responses. Polling pipeline state hourly delays agent spawning. Each concern runs at its natural cadence.
+
+## Eviction (runs on `--monitor` tick)
 
 The roster grows via `/actionable`. Sweep prunes it. Check every heartbeat tick, before launching triage agents.
 
@@ -207,14 +282,14 @@ The roster grows via `/actionable`. Sweep prunes it. Check every heartbeat tick,
 
 **Competing-PR eviction:** If the only actionable issue on a repo has a competing open PR, and the repo has no other items, demote to `monitoring`. Don't evict — the competing PR might stall.
 
-**Apply now.** On each `--check` tick, scan `repos.jsonl` for eviction triggers before doing anything else. Log evictions to `~/.sweep/actionable/candidates.jsonl`.
+**Apply now.** On each `--monitor` tick, scan `repos.jsonl` for eviction triggers before doing anything else. Log evictions to `~/.sweep/actionable/candidates.jsonl`.
 
 ## Rules
 
 - **Never ask the user.** Sweep runs autonomously. If you have a hunch, act on it. If you're uncertain, skip it and move on. Log what you skipped and why. The user reads the punch list at the end, not a questionnaire in the middle.
 - **One triage per repo.** Never mix repos in a single triage run.
 - **Cross-pollinate, don't duplicate.** If two repos share a finding, write the cross-reference. Don't investigate the same thing twice.
-- **Independent drip queues.** Each repo has its own pacing. Getting banned from one repo doesn't affect the others.
+- **Independent drip queues, shared org gate.** Each repo has its own queue, but repos under the same GitHub org share a maintainer surface. Drip enforces `max_open_per_org` (default 1) — one open PR per org at a time. Getting banned from one repo in an org triggers cooldown on all repos in that org.
 - **Idempotent.** Running sweep twice skips repos whose triage is already complete (TRIAGE_GRAPH.md exists with all outcomes filled).
 - **Auth first.** Verify access to every repo before launching any agents.
 - **All PRs route through /drip.** No direct `gh pr create` during active pipeline runs. 14 manual PRs in 2 days triggered a ban warning. The drip queue exists to prevent this — enforce it.

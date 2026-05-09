@@ -36,15 +36,41 @@ Filter: not owned by you, still active, has open issues, not on cooldown. You ha
 
 For repos with high merge rates, check the same org, same dependency graph, same topic tags. Retro says what "good" looks like — actionable finds more of it.
 
-### 3. Cold search
+### 3. Cold search (multiple strategies)
 
+Keyword trawling alone fails for niche skillsets. Use all of these:
+
+**a. Label search (broad sweep)**
 ```
-gh search issues --label "help wanted" --language <lang> --sort created
+gh search issues --label "good first issue" --language <lang> --sort created --limit 200
+gh search issues --label "help wanted" --language <lang> --sort created --limit 200
 ```
+Cast wide — 200 results per language per label. Score by issue quality. At 1000 slots, false positives are cheap; false negatives are expensive.
 
-Use topics and languages from high-merge repos. Score by issue quality, not repo familiarity.
+**b. GitHub trending**
+```
+gh api /search/repositories?q=stars:>1000+pushed:>$(date -v-7d +%Y-%m-%d)&sort=updated&per_page=100
+```
+Active high-star repos. Filter for open good-first-issues. These repos have review bandwidth.
 
-**Cold search limitations (retro 2026-05-09):** Generic keyword trawling (`help wanted` + language) fails for compiler/optimizer niches — 10 agents across 2 rounds yielded zero candidates. The skillset (graph rewrite, dtype handling, AST manipulation) is too narrow for generic labels. **Prefer targeted monitoring** of specific repos (ruff, pyright, cuelang, zig) over keyword searches. Adjacent-repo expansion from high-merge orgs (e.g., withastro org → prettier-plugin-astro) produces better candidates than cold search.
+**c. Dependency graph traversal**
+For repos where you've merged PRs, check their dependency tree:
+```
+gh api repos/OWNER/REPO/dependency-graph/sbom
+```
+Upstream dependencies often share maintainers. If you have standing in `ruff`, check `astral-sh/uv`, `astral-sh/ty`, etc.
+
+**d. "Used by" expansion**
+GitHub shows repos that depend on a project. High-star dependents of projects you've contributed to are warm leads — you understand the dependency.
+
+**e. Topic cluster search**
+```
+gh search repos --topic=parser --topic=formatter --language=Go --sort=stars --limit 50
+gh search repos --topic=linter --topic=type-checker --language=Python --sort=stars --limit 50
+```
+Find repos in the same domain as your highest-merge repos.
+
+**Retro note (2026-05-09):** Compiler/optimizer niche is too narrow for generic labels. But general bug fixes, error messages, and docs span all domains. The pipeline's skillset is "read code, find root cause, write fix" — not limited to compilers. Expand the search to any well-maintained repo with mechanical acceptance criteria.
 
 ## What to skip
 
@@ -55,6 +81,7 @@ Use topics and languages from high-merge repos. Score by issue quality, not repo
 - Issues that need hardware you don't have — can't verify
 - **Fix exceeds merge ceiling** — if the estimated diff is >3x the repo's median merged PR size for external contributors, skip. A 2000-line feature on a repo that merges 30-line fixes is dead on arrival.
 - **Repos with `process_depth: shallow`** in their review schema — the pipeline produces investigation-backed PRs. Shallow-review repos can't absorb them. Only add shallow repos if the issue is trivial enough that investigation depth is unnecessary (1-line fix, obvious bug, failing test with known cause).
+- **Bot-magnet issues** — run `~/.sweep/bin/body-count <repo> <issue-number>`. If verdict is `"skip"` (3+ distinct unmerged authors), the issue is a honeypot. The signal isn't "nobody solved it yet," it's "the maintainer is tired of closing these."
 
 ## Output
 
@@ -79,18 +106,47 @@ After scoring candidates, select the final set using DPP-style diversity. Each c
 
 **Hypothesis-driven selection (retro 2026-05-09):** The pipeline is an experiment, not a merge optimizer. Each repo is a perturbation. Select repos that fill gaps in the hypothesis coverage, not just feature-vector distance. Ask "which hypothesis does this test?" before "will this merge?" Specifically: fast-review repos test H3 (pacing), solo maintainers test H2/H5, AI-friendly repos test H4. A repo that fills a hypothesis gap is worth more than a high-merge-probability repo that duplicates an existing condition.
 
-**Selection:** parallel with noise. Each agent scores candidates independently, then jitters each score before ranking:
+**Selection:** diversify strategies, not just results. Each parallel agent uses a **different search strategy** — one does label search, one does trending, one does dependency graph, one does topic clusters. Strategy diversity prevents correlated search spaces.
 
+### Multi-leg stochastic search
+
+Each search leg randomizes its criteria so repeated /actionable runs explore different GitHub slices. Use the shell for randomness — LLMs can't generate it.
+
+**Before each search, roll the dice:**
+```bash
+# Pick random language
+LANG=$(python3 -c "import random; print(random.choice(['Go','Rust','Python','TypeScript','Java','C++','C#','Ruby','Zig','Elixir','Haskell','Scala','Swift','Kotlin']))")
+
+# Pick random label combination
+LABELS=$(python3 -c "import random; labels=['good first issue','bug','help wanted','enhancement','documentation','P-low','accepted','confirmed','triaged','easy']; combo=random.sample(labels, random.randint(1,2)); print(' '.join(['--label \"'+l+'\"' for l in combo]))")
+
+# Pick random sort
+SORT=$(python3 -c "import random; print(random.choice(['created','updated','comments','reactions']))")
+
+# Pick random star range
+STARS=$(python3 -c "import random; lo=random.choice([500,1000,2000,5000,10000]); print(f'stars:>{lo}')")
+
+# Pick random age window
+DAYS=$(python3 -c "import random; print(random.randint(7,90))")
+```
+
+**Then search with the rolled criteria:**
+```bash
+gh search issues $LABELS --language $LANG --sort $SORT --limit 50 --json repository,title,number
+gh search repos --language $LANG --sort stars --limit 50 --json nameWithOwner,stargazerCount -- "$STARS pushed:>$(date -v-${DAYS}d +%Y-%m-%d)"
+```
+
+**Why multi-leg:** deterministic searches converge to the same repos every time. The first run finds the obvious candidates. The second run finds the same ones. Stochastic legs explore different corners — a random roll of `Zig + "accepted" + sort:reactions` finds repos that `Python + "good first issue" + sort:created` never would. Run enough legs and the coverage is broad without a coordinator.
+
+**Iteration:** if a leg returns zero new repos (all already in roster), re-roll and try again. Max 5 re-rolls per leg before giving up. The skill iterates stochastically until it finds new work or exhausts its re-roll budget.
+
+Within each strategy, jitter scores:
 ```bash
 jitter=$(python3 -c "import random; print(random.uniform(0.7, 1.3))")
 jittered_score=$(python3 -c "print($score * $jitter)")
 ```
 
-LLMs can't generate real randomness — use the shell. The noise prevents convergence: five agents with the same scoring function pick five different repos because each sees a different permutation of the ranking. Dedup at the sweep level: if two agents pick the same repo, one re-rolls.
-
-No central coordinator. No partitioning. Just jittered scores and a dedup pass.
-
-The result: diverse repos without a bottleneck. The noise does what DPP's repulsion kernel does, cheaper.
+No central coordinator. No partitioning. Strategy diversity × score noise × criteria randomization = broad coverage without bottleneck.
 
 ## Standing-gated bug hunt
 
@@ -137,9 +193,9 @@ The roster grows. It shouldn't grow forever. Evict repos that aren't producing v
 ## Rules
 
 - **Respect cooldowns.** If retro says cooldown, don't add the repo.
-- **Cap at 1000 active repos.** Three-tier polling: **hot** repos (open PR from you) check every tick for reviewer comments; **warm** repos (no open PR but fast review cadence, e.g. click at 6-min median) check every 15 minutes because the full submit→merge→retro cycle completes in one session; **cold** repos (no open PR, slow review) check once per hour. Batch cold/warm checks with GraphQL — one query for ~20 repos. Stagger: 5 batches of 20 per tick, round-robin. Eviction keeps the roster under the cap.
+- **1000 slots is effectively infinite.** At ~20 active repos, we're at 2% capacity. Add liberally — eviction handles pruning. Don't handpick; screen wide, let the pipeline surface what works.
 - **Never your own repos.** Filter out repos where you are the owner. The pipeline is for contributing to other people's projects.
-- **Cold discovery needs human approval.** Repos the agent hasn't touched before get `pending_review`.
+- **Add directly as `ready`.** No `pending_review` gate. Cold repos go straight to `ready` status. Eviction prunes repos that don't produce — the gate is downstream, not upstream.
 - **Issue-first.** Don't add a repo unless there's a specific issue worth investigating. Repos without actionable issues are noise.
 - **Mundane is fine.** Doc fixes, error messages, edge case handling — the agent doesn't get bored. Easy merges build contributor trust that makes harder PRs land later. Don't skip "good first issue" just because it's boring.
 - **`--dry-run`** reports changes without writing.

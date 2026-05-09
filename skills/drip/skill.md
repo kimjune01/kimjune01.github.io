@@ -99,6 +99,7 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
 3. Count entries with status `open`. If any open PR has unaddressed reviewer feedback, stop. Address feedback first, push new PRs second. If < `max_open`, no unaddressed feedback, and there are `queued` entries:
    - Take the next `queued` entry
    - **Staleness check (hard block).** Before pushing, verify the issue is still open: `gh issue view <number> --repo <repo> --json state`. If closed, mark `status: "issue_closed"`, skip. Check for competing PRs: `gh pr list --repo <repo> --search "<keywords>"`. If someone else landed a fix, mark `status: "superseded"`, skip. The gap between triage and push can be days — the world moves.
+   - **Org gate (hard block).** Run `~/.sweep/bin/org-gate <repo>`. If verdict is `"blocked"`: a sibling repo has an open/recent PR, wait. If verdict is `"hostile"`: multiple PRs closed without merge across the org recently, surface to the human before pushing. `max_open_per_org` defaults to 1. Override via retro params.
    - **Test gate (hard block).** The queue entry must include a test command. Run it:
      1. Checkout the repo's default branch. Run the test. It must **fail**. If it passes, mark `status: "test_passes_on_master"`, skip, report. The bug is already fixed or the test is wrong.
      2. Checkout the fix branch. Run the test. It must **pass**. If it fails, mark `status: "test_fails_on_fix"`, skip, report. The fix is broken.
@@ -158,6 +159,7 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 
 - **Auth first.** Every invocation starts with `gh auth status`. Fail fast on auth issues.
 - **One at a time by default.** `max_open` defaults to 1. Override with `--max-open N` on first use.
+- **One per org by default.** Repos under the same GitHub org share a maintainer surface. Push to one org repo at a time. Override with `max_open_per_org` in retro params. Three batch-closes taught this: click, jinja, and quart hit davidism's inbox on the same day.
 - **Fork only.** Always push to the `fork` remote, never `origin`. PRs are created with `--head <user>:<branch>`. Pushing to upstream is rude — you're a guest, not a maintainer.
 - **Never force push.** If the branch needs a rebase, do it before adding to the queue. Drip pushes, it doesn't fix.
 - **Check before push.** Always verify the branch exists locally, is up to date with the repo's default branch, and tests pass before adding to the queue.
@@ -177,3 +179,4 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 - **Fork remote missing:** stop, report. The user sets up the fork.
 - **PR creation fails (permissions):** mark `status: "error"`, report the `gh` error. Don't retry.
 - **PR closed by maintainer:** mark `status: "closed"`, advance to next entry. Don't reopen.
+- **Org-level rejection:** Multiple PRs closed without review across repos in the same org within 24 hours = org-level rejection. Set cooldown on **all repos in that org**, not just the closed one. Log the cross-repo pattern to each repo's retro file. Don't push to any repo in the org until the cooldown expires or the human overrides.
