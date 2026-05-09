@@ -16,7 +16,11 @@ Five agents on five bugs in parallel. The tree broke. Agent A discovered RDNA4's
 
 Nodes are shared across investigations.
 
+<div style="width:95vw;margin-left:calc(-47.5vw + 50%)">
+
 ![Pipeline flow: sweep → triage → parallel investigate agents → hypothesis graph → lineup gate → drip, with retro reading logs from all stages](/assets/sweep-and-triage-pipeline.svg)
+
+</div>
 
 ### Independent investigations aren't
 
