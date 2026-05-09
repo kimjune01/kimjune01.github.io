@@ -4,15 +4,15 @@ title: "Sweep & Triage"
 tags: coding, methodology
 ---
 
-When I got [investigate](/investigate) working, I got excited. The [hypothesis graph](/the-hypothesis-graph), [fan-out](/fan-out) competing hypotheses, classify [evidence trajectories](/evidence-has-a-trajectory), run [prework](/prework), [bug-hunt](/bug-hunt) until convergence. It had produced a one-number PR with a 62-105% speedup and full provenance. I was eager to apply directly to a well-maintained repo. So I did.
+When I got [investigate](/investigate) working, I got excited. [Hypothesis graph](/the-hypothesis-graph), [fan-out](/fan-out) competing hypotheses, classify [evidence trajectories](/evidence-has-a-trajectory), run [prework](/prework), [bug-hunt](/bug-hunt) until convergence. One PR fell out: a single number change, 62-105% speedup, full provenance. I pointed it at a well-maintained repo.
 
-A maintainer batch-closed everything and said "I'm not reading anything written by AI." The fixes were correct (net zero lines, 47-59% speedup) but the communication was wrong. Eleven PRs in two days. No tests. No tone matching. Any reasonable self-respecting engineer would take their attention elsewhere.
+The maintainer batch-closed everything. "I'm not reading anything written by AI." The fixes were correct (net zero lines, 47-59% speedup) but the communication was wrong. Eleven PRs in two days. No tests. No tone matching. Any self-respecting engineer would look away.
 
-I am not reasonable and don't respect myself a lot. But I am tenacious. I knew the PRs weren't mergeable because my skills were weak, not because the methodology was wrong. I had the [evidence](/does-iteration-mitigate-slop-slope) that iterative review pushes merge-readiness from 43% to 91%. I had investigate for engineering automation. They weren't composing. What if they could?
+I am not reasonable and don't respect myself a lot. But I am tenacious. The PRs weren't mergeable because my skills were weak, not the methodology. Iterative review pushes merge-readiness from [43% to 91%](/does-iteration-mitigate-slop-slope). Investigate automates engineering. They weren't composing. What if they could?
 
 ## The turn
 
-Then I scaled to five agents on five bugs in parallel, and the tree broke. Agent A discovered RDNA4's [WMMA](https://gpuopen.com/learn/using_matrix_core_amd_rdna4/) has different operand lane mapping than RDNA3. Agent B was about to push a perturbation assuming all AMD GPUs share the same mapping. Without the agents talking, B would waste a CI run discovering what A already knew.
+Five agents on five bugs in parallel. The tree broke. Agent A discovered RDNA4's [WMMA](https://gpuopen.com/learn/using_matrix_core_amd_rdna4/) maps operands differently than RDNA3. Agent B was about to push a perturbation assuming all AMD GPUs share the same mapping. Without the agents talking, B wastes a CI run discovering what A already knew.
 
 Nodes are shared across investigations.
 
@@ -20,7 +20,7 @@ Nodes are shared across investigations.
 
 ### Independent investigations aren't
 
-The naive dispatcher is a router: read the issue list, assign each to an agent, collect results.
+The naive dispatcher routes: read the issue list, assign each to an agent, collect results.
 
 In one session I had two PRs open against the same heuristic in tinygrad. PR #16107 changed the post-tensor-core optimization from UPCAST M+N to UPCAST N only. PR #16109 tried a reduced UNROLL factor on the same code path. When CI showed UPCAST N alone broke AMD [gfx1201](https://rocm.docs.amd.com/en/latest/reference/gpu-arch-specs.html), that finding applied to both PRs. The root cause was WMMA operand lane mapping, and any post-TC optimization that changed axis coverage would hit the same wall.
 
@@ -28,55 +28,51 @@ A dumb router would have two agents burning two CI runs on identical perturbatio
 
 ### The file is the data structure
 
-A markdown file with named nodes. If another agent already classified the hypothesis, it skips the experiment and cites the existing node. If it discovers something affecting another investigation, it writes a cross-reference edge.
+A markdown file with named nodes. If another agent already classified the hypothesis, it skips the experiment and cites the node. If it discovers something affecting another investigation, it writes a cross-reference edge.
 
-Agents don't write to the shared graph directly. Each agent gets a [git worktree](https://git-scm.com/docs/git-worktree) (its own branch, its own working copy) and writes to `TRIAGE_RESULT.T<number>.md`. When it completes, the dispatcher reads the result, merges the node into `TRIAGE_GRAPH.md` on the main branch, and spawns the next agent with the updated graph as context. Git branches give you isolation, checkpointing, and dedup via named node IDs.
+Agents don't write to the shared graph directly. Each gets a [git worktree](https://git-scm.com/docs/git-worktree) and writes to `TRIAGE_RESULT.T<number>.md`. On completion, the dispatcher merges the node into `TRIAGE_GRAPH.md` and spawns the next agent with the updated graph as context. Worktrees give you isolation, checkpointing, and dedup via named node IDs.
 
 ### CI as a remote lab
 
-CI is the lab. I don't own AMD RDNA4 hardware. tinygrad's CI does. Each perturbation is a commit on a draft PR: push, wait for CI, read the logs, classify the trajectory, update the graph, push again.
+CI is the lab. I don't own AMD RDNA4 hardware; tinygrad's CI does. Each perturbation is a commit on a draft PR: push, wait for CI, read the logs, classify the trajectory, update the graph, push again.
 
-The cost model inverts. Locally, experiments are cheap: run the test, see the result in seconds. With CI-as-lab, each experiment costs 10 minutes and one CI run. Every perturbation you skip because another agent already classified the node saves a CI run.
+Locally, experiments are cheap: run the test, see the result in seconds. With CI-as-lab, each costs 10 minutes and one CI run. Every perturbation you skip because another agent already classified the node saves a run.
 
 ### Pacing
 
-The dispatcher can produce perfect work (failing tests, one-line fixes, full provenance) and still fail completely. Eleven PRs in two days got me banned from a repo.
+Perfect work can still fail. Flood a maintainer's inbox and the "AI slop" reflex fires before anyone reads the code. One clean PR per week earns trust; five per day earns a ban. `/drip` throttles: one open PR per repo, 15-minute heartbeat, queue drains at the maintainer's pace.
 
-The riskiest part of parallel agent triage is flooding a maintainer's inbox and triggering the "AI slop" reflex before anyone reads the code. One clean PR per week earns trust. Five PRs per day earns a ban.
+Tone mismatch is subtler. A repo where merged PRs are terse one-liners ("fix X") rejects a three-paragraph explanation with benchmark tables, even if the content is correct. `/drip` samples recently merged PRs and matches the voice: length, formatting, level of detail.
 
-The dispatcher needs a throttle. That throttle is `/drip`: one open PR per repo, 15-minute heartbeat, queue drains at the maintainer's pace. The pacing is encoded in the skill, not left to human discipline.
-
-There's a subtler version of the same problem: tone mismatch. A repo where merged PRs are terse one-liners ("fix X") will reject a three-paragraph explanation with benchmark tables, even if the content is correct. `/drip` samples recently merged PRs and matches the voice before creating each PR: length, formatting, level of detail.
-
-Scale introduced three problems the single-agent version didn't have: shared state, CI cost, and social pacing. The shared graph solved the first. Dedup solved the second. Drip solved the third. The question is whether it can run unattended.
+Scale introduced three problems the single-agent version didn't have: shared state, CI cost, social pacing. The shared graph solved the first; dedup solved the second; drip solved the third. The question is whether it can run unattended.
 
 ## The prestige
 
-The pipeline starts from issues, not repos. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria: bugs with reproducers, performance regressions with benchmarks, "help wanted" labels on items nobody claimed. It reads retro's parameters to decide where to look next. Repos where PRs merge get more attention. Repos on cooldown get skipped.
+The pipeline starts from issues, not repos. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria: bugs with reproducers, performance regressions with benchmarks, "help wanted" labels nobody claimed. Retro's parameters decide where to look next. Repos where PRs merge get more attention; repos on cooldown get skipped.
 
-Sweep finds candidates within each repo. Triage kills the weak ones. What survives gets an [investigation](/investigate). Drip throttles publication. Retro reads the logs after each cycle and compresses lessons into the substrate.
+Sweep finds candidates. Triage kills the weak ones. What survives gets an [investigation](/investigate). Drip throttles publication. Retro compresses logs into the substrate after each cycle.
 
 ### Gemini at every interface
 
-No human is watching. Every handoff between pipeline stages gets a gemini volley: send the output, apply feedback, re-send, up to five rounds. After triage scores items, gemini reviews the kill decisions. After investigate diagnoses, gemini checks the causal chain. After prework builds a fix, gemini checks it against the original issue. Before drip pushes, gemini reads the full PR package as if it were a maintainer seeing it cold. Each volley improves the work before it moves on.
+No human watches. Every handoff between stages gets a gemini volley: send the output, apply feedback, re-send, up to five rounds. Triage scores items; gemini reviews the kill decisions. Investigate diagnoses; gemini checks the causal chain. Prework builds a fix; gemini checks it against the original issue. Before drip pushes, gemini reads the full PR as a maintainer seeing it cold. Each volley tightens the work before it moves on.
 
 ### The lineup
 
-"I'm not reading anything written by AI." Matching format isn't enough. The goal is to remove prose habits that make reviewers evaluate the author instead of the patch. Claude writes "clean" prose that's its own tell: no typos, no shortcuts, perfect parallel structure, hedges like "it's worth noting."
+"I'm not reading anything written by AI." Format matching isn't enough. The goal: remove prose habits that make reviewers evaluate the author instead of the patch. Claude writes "clean" prose that's its own tell. No typos, no shortcuts, perfect parallel structure, hedges like "it's worth noting."
 
-After tone matching, the PR body goes through a lineup: shuffle it in with 5 real PRs from the repo, unlabeled, and ask a second model to guess which one is AI. If it can't tell, the candidate passes. If it can, the explanation names the tells: "this one hedges where the others assert," "this one explains what the diff already shows." Rewrite to fix the specific tells, re-shuffle, re-test. Five rounds max. No rubric, no checklist. [Detection is a wasting asset under feedback](/slop-detection): any checklist you give the rewriter becomes the exploit surface. The lineup works because it diagnoses, not prescribes. If it's still detectable, surface to the human. Some repos have a voice Claude can't fake.
+After tone matching, the PR body goes through a lineup: shuffle it with 5 real PRs from the repo, unlabeled, and ask a second model which one is AI. If it can't tell, pass. If it can, the explanation names the tells: "this one hedges where the others assert," "this one explains what the diff already shows." Fix the tells, re-shuffle, re-test. Five rounds max. [Detection is a wasting asset under feedback](/slop-detection): any checklist you give the rewriter becomes the exploit surface. The lineup diagnoses, not prescribes. If it's still detectable after five rounds, surface to the human. Some repos have a voice Claude can't fake.
 
 ### The bottleneck shifts
 
-The gemini volleys, the lineup, the test gate, the staleness check. Each one pushes the PR closer to what a maintainer would merge on first read. I [measured this](/does-iteration-mitigate-slop-slope): without a review loop, 43% of LLM-generated PRs are merge-ready. With iterative cross-model review, 91%. Same code, same spec. The loop is the difference. The adversarial reviewer never converges to zero findings; it oscillates. But the independent reviewer approves anyway. You don't finish kneading dough. You just knead enough that the structure is sound.
+Without a review loop, [43% of LLM-generated PRs are merge-ready](/does-iteration-mitigate-slop-slope). With iterative cross-model review, 91%. Same code, same spec. The adversarial reviewer never converges to zero findings; it oscillates. The independent reviewer approves anyway. You don't finish kneading dough. You knead enough that the structure holds.
 
-Run this on enough machines across enough repos and the bottleneck is no longer investigation, pacing, or review readiness. The bottleneck is issue creation. Maintainers filing bugs, users reporting regressions, benchmarks exposing performance gaps. That's the supply of work the pipeline consumes. Everything downstream of a well-filed issue is automatable. The issue itself is not.
+At scale, the bottleneck moves to issue creation. Maintainers filing bugs, users reporting regressions, benchmarks exposing gaps. That's the supply. Everything downstream of a well-filed issue is automatable. The issue itself is not.
 
-The pipeline is [copyleft](https://github.com/kimjune01/sweep). Anyone can run it. An army of contributors all running sweep concurrently, each with their own seeds, their own review schemas, their own standing progression — issues get found and fixed at a rate no single maintainer could match. The merge history becomes a trust graph. Standing compounds across repos. The pipeline is the contributor.
+The pipeline is [copyleft](https://github.com/kimjune01/sweep). Anyone can run it. Contributors running sweep concurrently, each with their own seeds, schemas, standing. Issues get found and fixed faster than any single maintainer could review. The merge history becomes a trust graph. Standing compounds. The pipeline is the contributor.
 
-Every phase checks existing state before acting. Kill the process, restart tomorrow. The graph is the resume point. The [experiment artifacts](https://github.com/kimjune01/tinygrad-experiments) from the tinygrad investigations are public. The [pipeline state](https://github.com/kimjune01/sweep) — repos, triage graphs, drip queues, retro parameters — is public too. Every skill emits structured logs, so a dashboard snapshots the pipeline state at any point.
+Every phase checks existing state before acting. Kill the process, restart tomorrow. The graph is the resume point. The [experiment artifacts](https://github.com/kimjune01/tinygrad-experiments) and the [pipeline state](https://github.com/kimjune01/sweep) (repos, triage graphs, drip queues, retro parameters) are public. Every skill emits structured logs; a dashboard snapshots pipeline state at any point.
 
-I am still not reasonable. I haven't hit the hard cases. Once I do, the logs will show it and the skills, improved.
+I am still not reasonable. I haven't hit the hard cases. When I do, the logs will show it and the skills, improved.
 
 ## Case study: tinygrad
 
@@ -101,7 +97,7 @@ I am still not reasonable. I haven't hit the hard cases. Once I do, the logs wil
 
 The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in under a minute. The rejection trajectory: volume → AI detection → "I'm not reading" → ban warning. By PR #10, the maintainer was evaluating the contributor, not the code. #16094 had an [18-hypothesis investigation](https://github.com/kimjune01/tinygrad-experiments/blob/master/realize/HYPOTHESIS_GRAPH.md) behind it, 12.4x speedup verified across backends and architectures, multi-turn correctness tested. Closed without a word.
 
-I wasn't the first. A search for "AI slop" in tinygrad's PR comments turns up a graveyard: #15491 (29% scheduling speedup, +46/-18, benchmarked, 434 tests passing — "DO NOT SUBMIT AI SLOP"), #14364 (kernel optimizer — "AI slop not worth considering"), #15553 (CDNA4 fix — "AI slop, just close"), and a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). One PR (#15576, +3/-3) got through with "lol early AI wrote those tests, but since there's tests, merged." He knows. He merges when the diff is cheap enough to verify by inspection, regardless of tooling. The gate isn't AI — it's attention cost.
+I wasn't the first. A search for "AI slop" in tinygrad's PR comments turns up a graveyard: #15491 (29% scheduling speedup, +46/-18, benchmarked, 434 tests passing: "DO NOT SUBMIT AI SLOP"), #14364 (kernel optimizer: "AI slop not worth considering"), #15553 (CDNA4 fix: "AI slop, just close"), and a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). One PR (#15576, +3/-3) got through with "lol early AI wrote those tests, but since there's tests, merged." He knows. He merges when the diff is cheap enough to verify by inspection, regardless of tooling. The gate isn't AI. It's attention cost.
 
 ## The hypothesis graph
 
