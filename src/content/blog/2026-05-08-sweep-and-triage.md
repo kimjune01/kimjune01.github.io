@@ -118,10 +118,10 @@ The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in u
 
 I was the latest. A search for "AI slop" in tinygrad's PR comments turns up a graveyard:
 
-- #15491: 29% scheduling speedup, +46/-18, benchmarked, 434 tests passing. "DO NOT SUBMIT AI SLOP."
-- #14364: kernel optimizer. "AI slop, not worth considering."
-- #15553: CDNA4 fix. "AI slop, just close."
-- #15576: +3/-3. "lol early AI wrote those tests, but since there's tests, merged."
+- [#15491](https://github.com/tinygrad/tinygrad/pull/15491): 29% scheduling speedup, +46/-18, benchmarked, 434 tests passing. "DO NOT SUBMIT AI SLOP."
+- [#14364](https://github.com/tinygrad/tinygrad/pull/14364): kernel optimizer. "AI slop, not worth considering."
+- [#15553](https://github.com/tinygrad/tinygrad/pull/15553): CDNA4 fix. "AI slop, just close."
+- [#15576](https://github.com/tinygrad/tinygrad/pull/15576): +3/-3. "lol early AI wrote those tests, but since there's tests, merged."
 
 And a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). #15576 is the tell: he knows, and merges when the diff is cheap enough to verify by inspection. The gate is attention cost.
 
