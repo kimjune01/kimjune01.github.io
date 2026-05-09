@@ -33,7 +33,8 @@ Every skill in the pipeline emits logs. `/retro` reads them all:
 | `/triage` | `TRIAGE_GRAPH.md` + worklog | Items scored, killed, investigated. Kill reasons. |
 | `/investigate` | `HYPOTHESIS_GRAPH.md` + worklog | Hypotheses classified, perturbations run, CI results, trajectory shapes |
 | `/drip` | `~/.sweep/drip-queue/<owner>-<repo>.jsonl` + worklog | PRs pushed, merged, rejected, timing |
-| GitHub | `gh pr list --author @me --state all` | Reviewer comments, merge/close reasons, time to response |
+| GitHub (own) | `gh pr list --author @me --state all` | Reviewer comments, merge/close reasons, time to response |
+| GitHub (prior art) | `gh search prs --repo OWNER/REPO --state closed` | Other contributors' rejections, merge patterns, maintainer language. Base rates for H0-H6 before you submit. |
 
 Also reads: memory files (existing lessons), skill definitions (current parameters).
 
@@ -91,6 +92,43 @@ Falsification: PR rejected despite issue-first + small diff + collaborator endor
 ```
 
 The pre-registration makes the test explicit before the outcome is known. Retro then updates it with what actually happened.
+
+**Prior art (other contributors' outcomes):** Before writing pre-registrations, search the repo for other contributors' PR outcomes that provide evidence for H0-H6. Other people already ran the experiments. Their rejections and merges are public data.
+
+```bash
+# Find maintainer rejection patterns
+gh search prs --repo OWNER/REPO --state closed --sort created --limit 20 \
+  --json number,title,author,comments,closedAt
+
+# Search for explicit rejection language
+gh api "repos/OWNER/REPO/pulls?state=closed&per_page=30" \
+  --jq '.[].number' | while read n; do
+  gh api "repos/OWNER/REPO/pulls/$n/comments" \
+    --jq '.[].body' 2>/dev/null
+done | grep -i "slop\|AI\|ban\|reject\|close\|not reading\|low quality"
+```
+
+Classify others' outcomes the same way as your own:
+
+```markdown
+## Prior art (other contributors)
+
+### PR #15491 by contributor-X (CLOSED)
+Title: 29% scheduling speedup (+46/-18)
+Reviewer: "DO NOT SUBMIT AI SLOP"
+| H2 (standing) | new contributor, no prior merges | FOR |
+| H4 (framing) | benchmarked, tests passing, but AI-detectable prose | FOR |
+| H5 (efficiency) | +46 lines, requires context to review | FOR |
+
+### PR #15576 by contributor-Y (MERGED)
+Title: +3/-3 fix
+Reviewer: "lol early AI wrote those tests, but since there's tests, merged"
+| H1 (schema) | +3/-3, tests included | FOR |
+| H4 (framing) | AI-written but small enough to not trigger | FOR |
+| H5 (efficiency) | 3 lines, trivially verifiable | FOR |
+```
+
+Prior art establishes the repo's base rates before you submit anything. Pre-registrations then predict against those base rates: "This repo rejects AI-detectable prose at 80%+ (N=4 prior rejections). Our fix is 5 lines with no prose. Predict: framing gate does not fire."
 
 
 ### 1. Memory entries (cross-session)
