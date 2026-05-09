@@ -33,7 +33,7 @@ A list of repos, either:
 
 ## State file
 
-`~/.sweep/repos.json` tracks the active repo list and per-repo status:
+`~/.sweep/repos.jsonl` tracks the active repo list and per-repo status:
 
 ```json
 {
@@ -59,7 +59,7 @@ Adding a repo sets it to `pending_schema`. Removing sets it to `removed` (kept f
 ### Phase 0: Preflight
 
 1. `gh auth status` — fail fast on auth issues
-2. Read `~/.sweep/repos.json` if it exists. These are the known repos.
+2. Read `~/.sweep/repos.jsonl` if it exists. These are the known repos.
 
 ### Phase 1: Fan out (concurrent)
 
@@ -70,13 +70,13 @@ Launch everything in parallel. Don't wait for actionable to finish before invest
 Agent({
   subagent_type: "general-purpose",
   run_in_background: true,
-  prompt: "Run /actionable. Find new repos, update repos.json.
+  prompt: "Run /actionable. Find new repos, update repos.jsonl.
            For each new repo, run /review-schema.
            Report additions when done."
 })
 
 # Agents 2–N: triage on known repos (background, one per repo)
-for repo in repos.json:
+for repo in repos.jsonl:
   Agent({
     subagent_type: "general-purpose",
     isolation: "worktree",
@@ -170,11 +170,11 @@ The roster grows via `/actionable`. Sweep prunes it. Check every heartbeat tick,
 | No open items AND no open PRs by user | evict |
 | Status is `dormant` for >14 days | evict |
 
-**Eviction means:** status → `evicted` in `repos.json`. Drip queue drains (don't abandon open PRs). State files kept for reference. Repo can be re-added with `--add`.
+**Eviction means:** status → `evicted` in `repos.jsonl`. Drip queue drains (don't abandon open PRs). State files kept for reference. Repo can be re-added with `--add`.
 
 **Competing-PR eviction:** If the only actionable issue on a repo has a competing open PR, and the repo has no other items, demote to `monitoring`. Don't evict — the competing PR might stall.
 
-**Apply now.** On each `--check` tick, scan `repos.json` for eviction triggers before doing anything else. Log evictions to `~/.sweep/actionable/candidates.jsonl`.
+**Apply now.** On each `--check` tick, scan `repos.jsonl` for eviction triggers before doing anything else. Log evictions to `~/.sweep/actionable/candidates.jsonl`.
 
 ## Rules
 

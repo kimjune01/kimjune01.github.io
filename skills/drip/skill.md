@@ -161,6 +161,7 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 
 - **Auth first.** Every invocation starts with `gh auth status`. Fail fast on auth issues.
 - **One at a time by default.** `max_open` defaults to 1. Override with `--max-open N` on first use.
+- **Fork only.** Always push to the `fork` remote, never `origin`. PRs are created with `--head <user>:<branch>`. Pushing to upstream is rude — you're a guest, not a maintainer.
 - **Never force push.** If the branch needs a rebase, do it before adding to the queue. Drip pushes, it doesn't fix.
 - **Check before push.** Always verify the branch exists locally, is up to date with the repo's default branch, and tests pass before adding to the queue.
 - **Fail on master, pass with fix.** Before pushing any candidate, checkout master's code and run the test. It must fail. Then checkout the fix and run the test. It must pass. If either check fails, do not push. This is the assertion that every PR makes — verify it locally before asking a reviewer to verify it for you.

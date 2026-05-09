@@ -9,7 +9,7 @@ Canonical paths, schemas, and side-effect policy for the skill pipeline.
 | Drip queue | `~/.sweep/drip-queue/<owner>-<repo>.jsonl` | JSONL, append-only | triage (enqueue), drip (status transitions) | drip, retro |
 | Retro parameters | `~/.sweep/retro/<owner>-<repo>.jsonl` | JSONL, append-only, last-value-wins per key | retro | triage, drip |
 | Structured event log | `~/.sweep/sweep-log/<owner>-<repo>.jsonl` | JSONL, append-only | triage, investigate, drip, sweep | retro |
-| Sweep repo list | `~/.sweep/repos.json` | JSON (single object) | actionable, sweep | actionable, sweep, dashboard |
+| Sweep repo list | `~/.sweep/repos.jsonl` | JSONL, append-only, last-action-wins per repo | actionable, sweep | actionable, sweep, dashboard |
 | Discovery candidates | `~/.sweep/actionable/candidates.jsonl` | JSONL, append-only | actionable | retro |
 | Per-repo sweep dir | `~/.sweep/repos/<owner>-<repo>/` | directory | sweep, triage | sweep, retro |
 | Triage graph | `TRIAGE_GRAPH.md` (working dir) | Markdown | triage (Phase 3 merge) | triage, investigate, retro |
@@ -50,7 +50,7 @@ Events: `item_scored`, `item_killed`, `agent_spawned`, `hypothesis_classified`, 
 | `/triage` | writes `TRIAGE_GRAPH.md`, readiness records, event log | none (dry-run default). Full run: enqueues to drip only |
 | `/investigate` | writes `HYPOTHESIS_GRAPH.md`, per-agent results, event log | **standalone**: push + PR (Phase 8, human-gated). **pipeline**: readiness record only |
 | `/drip` | writes queue transitions, event log | push branches, create PRs (human-gated or `--push`) |
-| `/sweep` | writes `SWEEP_GRAPH.md`, repos.json, event log | none directly. Delegates to triage/drip |
+| `/sweep` | writes `SWEEP_GRAPH.md`, repos.jsonl, event log | none directly. Delegates to triage/drip |
 | `/retro` | writes memory entries, parameter files, skill patches, worklog | none |
 
 Only `/drip` and standalone `/investigate` touch remotes. Everything else is local.

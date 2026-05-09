@@ -16,6 +16,7 @@ An issue where:
 2. **Acceptance criteria are mechanical** — a test fails, a benchmark regresses, a conformance suite has a gap
 3. **Nobody's working on it** — no assigned contributor, no open PR addressing it
 4. **The repo has a harness** — CI + bench that gives a definitive yes/no before you submit
+5. **Estimated fix fits the merge ceiling** — check the repo's merged PR size distribution (from review schema or retro). If the median external merge is ~30 lines and the fix looks like 500+, score it down hard. Prior PRs at 10-50x the merge ceiling don't land regardless of quality.
 
 The ideal issue is a maintainer-acknowledged bug with a reproducer, sitting for months because it's hard. The maintainer pre-committed when they said "PRs welcome." You're claiming work from a queue, not pitching.
 
@@ -52,11 +53,12 @@ Use topics and languages from high-merge repos. Score by issue quality, not repo
 - **Issues with an existing open PR** — always run `gh pr list --repo OWNER/REPO --search "KEYWORD" --state open` before scoring. If a PR exists and was updated in the last 30 days, skip. If stale (>30 days, no reviews), note as opportunity to pick up the stalled work. Retro 2026-05-09: gemini-cli #25693 and #25689 both had competing PRs (#25728, #25729) that triage agents discovered only after full investigation.
 - Feature requests with no maintainer endorsement — inventing problems
 - Issues that need hardware you don't have — can't verify
+- **Fix exceeds merge ceiling** — if the estimated diff is >3x the repo's median merged PR size for external contributors, skip. A 2000-line feature on a repo that merges 30-line fixes is dead on arrival.
 - **Repos with `process_depth: shallow`** in their review schema — the pipeline produces investigation-backed PRs. Shallow-review repos can't absorb them. Only add shallow repos if the issue is trivial enough that investigation depth is unnecessary (1-line fix, obvious bug, failing test with known cause).
 
 ## Output
 
-Updated `~/.sweep/repos.json`. Log additions and removals to `~/.sweep/actionable/candidates.jsonl`.
+Updated `~/.sweep/repos.jsonl`. Log additions and removals to `~/.sweep/actionable/candidates.jsonl`.
 
 **Dashboard reminder:** after every tick, remind the user to check the dashboard at `http://localhost:8321/`.
 
@@ -101,13 +103,13 @@ This is the endgame. The issue is your hypothesis. The PR is your fix. Your stan
 
 ## Process
 
-1. Read `~/.sweep/repos.json` and `~/.sweep/retro/*.jsonl`.
+1. Read `~/.sweep/repos.jsonl` and `~/.sweep/retro/*.jsonl`.
 2. Score active repos. Drop dormant ones. Respect cooldowns.
 3. For repos above the standing threshold (3+ merges), run standing-gated bug hunt.
 4. Search for issues: contributed repos, then adjacent, then cold.
 5. Score candidates by issue quality × repo fit.
 6. Select final set via diversity selection (quality × distance in feature space).
-7. Write updated `repos.json` and `candidates.jsonl`.
+7. Write updated `repos.jsonl` and `candidates.jsonl`.
 
 ## Eviction policy
 
@@ -117,6 +119,7 @@ The roster grows. It shouldn't grow forever. Evict repos that aren't producing v
 
 | Trigger | Threshold | Action |
 |---|---|---|
+| No activity in 7 days | latest `repos.jsonl` entry for this repo > 7d old, no open PRs, no pending items | re-evaluate; if nothing changed upstream, evict |
 | No merged PR in 30 days | last merge > 30d ago | evict |
 | All issues KILLED or BLOCKED | zero PENDING or CONFIRMED items | evict |
 | Cooldown active with no end date | permanent ban | evict |
@@ -124,7 +127,7 @@ The roster grows. It shouldn't grow forever. Evict repos that aren't producing v
 | Repo archived or deleted upstream | `gh repo view` fails | evict |
 | Process depth downgraded to shallow | retro reclassified after rejections | evict |
 
-**Eviction means:** status → `evicted` in `repos.json`. Drip queue drains naturally (don't abandon open PRs). State files kept in `~/.sweep/repos/<owner>-<repo>/` for reference. The repo can be re-added manually with `--add` but doesn't come back automatically.
+**Eviction means:** status → `evicted` in `repos.jsonl`. Drip queue drains naturally (don't abandon open PRs). State files kept in `~/.sweep/repos/<owner>-<repo>/` for reference. The repo can be re-added manually with `--add` but doesn't come back automatically.
 
 **Soft eviction (demotion):** repos that aren't evicted but aren't producing get deprioritized. If a repo has open issues but no progress in 14 days, it drops below new candidates in the ranking. It stays on the roster but stops getting agent time until something changes (new issue, maintainer activity, retro parameter update).
 

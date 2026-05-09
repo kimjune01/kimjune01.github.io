@@ -132,6 +132,7 @@ Use a worker pool with `--concurrency` slots (default 5). The pool processes ite
    - Review comments
    - Related nodes in `TRIAGE_GRAPH.md` (dedup check)
    - Cross-referenced items from Phase 1
+   - **Prior failed PRs.** Search `gh pr list --repo <repo> --search "<issue-number>" --state closed`. For each closed PR that addressed this issue, read the diff and review comments. These are free signal: what approach was tried, what the maintainer rejected, what was too large or wrong-direction. Three failed PRs on the same issue means three mapped failure modes. The fourth attempt should avoid all three.
 
 3. **Spawn agent.**
 
