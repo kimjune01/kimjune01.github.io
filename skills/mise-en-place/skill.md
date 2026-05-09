@@ -19,6 +19,7 @@ What system are we investigating? Where does the source live? Can we perturb it?
 
 - Identify the target system (codebase path, repo URL, or description)
 - Confirm perturbation access: can we change inputs, configurations, or code and observe the effect?
+- **Verify identity at runtime, not by configuration.** The labeled target and the actually-resolved target can diverge silently — fallback chains, silent-pick logic, missing dependencies, and platform defaults will pick a different backend than the one the env var named. Write a probe that prints the resolved identity (renderer class, library path, version string) and run it before any measurement. Every benchmark labeled with the wrong identity is worse than no benchmark — it propagates into PR descriptions and downstream investigations as authoritative-looking false positives.
 - If the source repo has a parallel session or is shared, clone it to an isolated directory
 - Document in the experiment repo README
 
