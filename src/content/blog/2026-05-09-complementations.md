@@ -11,15 +11,13 @@ I found them in the graveyard. GitHub PR comments are searchable. The rejection 
 But the graveyard is just one source. The signal is readable without looking at rejections:
 
 1. PRs with passing CI on repos they don't own
-2. Contributions across multiple projects, not just one
+2. Contributions across multiple projects
 3. No visible compensation — no bounty, no contract, no employer mandate
-4. Depth — not typo fixes, but investigations, bug finds, performance work
+4. Depth: investigations, bug finds, performance work
 
 Excess attention, tooling good enough to give away, interests adjacent to the repos they contribute to. Early.
 
 One of them. [14 PRs to tinygrad in 48 hours](/sweep-and-triage#case-study-tinygrad), one merged, the rest more instructive than a year of reading. Built a [pipeline](https://github.com/kimjune01/sweep) that finds issues, investigates them, shapes PRs to match the review culture, ships one at a time. Runs while I sleep.
-
-The pipeline is [copyleft](/general-intelligence). Anyone can run it. But running it alone is lonely. I went looking for others.
 
 ## What complementation means
 
@@ -29,7 +27,7 @@ These people figured that out by shipping PRs and getting rejected and shipping 
 
 ## The index
 
-This is a reading list, not a database. People who use AI openly, contribute to open source, and leave a public trail. Proof of work: PRs with passing CI. No self-nomination. No leaderboard. No score.
+A reading list. People who use AI openly, contribute to open source, and leave a public trail. Proof of work: PRs with passing CI. No self-nomination. No leaderboard. No score.
 
 If you're on this list and want off, open an issue or email me. If you should be on it, the diffs will speak for themselves.
 
