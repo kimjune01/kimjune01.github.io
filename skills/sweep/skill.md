@@ -136,14 +136,16 @@ NO ACTION
 Triage agents run the full pipeline per item: `/investigate` (read code, find root cause, write fix, create branch) → `/codex` (structural review) → `/bug-hunt` (adversarial verification). The output is a **branch pointer** in the drip queue, not a prose document:
 
 ```jsonl
-{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "status": "queued"}
+{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "worktree": "/Users/junekim/Documents/click", "status": "queued"}
 ```
 
 The branch is the artifact. It contains the diff, commits, and test changes. Everything downstream reads from it.
 
+**Repo clones live in `~/Documents/`.** Fork the repo on GitHub (`gh repo fork --clone=false`), clone to `~/Documents/<repo-name>`, create the fix branch. This is where the code lives — the branch pointer in the drip queue references this local path.
+
 ### Phase 5: Quality gates (dry-run runs everything except push)
 
-Dry-run captures the full pipeline without emitting. Every gate below is a local operation — only the push at the end is a remote side effect.
+Dry-run produces mergeable PRs locally. Every gate below runs in both modes — only the push at the end is a remote side effect. The output of dry-run is a local branch in `~/Documents/<repo>` that's ready to push and PR.
 
 For each branch pointer in `~/.sweep/drip-queue/<owner>-<repo>.jsonl`:
 
