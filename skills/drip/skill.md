@@ -81,7 +81,7 @@ Triage's Phase 4 (or manual use) adds entries:
 /drip add --repo tinygrad/tinygrad --branch matvec-test-and-fix --title "fix MATVEC: reject equal-range elementwise reduces" --body "I'm learning"
 ```
 
-Or read from `triage-dry-run/<number>-pr.md` files.
+Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.jsonl`. Manual `add` is for ad-hoc entries.
 
 ### Check cycle
 
@@ -99,10 +99,11 @@ Or read from `triage-dry-run/<number>-pr.md` files.
 3. Count entries with status `open`. If any open PR has unaddressed reviewer feedback, stop. Address feedback first, push new PRs second. If < `max_open`, no unaddressed feedback, and there are `queued` entries:
    - Take the next `queued` entry
    - **Staleness check (hard block).** Before pushing, verify the issue is still open: `gh issue view <number> --repo <repo> --json state`. If closed, mark `status: "issue_closed"`, skip. Check for competing PRs: `gh pr list --repo <repo> --search "<keywords>"`. If someone else landed a fix, mark `status: "superseded"`, skip. The gap between triage and push can be days — the world moves.
-   - **Test gate (hard block).** The readiness record must include a test command. Run it:
+   - **Test gate (hard block).** The queue entry must include a test command. Run it:
      1. Checkout the repo's default branch. Run the test. It must **fail**. If it passes, mark `status: "test_passes_on_master"`, skip, report. The bug is already fixed or the test is wrong.
      2. Checkout the fix branch. Run the test. It must **pass**. If it fails, mark `status: "test_fails_on_fix"`, skip, report. The fix is broken.
-   - **Gemini volley (final review).** Send the full package to `/gemini` — diff, PR title, PR body, test commands, original issue link: "You are a maintainer seeing this PR for the first time. Would you merge it? What questions would you ask? What's missing?" Apply feedback, re-send. Five rounds max. [Won't converge to zero findings](/does-iteration-mitigate-slop-slope) — iterate until the structure is sound. This is the last pass before a real human sees the PR.
+   - **PR description (generated from diff).** Read the diff from the fix branch. Generate title and body tone-matched against 5 recent merged PRs from the repo. The description is a drip artifact — triage doesn't write it.
+   - **Gemini volley (final review).** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max. [Won't converge to zero findings](/does-iteration-mitigate-slop-slope) — iterate until the structure is sound.
    - `git push fork <branch>` (branch must exist locally)
    - `gh pr create --repo <repo> --title <title> --body <body> --head <user>:<branch>`
    - Update entry: status → `open`, pushed_at → now, pr_number → result
@@ -127,13 +128,9 @@ If you can't tell, say so.
 
 ## Integration with /triage
 
-Triage produces draft PR descriptions in `triage-dry-run/<number>-pr.md`. Drip reads those and adds them to the queue:
+Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.jsonl`. Each entry is a branch pointer with repo, branch name, issue number, test command, and status. No intermediate files — triage's output IS the drip queue input.
 
-```
-/drip ingest --repo tinygrad/tinygrad
-```
-
-This scans `triage-dry-run/` for `*-pr.md` files, matches each to a local branch, and adds them to the queue.
+Drip generates PR descriptions from the diff at push time, not from triage artifacts. This ensures the description matches the final code, not an earlier plan.
 
 ## Heartbeat mode
 

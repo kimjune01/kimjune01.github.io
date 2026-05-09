@@ -131,23 +131,32 @@ NO ACTION
   tinygrad/tinygrad #7020 — TinyJit wrong values (already fixed)
 ```
 
-### Phase 4: Quality gates (dry-run runs everything except push)
+### Phase 4: Qualify (triage agents produce branches, not descriptions)
+
+Triage agents run the full pipeline per item: `/investigate` (read code, find root cause, write fix, create branch) → `/codex` (structural review) → `/bug-hunt` (adversarial verification). The output is a **branch pointer** in the drip queue, not a prose document:
+
+```jsonl
+{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "status": "queued"}
+```
+
+The branch is the artifact. It contains the diff, commits, and test changes. Everything downstream reads from it.
+
+### Phase 5: Quality gates (dry-run runs everything except push)
 
 Dry-run captures the full pipeline without emitting. Every gate below is a local operation — only the push at the end is a remote side effect.
 
-For each readiness record in `~/.sweep/triage-dry-run/<number>-pr.md`:
+For each branch pointer in `~/.sweep/drip-queue/<owner>-<repo>.jsonl`:
 
 1. **Staleness check.** Verify the issue is still open. Check for competing PRs that landed since triage.
 2. **Test gate.** Checkout default branch, run test — must fail. Checkout fix branch, run test — must pass.
-3. **Gemini volley.** Send diff + PR title + body + test + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max.
-4. **Voice crosscheck.** Fetch 5 recently merged PRs from different contributors. Shuffle the candidate in as a 6th entry. Send to `/gemini`: "One may be AI-generated. Which ones, and why?" If identified, rewrite tells only (no checklist). Re-shuffle, re-test. Five rounds max. If still detectable: surface to the human.
-5. **Push** (full run only). `git push`, `gh pr create`. In dry-run, log what would be pushed and stop.
+3. **PR description.** Generate from the real diff + issue context. Tone-match against 5 recent merged PRs from the repo.
+4. **Gemini volley.** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max.
+5. **Voice crosscheck.** Shuffle the generated description into a lineup of 5 real merged PR descriptions. Send to `/gemini`: "One may be AI-generated. Which ones, and why?" If identified, rewrite tells only (no checklist). Five rounds max. If still detectable: surface to the human.
+6. **Push** (full run only). `git push`, `gh pr create`. In dry-run, log what would be pushed and stop.
 
-For full runs, load drip queues per repo:
-- `~/.sweep/drip-queue/tinygrad-tinygrad.jsonl`
-- `~/.sweep/drip-queue/google-gemini-gemini-cli.jsonl`
+PR descriptions are a **drip concern**, not a triage concern. Triage produces branches. Drip generates descriptions from diffs at push time.
 
-Each repo gets its own independent drip cadence. One open PR per repo at a time.
+For full runs, load drip queues per repo. Each repo gets its own independent drip cadence. One open PR per repo at a time.
 
 ### Phase 5: Heartbeat
 
@@ -156,14 +165,14 @@ After all phases complete, set up a recurring wake-up to keep the pipeline alive
 ```
 CronCreate({
   cron: "*/5 * * * *",
-  prompt: "/sweep --check --concurrency N [--dry-run]. Progress all phases: collect agent results, write readiness records for CONFIRMED items to ~/.sweep/triage-dry-run/<number>-pr.md, load drip queue. Every CONFIRMED item needs a record.",
+  prompt: "/sweep --check --dry-run. Progress all phases: eviction checks, collect agent results (branches), run quality gates on queued branches, advance drip queue.",
   recurring: true
 })
 ```
 
 Pass the same flags from the original invocation into the heartbeat prompt — including `--dry-run` if set. **Always create the heartbeat, even in dry-run.** Dry-run still needs the pipeline to keep cooking — checking agent progress, collecting results, writing readiness records. The only thing dry-run skips is remote side effects (no PRs, no pushes). The heartbeat is local.
 
-**The heartbeat prompt must remind all phases.** Agents tend to stop after investigation (Phase 2). The prompt explicitly tells sweep to progress through collect (Phase 3) and present (Phase 4) on every tick. A CONFIRMED item without a readiness record is an incomplete pipeline — drip has nothing to push.
+**The heartbeat prompt must remind all phases.** Agents tend to stop after investigation (Phase 2). The prompt explicitly tells sweep to progress through qualify (Phase 4) and quality gates (Phase 5) on every tick. A confirmed fix without a branch pointer in the drip queue is an incomplete pipeline.
 
 ## Eviction (runs every tick)
 

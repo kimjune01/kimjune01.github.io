@@ -25,7 +25,7 @@ If no repo is given, use the current directory's `origin` remote.
 
 ## Output
 
-- **Dry run:** Full pipeline runs locally — scan, investigate, bug-hunt, collect. `TRIAGE_GRAPH.md` with findings, failing tests, candidate fixes. No remote side effects. Readiness records in `~/.sweep/triage-dry-run/`.
+- **Dry run:** Full pipeline runs locally — scan, investigate, bug-hunt, collect. `TRIAGE_GRAPH.md` with findings, failing tests, candidate fixes. Branches created locally, branch pointers written to drip queue. No remote side effects.
 - **Full run:** Same as dry run, plus: candidates added to `/drip` queue. Triage never touches remotes directly — `/drip` handles all PR creation and pacing.
 
 Shared artifact: `TRIAGE_GRAPH.md` in the working directory — the unified hypothesis graph across all investigated items. This is the coordination file and the checkpoint for resume.
@@ -158,7 +158,7 @@ Use a worker pool with `--concurrency` slots (default 5). The pool processes ite
    Each agent's prompt includes:
    - The item's full context (diff, CI logs, comments)
    - A snapshot of `TRIAGE_GRAPH.md` at spawn time (read-only context, not a write target)
-   - Instructions to run the full pipeline: `/investigate` → `/codex` review → `/bug-hunt` → readiness record
+   - Instructions to run the full pipeline: `/investigate` (produces branch) → `/codex` review → `/bug-hunt` → branch pointer to drip queue
    - The test-before-fix rule
 
 4. **Refill on completion.** When an agent finishes, merge its `TRIAGE_RESULT.T<number>.md` into `TRIAGE_GRAPH.md`, then immediately launch the next PENDING item from the ranked list into the freed slot. The pool stays at `--concurrency` until `--limit` is reached or the list is exhausted. Each new agent gets the latest merged graph state, including findings from agents that just completed (cross-pollination for free).
@@ -193,20 +193,19 @@ As agents complete:
 
 **Resume check:** If the scan table already has outcomes for all items and a punch list exists at the end of `TRIAGE_GRAPH.md`, present it. Otherwise, generate from current state.
 
-For each candidate, write a readiness record to `~/.sweep/triage-dry-run/<number>-pr.md`:
-- Branch name
-- Base commit (master SHA at time of investigation)
-- Test command that fails on base: `python3 -m pytest <test> -k <name>`
-- Test command that passes on branch
-- Verified: fail on master, pass with fix (both checked locally)
-- Files changed
-- PR title and body (draft — `/drip` handles tone matching before creation)
+For each candidate, write a **branch pointer** to the drip queue `~/.sweep/drip-queue/<owner>-<repo>.jsonl`:
 
-Triage never creates PRs, opens issues, or pushes branches. It produces candidates. `/drip` handles all remote operations.
+```jsonl
+{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "base": "abc123", "status": "queued"}
+```
+
+The branch is the artifact. It contains the diff, commits, and test changes. PR descriptions are generated from the diff at push time by `/drip` (tone-matched to the repo's voice). Triage does not write PR descriptions.
+
+Triage never creates PRs, opens issues, or pushes to remotes. It produces branches and queue entries. `/drip` handles all remote operations and PR prose.
 
 Surface only what needs human attention:
 
-1. **Ready to ship** — failing tests + fixes ready, codex clean, bug-hunt converged. Readiness record written. In full run: add to drip queue.
+1. **Ready to ship** — failing tests + fixes ready, codex clean, bug-hunt converged. Branch pointer added to drip queue.
 2. **Blocked** — items that need human judgment (architectural decision, maintainer relationship, ambiguous requirement).
 3. **No action needed** — items where the investigation found nothing to do (CI passing, no comments, under review).
 
@@ -218,9 +217,9 @@ Format as a punch list, not a report. One line per item, action verb first.
 
 For each "ready to ship" item, add it to the `/drip` queue:
 
-1. Write the PR description to `~/.sweep/triage-dry-run/<number>-pr.md` (same as dry run).
-2. Add the entry to `~/.sweep/drip-queue/<owner>-<repo>.jsonl` with the branch, title, body, and status `queued`.
-3. Run `/drip --check` to push the first item if no open PRs exist.
+1. Branch pointer is already in `~/.sweep/drip-queue/<owner>-<repo>.jsonl` from Phase 4.
+2. Run `/drip --check` to push the first item if no open PRs exist.
+3. `/drip` generates the PR description from the diff at push time.
 
 The drip queue handles pacing from here. One PR at a time, 15-minute heartbeat, tone-matched to the repo. Triage's job is done when the queue is loaded.
 
