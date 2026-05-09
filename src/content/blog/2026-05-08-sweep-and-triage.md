@@ -26,7 +26,7 @@ Nodes are shared across investigations.
 
 The naive dispatcher routes: read the issue list, assign each to an agent, collect results.
 
-In one session I had two PRs open against the same heuristic in tinygrad. PR #16107 changed the post-tensor-core optimization from UPCAST M+N to UPCAST N only. PR #16109 tried a reduced UNROLL factor on the same code path. When CI showed UPCAST N alone broke AMD [gfx1201](https://rocm.docs.amd.com/en/latest/reference/gpu-arch-specs.html), that finding applied to both PRs. The root cause was WMMA operand lane mapping, and any post-TC optimization that changed axis coverage would hit the same wall.
+In one session I had two PRs open against the same heuristic in tinygrad. PR [#16107](https://github.com/tinygrad/tinygrad/pull/16107) changed the post-tensor-core optimization from UPCAST M+N to UPCAST N only. PR [#16109](https://github.com/tinygrad/tinygrad/pull/16109) tried a reduced UNROLL factor on the same code path. When CI showed UPCAST N alone broke AMD [gfx1201](https://rocm.docs.amd.com/en/latest/reference/gpu-arch-specs.html), that finding applied to both PRs. The root cause was WMMA operand lane mapping, and any post-TC optimization that changed axis coverage would hit the same wall.
 
 A dumb router would have two agents burning two CI runs on identical perturbations. The graph needs a single source of truth.
 
@@ -44,15 +44,15 @@ Locally, experiments are cheap: run the test, see the result in seconds. With CI
 
 ### Pacing
 
-Perfect work can still fail. Flood a maintainer's inbox and the "AI slop" reflex fires before anyone reads the code. One clean PR per week earns trust; five per day earns a ban. `/drip` throttles: one open PR per repo, 15-minute heartbeat, queue drains at the maintainer's pace.
+Perfect work can still fail. Flood a maintainer's inbox and the "AI slop" reflex fires before anyone reads the code. One clean PR per week earns trust; five per day earns a ban. [`/drip`](https://github.com/kimjune01/june.kim/blob/master/skills/drip/skill.md) throttles: one open PR per repo, 15-minute heartbeat, queue drains at the maintainer's pace.
 
-Tone mismatch is subtler. A repo where merged PRs are terse one-liners ("fix X") rejects a three-paragraph explanation with benchmark tables, even if the content is correct. `/drip` samples recently merged PRs and matches the voice: length, formatting, level of detail.
+Tone mismatch is subtler. A repo where merged PRs are terse one-liners ("fix X") rejects a three-paragraph explanation with benchmark tables, even if the content is correct. [`/drip`](https://github.com/kimjune01/june.kim/blob/master/skills/drip/skill.md) samples recently merged PRs and matches the voice: length, formatting, level of detail.
 
 Scale added three problems: shared state, CI cost, social pacing. The graph solved the first; dedup the second; drip the third. Can it run unattended?
 
 ## Concurrent scale
 
-The pipeline starts from issues. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria:
+The pipeline starts from issues. [`/actionable`](https://github.com/kimjune01/june.kim/blob/master/skills/actionable/skill.md) searches for maintainer-acknowledged problems with mechanical acceptance criteria:
 
 - Bugs with reproducers
 - Performance regressions with benchmarks
@@ -91,7 +91,18 @@ The pipeline is [copyleft](https://github.com/kimjune01/sweep). Anyone can run i
 
 Every phase checks existing state before acting. Kill the process, restart tomorrow. The graph is the resume point. The [experiment artifacts](https://github.com/kimjune01/tinygrad-experiments) and the [pipeline state](https://github.com/kimjune01/sweep) (repos, triage graphs, drip queues, retro parameters) are public. Every skill emits structured logs; a dashboard snapshots pipeline state at any point.
 
-I am still not reasonable. I haven't hit the hard cases. When I do, the logs will show it and the skills, improved.
+The skills are public:
+
+- [`/sweep`](https://github.com/kimjune01/june.kim/blob/master/skills/sweep/skill.md) — multi-repo triage
+- [`/triage`](https://github.com/kimjune01/june.kim/blob/master/skills/triage/skill.md) — score, kill, investigate
+- [`/investigate`](/investigate) — hypothesis graph on an engineered system
+- [`/drip`](https://github.com/kimjune01/june.kim/blob/master/skills/drip/skill.md) — one PR at a time
+- [`/retro`](https://github.com/kimjune01/june.kim/blob/master/skills/retro/skill.md) — compress logs into lessons
+- [`/actionable`](https://github.com/kimjune01/june.kim/blob/master/skills/actionable/skill.md) — find work worth doing
+- [`/review-schema`](https://github.com/kimjune01/june.kim/blob/master/skills/review-schema/skill.md) — profile a repo's review culture
+- [`/dashboard`](https://github.com/kimjune01/june.kim/blob/master/skills/dashboard/skill.md) — live pipeline scoreboard
+
+I am still unreasonable. When I hit the hard cases, the logs will show it and the skills, improved.
 
 ## Case study: tinygrad
 
@@ -99,22 +110,22 @@ I am still not reasonable. I haven't hit the hard cases. When I do, the logs wil
 
 | PR | Lines | Title | Outcome |
 |---|---|---|---|
-| #16069 | +52/-3 | add Ops.WARP_REDUCE for GROUPTOP reductions | self-closed (behind master) |
-| #16070 | +52/-3 | add Ops.WARP_REDUCE for GROUPTOP reductions | "we never trade complexity for speed" |
-| #16072 | +3/-3 | increase matvec MV_ROWS_PER_THREAD 4→16 | "tuning this stuff is really annoying" |
-| **#16085** | **-34** | **onnx: deduplicate simple proto parsers** | **MERGED in 56 seconds. "Cool!"** |
-| #16094 | +3/-3 | contiguous weights + rollout prune (12.4x speedup) | closed, no reviewer comment |
-| #16096 | +73/-7 | skip redundant root op check | "stop with AI PRs, you will be banned" |
-| #16104 | +78/-14 | improve post-TC heuristic | self-closed (failing tests) |
-| #16107 | +8/-11 | improve post-TC heuristic | "no on all heuristic changes" |
-| #16108 | +4/-1 | fix is_dtype_supported | "no regression tests" |
-| #16109 | +8/-11 | post-TC: UPCAST N + UNROLL K on gfx12 | closed, no comment |
-| #16111 | +1/-1 | fix MATVEC pattern | "I'm not reading anything written by AI" |
-| #16113 | +23/-0 | failing tests | "you are close to getting banned" |
-| #16116 | +12/-1 | MATVEC test and fix | "last warning before I ban you" |
-| #16117 | +11/-1 | PTX test and fix | "test passes in master too" (Qazalin) |
+| [#16069](https://github.com/tinygrad/tinygrad/pull/16069) | +52/-3 | add Ops.WARP_REDUCE for GROUPTOP reductions | self-closed (behind master) |
+| [#16070](https://github.com/tinygrad/tinygrad/pull/16070) | +52/-3 | add Ops.WARP_REDUCE for GROUPTOP reductions | "we never trade complexity for speed" |
+| [#16072](https://github.com/tinygrad/tinygrad/pull/16072) | +3/-3 | increase matvec MV_ROWS_PER_THREAD 4→16 | "tuning this stuff is really annoying" |
+| **[#16085](https://github.com/tinygrad/tinygrad/pull/16085)** | **-34** | **onnx: deduplicate simple proto parsers** | **MERGED in 56 seconds. "Cool!"** |
+| [#16094](https://github.com/tinygrad/tinygrad/pull/16094) | +3/-3 | contiguous weights + rollout prune (12.4x speedup) | closed, no reviewer comment |
+| [#16096](https://github.com/tinygrad/tinygrad/pull/16096) | +73/-7 | skip redundant root op check | "stop with AI PRs, you will be banned" |
+| [#16104](https://github.com/tinygrad/tinygrad/pull/16104) | +78/-14 | improve post-TC heuristic | self-closed (failing tests) |
+| [#16107](https://github.com/tinygrad/tinygrad/pull/16107) | +8/-11 | improve post-TC heuristic | "no on all heuristic changes" |
+| [#16108](https://github.com/tinygrad/tinygrad/pull/16108) | +4/-1 | fix is_dtype_supported | "no regression tests" |
+| [#16109](https://github.com/tinygrad/tinygrad/pull/16109) | +8/-11 | post-TC: UPCAST N + UNROLL K on gfx12 | closed, no comment |
+| [#16111](https://github.com/tinygrad/tinygrad/pull/16111) | +1/-1 | fix MATVEC pattern | "I'm not reading anything written by AI" |
+| [#16113](https://github.com/tinygrad/tinygrad/pull/16113) | +23/-0 | failing tests | "you are close to getting banned" |
+| [#16116](https://github.com/tinygrad/tinygrad/pull/16116) | +12/-1 | MATVEC test and fix | "last warning before I ban you" |
+| [#16117](https://github.com/tinygrad/tinygrad/pull/16117) | +11/-1 | PTX test and fix | "test passes in master too" (Qazalin) |
 
-The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in under a minute. The rejection trajectory: volume → AI detection → "I'm not reading" → ban warning. By PR #10, the maintainer was evaluating the contributor. #16094 had an [18-hypothesis investigation](https://github.com/kimjune01/tinygrad-experiments/blob/master/realize/HYPOTHESIS_GRAPH.md) behind it, 12.4x speedup verified across backends and architectures, multi-turn correctness tested. Closed without a word.
+The merge ([#16085](https://github.com/tinygrad/tinygrad/pull/16085)): -34 lines, obvious dedup, zero questions needed. Merged in under a minute. The rejection trajectory: volume → AI detection → "I'm not reading" → ban warning. By PR #10, the maintainer was evaluating the contributor. [#16094](https://github.com/tinygrad/tinygrad/pull/16094) had an [18-hypothesis investigation](https://github.com/kimjune01/tinygrad-experiments/blob/master/realize/HYPOTHESIS_GRAPH.md) behind it, 12.4x speedup verified across backends and architectures, multi-turn correctness tested. Closed without a word.
 
 I was the latest. A search for "AI slop" in tinygrad's PR comments turns up a graveyard:
 
