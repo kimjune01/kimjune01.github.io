@@ -412,3 +412,51 @@ Triage dry run: 4/5 agents complete. #6909 bf16 autocast (fix: map to unsigned s
 ### 02:30 — Codex pipeline review
 
 Codex reviewed all 5 pipeline skills (sweep/triage/investigate/drip/retro). 8 findings: (1) transmit boundary contradictory — investigate pushes draft PRs but drip is supposed to be sole transmitter, (2) state paths disagree across skills (.json vs .jsonl, different /tmp paths), (3) mise-en-place not included in review but load-bearing, (4) parallel writes to TRIAGE_GRAPH.md need per-agent result files not shared MD, (5) cache schemas undefined, (6) retro parameters not wired back into triage/drip forward pass, (7) investigate overpowered relative to triage in pipeline mode, (8) human gates inconsistent across skills. Next session: create manifest.jsonl with canonical paths, schemas, side-effect policy. Fix all path disagreements. Wire retro output into triage/drip input.
+
+### 22:24 — Retro: all repos
+
+Retro run across tinygrad/tinygrad, withastro/compiler, withastro/astro. Read: 14 tinygrad PRs (1 merged, 13 closed), 1 compiler PR (open), 1 astro PR (self-closed), drip queue (2 rejected), retro parameters, all reviewer comments. Classified: 3 AI-detection rejections, 2 complexity-for-speed, 2 heuristic-tuning-blocked, 6 self-closed. Wrote: memory entry (tinygrad complexity-for-speed principle), parameter files (tinygrad scoring.skip_categories expanded, withastro-compiler review cadence + maintainers + CI gate), 3 skill patches (triage kill list +2, drip rejected status, sweep drip-routing rule). Committed as 35dfd79. Merge rate updated: 7.1% (1/14). Cooldown holds until 2026-05-22. Five investigation agents running: #13409 ScatterND (pending), #6909 bf16 autocast (reproduces, fix ready, +4 lines), #7020 TinyJit (reproduces, fix ready but +10 lines — BLOCKED), #12296 max backward (reproduces, fix ready, net-zero lines — STRONG), #13179 Variable equality (reproduces, fix ready, +1 line).
+
+## 2026-05-09
+
+### 07:30 — Retro: all repos (10 repos, 29 PRs, 12 investigations)
+
+Retro: all repos (10 repos, 29 PRs, 12 investigations)
+
+**Outcomes classified:**
+- MERGED: 2 (tinygrad #16085 onnx dedup, gemini-cli #23341 decode bug)
+- OPEN: 4 (gemini-cli #24736, compiler #1162, Soar #581/#577)
+- CLOSED: 22+ (13 tinygrad, 4 gemini-cli, 3 Soar, 2 aider)
+
+**Investigations completed this session (12 issues across 5 repos):**
+- aider #3702: 2-line SSL fix, HIGH viability (priority label)
+- compiler #1091: 2-line backslash escaping, HIGH (existing utility)
+- compiler #1139: 10-15 line Astro.self server islands, HIGH (pre-approved)
+- compiler #1068: ~20 line whitespace after style hoist, needs flag-gating
+- compiler #1096: 2-5 line list scope boundary, HIGH
+- compiler #1116: medium effort table-context expression, closes 3 issues
+- gemini-cli #25459: ~30 line UI jank throttle, HIGH (stalled PR with feedback)
+- gemini-cli #25693: BLOCKED (competing PR #25728)
+- gemini-cli #25689: BLOCKED (competing PR #25729)
+- mvdan/sh #813: ~35 line BinaryNextLine, STRONG (8 merges/3mo)
+- mvdan/sh #1233: SKIP (design limitation)
+- prettier-plugin-astro #308: medium-high JSX/HTML whitespace, GOOD
+
+**Lessons extracted (5):**
+1. Bug fixes merge, features don't — only 2/29 merged, both bug fixes
+2. Check competing PRs before investigating — 2 wasted investigations
+3. Cold search fails for compiler niche — 10 agents, 0 candidates
+4. Astro ecosystem is a cluster — shared maintainers cross-pollinate
+5. Solo maintainers merge faster — mvdan/sh 8 merges/3mo
+
+**Artifacts written:**
+- Memory: feedback_bug_fixes_merge.md, feedback_check_competing_prs.md, reference_astro_ecosystem.md
+- Parameters: gemini-cli (6 params), aider (4), mvdan-sh (4), prettier-plugin-astro (3)
+- Skill patch: actionable competing-PR skip rule + cold search limitation note (committed 7e419de)
+
+**Drip queue priority (when dry-run lifts):**
+1. aider #3702 (2 lines, priority label)
+2. compiler #1091 (2 lines, existing utility)
+3. compiler #1139 (10-15 lines, pre-approved)
+4. gemini-cli #25459 (30 lines, reviewer gave exact changes)
+5. mvdan/sh #813 (35 lines, high merge rate)
