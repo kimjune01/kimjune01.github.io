@@ -104,6 +104,8 @@ The skills are public:
 
 I am still unreasonable. When I hit the hard cases, the logs will show it and the skills, improved.
 
+---
+
 ## Case study: tinygrad
 
 14 PRs in 48 hours. 1 merged. The data:
