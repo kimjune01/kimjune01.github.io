@@ -118,6 +118,8 @@ The merge (#16085): -34 lines, obvious dedup, zero questions needed. Merged in u
 
 I wasn't the first. A search for "AI slop" in tinygrad's PR comments turns up a graveyard: #15491 (29% scheduling speedup, +46/-18, benchmarked, 434 tests passing: "DO NOT SUBMIT AI SLOP"), #14364 (kernel optimizer: "AI slop not worth considering"), #15553 (CDNA4 fix: "AI slop, just close"), and a dozen more. The [style filter fires before the substance lands](/allergic-to-slop). One PR (#15576, +3/-3) got through with "lol early AI wrote those tests, but since there's tests, merged." He knows. He merges when the diff is cheap enough to verify by inspection, regardless of tooling. The gate isn't AI. It's attention cost.
 
+---
+
 ## The hypothesis graph
 
 The pipeline itself is a hypothesis. Here's the graph:
