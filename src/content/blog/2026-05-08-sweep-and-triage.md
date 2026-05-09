@@ -52,13 +52,28 @@ Scale added three problems: shared state, CI cost, social pacing. The graph solv
 
 ## Concurrent scale
 
-The pipeline starts from issues, not repos. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria: bugs with reproducers, performance regressions with benchmarks, "help wanted" labels nobody claimed. Retro's parameters decide where to look next. Repos where PRs merge get more attention; repos on cooldown get skipped.
+The pipeline starts from issues, not repos. `/actionable` searches for maintainer-acknowledged problems with mechanical acceptance criteria:
 
-Sweep finds candidates. Triage kills the weak ones. What survives gets an [investigation](/investigate). Drip throttles publication. Retro compresses logs into the substrate after each cycle.
+- Bugs with reproducers
+- Performance regressions with benchmarks
+- "Help wanted" labels nobody claimed
+
+Retro's parameters decide where to look next. Repos where PRs merge get more attention; repos on cooldown get skipped.
+
+- **Sweep** finds candidates
+- **Triage** kills the weak ones
+- What survives gets an [**investigation**](/investigate)
+- **Drip** throttles publication
+- **Retro** compresses logs into the substrate
 
 ### Gemini at every interface
 
-No human watches. Every handoff between stages gets a gemini volley: send the output, apply feedback, re-send, up to five rounds. Triage scores items; gemini reviews the kill decisions. Investigate diagnoses; gemini checks the causal chain. Prework builds a fix; gemini checks it against the original issue. Before drip pushes, gemini reads the full PR as a maintainer seeing it cold. Each volley tightens the work before it moves on.
+No human watches. Every handoff gets a gemini volley: send the output, apply feedback, re-send, up to five rounds.
+
+- Triage scores items; gemini reviews the kill decisions
+- Investigate diagnoses; gemini checks the causal chain
+- Prework builds a fix; gemini checks it against the original issue
+- Drip pushes; gemini reads the full PR as a maintainer seeing it cold
 
 ### The lineup
 
