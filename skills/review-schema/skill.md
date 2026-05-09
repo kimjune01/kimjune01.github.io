@@ -180,6 +180,7 @@ Eight categories. Each is a deduction — check the hypothesis against PR histor
 | **In-group** | core team PRs reviewed differently than outsider PRs | compare time-to-merge and review depth: core vs external, same PR size | significant difference → gate exists |
 | **Timing** | merge rate varies with release cycle or maintainer bandwidth | are there dead periods where nothing merges? Do merges cluster? | yes → gate exists. Note the pattern. |
 | **Channel** | contribution process requires off-platform communication | does CONTRIBUTING.md or review comments reference Discord, Slack, mailing list, "discuss first"? | yes → gate exists. Pipeline can't pass it — kill the repo. |
+| **Hiring** | PRs are auditions, not contributions — maintainer is evaluating the person, not the patch | do maintainers reference hiring, team fit, or "show me you understand"? Are merged external contributors later hired or given commit access? | yes → gate exists. Pipeline can't audition — kill the repo. |
 
 For each gate that exists, write it to the schema with evidence and confidence. Gates that don't exist get marked `absent` — that's a positive signal.
 

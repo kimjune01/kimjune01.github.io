@@ -52,6 +52,71 @@ Kill with Ctrl-C or close the terminal. No state to clean up.
 4. Tail the event logs (last 20 across all repos, sorted by timestamp).
 5. Serve. Generate HTML on each request from the current state.
 
+## Dopamine layer
+
+The dashboard should feel like a scoreboard, not a log dump.
+
+### Scoreboard header
+
+Big numbers across the top. Always visible.
+
+```
+  3 merged    14 submitted    47% rate    🔥 3 streak    12d since last rejection
+```
+
+- **Merged / submitted / rate** — the score. Computed from all drip queues.
+- **Streak** — consecutive merges without a rejection. Resets on close/reject.
+- **Days since last rejection** — the inverse streak. Measures pipeline discipline.
+
+### Ready queue (the hit list)
+
+Table of issues ready to ship. Green rows. This is the dopamine — work that's done and waiting to land.
+
+```
+  Repo                Issue    Fix          Viability   Status
+  aider               #3702    2 lines      HIGH        ready
+  compiler            #1091    2 lines      HIGH        ready
+```
+
+### Repo cards with progress bars
+
+Each repo gets a visual progress indicator, not just text counts.
+
+```
+  withastro/compiler  ████████░░  4/5 investigated   [triaged]
+  google-gemini/cli   ██░░░░░░░░  1/4 investigated   [ready]
+  python/cpython      ░░░░░░░░░░  0/3 investigated   [pending_schema]
+```
+
+Bar fills as items move from PENDING → IN_PROGRESS → CONFIRMED/KILLED. Color by status: green (triaged), blue (in_progress), yellow (pending_schema), grey (dormant).
+
+### Kill feed
+
+Replace "Recent Events: no events yet" with a scrolling log of the last 20 events, newest first. Each event is one line:
+
+```
+  11:04  aider #3702 → ready (2 lines)
+  10:58  compiler #1091 → ready (2 lines)
+  10:41  tinygrad #16085 → merged (-34 lines)
+  10:30  gemini-cli #25459 → investigating
+  10:12  mvdan/sh #813 → ready (~35 lines)
+```
+
+Merged events get green highlight. Rejections get red. Everything else is neutral.
+
+### Status colors
+
+Consistent across all elements:
+
+| Status | Color |
+|---|---|
+| ready / merged | green |
+| triaged | blue |
+| in_progress / investigating | cyan |
+| pending_schema / pending_review | yellow |
+| dormant | grey |
+| rejected / closed / cooldown | red |
+
 ## Rules
 
 - Read-only. Never modify state files.

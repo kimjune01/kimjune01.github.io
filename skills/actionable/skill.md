@@ -87,14 +87,27 @@ No central coordinator. No partitioning. Just jittered scores and a dedup pass.
 
 The result: diverse repos without a bottleneck. The noise does what DPP's repulsion kernel does, cheaper.
 
+## Standing-gated bug hunt
+
+When standing is high enough on a repo (3+ merged PRs, no warnings, no cooldown), the pipeline unlocks a new mode: run `/bug-hunt` on the repo blind — no issue required. Find bugs the maintainer doesn't know about, open the issue yourself, fix it yourself.
+
+This is the endgame. The issue is your hypothesis. The PR is your fix. Your standing means the maintainer trusts your judgment about what's worth fixing.
+
+**Threshold:** 3+ merged PRs on the repo, no active cooldown, no warnings in retro log. Check via drip queue history.
+
+**Process:** spawn a `/bug-hunt` agent on the repo. If it finds something, open an issue with a reproducer, then file the fix as a separate PR linked to the issue. Same pipeline — issue-first — but you're creating the issue instead of claiming one.
+
+**Risk:** this is exactly what got you banned on tinygrad — finding bugs without standing. The threshold gate prevents that. Don't skip it.
+
 ## Process
 
 1. Read `~/.sweep/repos.json` and `~/.sweep/retro/*.jsonl`.
 2. Score active repos. Drop dormant ones. Respect cooldowns.
-3. Search for issues: contributed repos, then adjacent, then cold.
-4. Score candidates by issue quality × repo fit.
-5. Select final set via diversity selection (quality × distance in feature space).
-6. Write updated `repos.json` and `candidates.jsonl`.
+3. For repos above the standing threshold (3+ merges), run standing-gated bug hunt.
+4. Search for issues: contributed repos, then adjacent, then cold.
+5. Score candidates by issue quality × repo fit.
+6. Select final set via diversity selection (quality × distance in feature space).
+7. Write updated `repos.json` and `candidates.jsonl`.
 
 ## Eviction policy
 
@@ -118,7 +131,7 @@ The roster grows. It shouldn't grow forever. Evict repos that aren't producing v
 ## Rules
 
 - **Respect cooldowns.** If retro says cooldown, don't add the repo.
-- **Cap at 24 active repos.** Eviction keeps the roster under the cap. If at cap and a better candidate appears, evict the lowest-performing active repo to make room.
+- **Cap at 100 active repos.** Eviction keeps the roster under the cap. If at cap and a better candidate appears, evict the lowest-performing active repo to make room.
 - **Never your own repos.** Filter out repos where you are the owner. The pipeline is for contributing to other people's projects.
 - **Cold discovery needs human approval.** Repos the agent hasn't touched before get `pending_review`.
 - **Issue-first.** Don't add a repo unless there's a specific issue worth investigating. Repos without actionable issues are noise.
