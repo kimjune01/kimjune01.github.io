@@ -72,7 +72,7 @@ The gemini volleys, the lineup, the test gate, the staleness check. Each one pus
 
 Run this on enough machines across enough repos and the bottleneck is no longer investigation, pacing, or review readiness. The bottleneck is issue creation. Maintainers filing bugs, users reporting regressions, benchmarks exposing performance gaps. That's the supply of work the pipeline consumes. Everything downstream of a well-filed issue is automatable. The issue itself is not.
 
-The pipeline is [copyleft](https://github.com/kimjune01/sweep). Anyone can run it. An army of contributors all running sweep concurrently, each with their own seeds, their own review schemas, their own standing progression — issues get found and fixed at a rate no single maintainer could match. The [trust graph](https://github.com/kimjune01/sweep) emerges from the merge history. Standing compounds across repos. The pipeline is the contributor.
+The pipeline is [copyleft](https://github.com/kimjune01/sweep). Anyone can run it. An army of contributors all running sweep concurrently, each with their own seeds, their own review schemas, their own standing progression — issues get found and fixed at a rate no single maintainer could match. The merge history becomes a trust graph. Standing compounds across repos. The pipeline is the contributor.
 
 Every phase checks existing state before acting. Kill the process, restart tomorrow. The graph is the resume point. The [experiment artifacts](https://github.com/kimjune01/tinygrad-experiments) from the tinygrad investigations are public. Every skill emits structured logs, so a dashboard snapshots the pipeline state at any point.
 
