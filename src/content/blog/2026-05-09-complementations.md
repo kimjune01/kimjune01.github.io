@@ -1,5 +1,5 @@
 ---
-variant: post
+variant: post-medium
 title: "Complementations"
 tags: cognition, methodology
 ---
