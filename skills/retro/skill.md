@@ -174,6 +174,14 @@ Examples from prior sessions:
 - Added kill list to `/triage`
 - Added tone matching to `/drip`
 - Added auth preflight to `/drip`
+- Competing-PR check moved to step 0 of triage (before scoring, not after investigation)
+- "Good first issue" penalty added to scoring (fast claimers race you)
+- Fix-ready fast-path: retro `fix_ready` entries skip triage investigation, go straight to drip
+- Three-tier polling (hot/warm/cold) based on review speed
+- Merge ceiling as scoring signal and kill signal
+- Prior failed PRs read before investigation (graveyard is prior art)
+- Fork-only push rule made explicit in drip
+- `repos.json` → `repos.jsonl` (append-only, monoidal contract)
 
 ## Process
 
@@ -193,13 +201,30 @@ Examples from prior sessions:
 
 4. **Diff against existing parameters.** What changed since the last retro? If merge rate dropped, why? If a new category appeared in the kill list, what triggered it?
 
-5. **Compress into artifacts.**
+5. **Triage findings into obvious vs ambiguous.**
+
+   **Obvious** (fold immediately):
+   - A pattern that appeared 3+ times across repos → skill patch
+   - A confirmed fix with reproducer → `fix_ready` entry in retro JSONL, triage fast-paths it to drip
+   - A competing-PR catch → update the skip list
+   - A kill-list addition with clear evidence → add to triage kill list
+   - A parameter update with measured data → write to retro JSONL
+
+   **Ambiguous** (stash for human):
+   - A pattern that appeared once — could be noise
+   - A finding that contradicts an existing rule
+   - A lesson that would change the pipeline's risk profile (e.g. "skip the lineup")
+   - Anything that requires judgment about tradeoffs between competing goals
+
+   Obvious findings get folded into skills or parameter files in the same retro pass. Ambiguous findings get logged to the worklog with tag `[AMBIGUOUS]` and a one-line description of the tension. The human reviews ambiguous items and either promotes them to obvious or dismisses them.
+
+6. **Compress obvious findings into artifacts.**
    - Per-repo hypothesis evidence → `RETRO_GRAPH.md`
    - Cross-session lessons → memory entries
-   - Repo-specific parameters → parameter files
+   - Repo-specific parameters → parameter files (including `fix_ready` entries)
    - Operational changes → skill definition patches
 
-6. **Log the retro itself.** Append to worklog: what was read, what was written, what changed. The retro is itself a loggable event.
+7. **Log the retro itself.** Append to worklog: what was read, what was written, what changed, what was stashed as ambiguous. The retro is itself a loggable event.
 
 ## Logging contract for upstream skills
 
