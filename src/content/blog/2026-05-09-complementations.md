@@ -4,7 +4,7 @@ title: "Complementations"
 tags: cognition, methodology
 ---
 
-People use AI to contribute to open source. PRs with passing CI, repos they don't own, multiple projects, no compensation. Some get merged. Some get "DO NOT SUBMIT AI SLOP." They keep going.
+People point their AI at open source repos and contribute. PRs with passing CI, repos they don't own, multiple projects, no compensation. Some get merged. Some get "DO NOT SUBMIT AI SLOP." They keep going.
 
 I found them in the graveyard. GitHub PR comments are searchable. The rejection language is consistent: "AI slop", "do not use AI", "I'm not reading anything written by AI." Behind each rejection, a diff that passed CI. Code correct. Prose wrong.
 
