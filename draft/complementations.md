@@ -31,17 +31,17 @@ If you're on this list and want off, open an issue or email me. If you should be
 
 | Who | Writes at | About |
 |---|---|---|
-| [bones7456](https://github.com/bones7456) | [luy.li](https://luy.li) | dev |
-| [AkiKurisu](https://github.com/AkiKurisu) | [akikurisu.com](https://www.akikurisu.com) | Unity, game dev |
-| [aoirint](https://github.com/aoirint) | [blog.aoirint.com](https://blog.aoirint.com) | dev tools |
-| [guil-lambert](https://github.com/guil-lambert) | [panoptic.xyz](https://panoptic.xyz) | DeFi, onchain |
-| [frankxai](https://github.com/frankxai) | [frankx.ai](https://frankx.ai) | AI creation |
-| [leecalcote](https://github.com/leecalcote) | [layer5.io](https://layer5.io) | cloud infra |
-| [Cintu07](https://github.com/Cintu07) | [pawann.dev](https://pawann.dev) | membership systems |
-| [corvid-agent](https://github.com/corvid-agent) | [corvidlabs](https://corvidlabs.github.io/corvid-agent/) | AI agents |
-| [imran-siddique](https://github.com/imran-siddique) | [imransiddique.com](https://imransiddique.com) | agent architecture |
-| [karlb](https://github.com/karlb) | [karl.berlin](https://www.karl.berlin) | LLMs, simpler software |
-| [Kishore96in](https://github.com/Kishore96in) | [kishore96in.github.io](https://kishore96in.github.io) | astrophysics, dev |
-| [kimjune01](https://github.com/kimjune01) | [june.kim](https://june.kim) | cognition, methodology |
+| [bones7456](https://github.com/bones7456) | [luy.li](https://luy.li) | Claude Code, self-hosted AI infra |
+| [AkiKurisu](https://github.com/AkiKurisu) | [akikurisu.com](https://www.akikurisu.com) | agent harness design |
+| [frankxai](https://github.com/frankxai) | [frankx.ai](https://frankx.ai) | multi-agent systems, sovereign AI |
+| [leecalcote](https://github.com/leecalcote) | [layer5.io](https://layer5.io) | AGENTS.md, Claude Code, Gemini CLI |
+| [corvid-agent](https://github.com/corvid-agent) | [corvidlabs](https://corvidlabs.github.io/corvid-agent/blog.html) | decentralized AI agents |
+| [imran-siddique](https://github.com/imran-siddique) | [imransiddique.com](https://imransiddique.com) | agentic architecture, safety |
+| [karlb](https://github.com/karlb) | [karl.berlin](https://www.karl.berlin) | LLMs + simpler software |
+| [nooscraft](https://github.com/nooscraft) | [noos.blog](https://noos.blog) | AI-assisted PRs, agent news |
+| [pbakaus](https://github.com/pbakaus) | [paulbakaus.com](https://paulbakaus.com) | Claude Code, creative coding |
+| [Puppo](https://github.com/Puppo) | [delpuppo.net](https://blog.delpuppo.net) | local vs cloud AI |
+| [pdurlej](https://github.com/pdurlej) | [pdurlej.pl](https://pdurlej.pl) | AI workflows, prompt engineering |
+| [kimjune01](https://github.com/kimjune01) | [june.kim](https://june.kim) | cognition, contribution pipeline |
 
-Discovered by crawling GitHub PR comments for AI-rejection language, filtering for active blogs with content published in the last 6 months. The [crawler](https://github.com/kimjune01/june.kim/blob/master/scripts/complementations-crawler.sh) and [raw data](https://github.com/kimjune01/june.kim/blob/master/data/complementations.jsonl) are public.
+6045 GitHub contributors crawled. 76 had blogs. 16 posted in the last 6 months. 12 write about AI. The filter: rejected for AI-assisted contributions, active blog, at least one post substantially about LLMs or agents. The [crawler](https://github.com/kimjune01/june.kim/blob/master/scripts/complementations-crawler.sh) and [data](https://github.com/kimjune01/june.kim/blob/master/data/complementations.jsonl) are public.
