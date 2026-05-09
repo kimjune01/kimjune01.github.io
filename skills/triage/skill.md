@@ -59,9 +59,10 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 
 ### Phase 1: Scan
 
-1. Fetch all open PRs and issues:
-   - `gh pr list --repo <repo> --state open --json number,title,author,labels,reviewDecision,statusCheckRollup,comments,updatedAt,isDraft`
+1. Fetch open PRs and issues. Check `repos.jsonl` for `last_fetched` timestamp. On first scan, fetch everything. On re-scan, use `--search "updated:>YYYY-MM-DD"` to pull only items with new activity:
+   - `gh pr list --repo <repo> --state open --search "updated:>YYYY-MM-DD" --json number,title,author,labels,reviewDecision,statusCheckRollup,comments,updatedAt,isDraft`
    - `gh issue list --repo <repo> --state open --limit 100 --json number,title,author,labels,comments,updatedAt`
+   Update `last_fetched` in `repos.jsonl` after each scan.
 
 2. Identify the current user: `gh api user --jq .login`
 

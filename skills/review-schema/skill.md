@@ -97,13 +97,24 @@ Induced from 47 merged PRs + 12 reviewed-and-rejected PRs (2026-04 to 2026-05).
 
 ### 1. Gather PR history
 
-```bash
-# Merged PRs (positive examples)
-gh pr list --repo <repo> --state merged --limit 50 --json number,title,author,additions,deletions,files,reviewDecision,reviews,comments,mergedAt,body
+Check `repos.jsonl` for the latest `last_fetched` timestamp for this repo. On first run, fetch the full window. On subsequent runs, fetch only what's new.
 
-# Closed PRs (candidate negative examples)
+```bash
+# First run: full window
+gh pr list --repo <repo> --state merged --limit 50 --json number,title,author,additions,deletions,files,reviewDecision,reviews,comments,mergedAt,body
 gh pr list --repo <repo> --state closed --limit 30 --json number,title,author,additions,deletions,files,reviews,comments,closedAt,body,mergedAt
+
+# Subsequent runs: incremental (--search filters by date)
+gh pr list --repo <repo> --state merged --search "merged:>YYYY-MM-DD" --json number,title,author,additions,deletions,files,reviewDecision,reviews,comments,mergedAt,body
+gh pr list --repo <repo> --state closed --search "closed:>YYYY-MM-DD" --json number,title,author,additions,deletions,files,reviews,comments,closedAt,body,mergedAt
 ```
+
+After fetching, append a `last_fetched` entry to `repos.jsonl`:
+```jsonl
+{"ts":"2026-05-09T...","action":"fetched","repo":"owner/repo","last_fetched":"2026-05-09T..."}
+```
+
+The JSONL is the cache. PR history doesn't change retroactively. Only fetch what's new.
 
 **Filter closed PRs.** Only keep reviewed-and-rejected: PRs where a maintainer left review comments before closing. Exclude:
 - `mergedAt != null` (merged, not rejected)
