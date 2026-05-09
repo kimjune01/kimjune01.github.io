@@ -59,14 +59,16 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 
 ### Phase 1: Scan
 
-1. Fetch open PRs and issues. Check `repos.jsonl` for `last_fetched` timestamp. On first scan, fetch everything. On re-scan, use `--search "updated:>YYYY-MM-DD"` to pull only items with new activity:
+1. **Competing PR check (step 0).** Before fetching the full issue list, check for existing PRs on every candidate issue: `gh pr list --repo <repo> --search "<issue-number>" --state open`. If a PR exists and was updated in the last 30 days, mark the issue SKIP. This runs before scoring, not after investigation. Three competing-PR catches on gemini-cli proved this is the biggest waste of agent time.
+
+2. Fetch open PRs and issues. Check `repos.jsonl` for `last_fetched` timestamp. On first scan, fetch everything. On re-scan, use `--search "updated:>YYYY-MM-DD"` to pull only items with new activity:
    - `gh pr list --repo <repo> --state open --search "updated:>YYYY-MM-DD" --json number,title,author,labels,reviewDecision,statusCheckRollup,comments,updatedAt,isDraft`
    - `gh issue list --repo <repo> --state open --limit 100 --json number,title,author,labels,comments,updatedAt`
    Update `last_fetched` in `repos.jsonl` after each scan.
 
-2. Identify the current user: `gh api user --jq .login`
+3. Identify the current user: `gh api user --jq .login`
 
-3. Score each item by actionability. An item can match multiple signals — use the highest:
+4. Score each item by actionability. An item can match multiple signals — use the highest:
 
 | Signal | Score | Rationale |
 |--------|-------|-----------|
@@ -76,7 +78,7 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 | LGTM but needs rebase/update | 6 | Low effort to unblock |
 | Your PR, no activity > 3 days | 4 | Might need a ping or update |
 | Open issue you filed | 3 | Your problem to solve |
-| Open issue, filed by maintainer | 2+ | Signal: they want this done. Bonus if labeled "good first issue" |
+| Open issue, filed by maintainer | 2+ | Signal: they want this done. **Penalty** if labeled "good first issue": fast claimers race you. Check for competing PRs first. Unlabeled bugs nobody noticed are better targets. |
 | Open issue, unassigned | 2 | Opportunity |
 | Your PR, CI passing, under review | 1 | Nothing to do — wait |
 
@@ -117,7 +119,9 @@ Mark killed items as `SKIP` in the scan table with the reason. They don't enter 
 
 7. **Gemini volley.** Send the scan table and kill decisions to `/gemini`: "Review these triage decisions. Any items killed that should be investigated? Any items kept that are a waste of time? Any cross-references missed?" Apply feedback, re-send. Five rounds max.
 
-8. Proceed to Phase 2.
+8. **Fix-ready fast-path.** Check `retro/<owner>-<repo>.jsonl` for `fix_ready` entries. If retro already confirmed a fix (issue number, line count, description), skip investigation for that item — mark CONFIRMED and add directly to the drip queue. A 1-line fix with a confirmed reproducer doesn't need a hypothesis graph.
+
+9. Proceed to Phase 2.
 
 ### Phase 2: Investigate (parallel)
 

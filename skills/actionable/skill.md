@@ -137,7 +137,7 @@ The roster grows. It shouldn't grow forever. Evict repos that aren't producing v
 ## Rules
 
 - **Respect cooldowns.** If retro says cooldown, don't add the repo.
-- **Cap at 1000 active repos.** Incremental fetching keeps API cost ~5 calls/repo/tick at steady state. **Stagger:** check 100 repos per tick, round-robin through the roster. Full cycle in 10 ticks (50 minutes at 5-minute heartbeat). Eviction keeps the roster under the cap. If at cap and a better candidate appears, evict the lowest-performing active repo to make room.
+- **Cap at 1000 active repos.** Three-tier polling: **hot** repos (open PR from you) check every tick for reviewer comments; **warm** repos (no open PR but fast review cadence, e.g. click at 6-min median) check every 15 minutes because the full submit→merge→retro cycle completes in one session; **cold** repos (no open PR, slow review) check once per hour. Batch cold/warm checks with GraphQL — one query for ~20 repos. Stagger: 5 batches of 20 per tick, round-robin. Eviction keeps the roster under the cap.
 - **Never your own repos.** Filter out repos where you are the owner. The pipeline is for contributing to other people's projects.
 - **Cold discovery needs human approval.** Repos the agent hasn't touched before get `pending_review`.
 - **Issue-first.** Don't add a repo unless there's a specific issue worth investigating. Repos without actionable issues are noise.
