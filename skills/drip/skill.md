@@ -42,7 +42,9 @@ Eleven PRs in two days gets you banned. One PR per merge cycle builds contributo
 {"ts":"2026-05-09T01:00:00Z","action":"outcome","pr_number":16116,"status":"merged"}
 ```
 
-Statuses: `queued` → `open` → `merged` | `closed`
+Statuses: `queued` → `open` → `merged` | `closed` | `rejected`
+
+Also: `test_passes_on_master`, `test_fails_on_fix`, `issue_closed`, `superseded`, `needs_rebase`, `error` (set by failure checks, never by hand).
 
 ## Commands
 
@@ -85,8 +87,16 @@ Or read from `triage-dry-run/<number>-pr.md` files.
 
 0. Read `~/.sweep/retro/<owner>-<repo>.jsonl` if it exists. Check `cooldown_until` — if today < cooldown date, halt with "Cooldown active until {date}." Check `drip.title_format` for tone guidance.
 1. Read `~/.sweep/drip-queue/<owner>-<repo>.jsonl`
-2. For each entry with status `open`: check if the PR was merged or closed. Update status.
-3. Count entries with status `open`. If < `max_open` and there are `queued` entries:
+2. For each entry with status `open`:
+   - Check if the PR was merged or closed. Update status.
+   - **Checkup.** Fetch reviewer comments since last check: `gh pr view <number> --repo <repo> --json comments,reviews,reviewDecision`. If there are new comments or requested changes:
+     1. Read the feedback. Classify: requested change, question, style nit, or approval.
+     2. For requested changes and questions: address them. Push a follow-up commit to the same branch. Reply to the comment acknowledging the change.
+     3. For style nits: apply if trivial, reply explaining if not.
+     4. Run the gemini volley on the updated PR before pushing the follow-up.
+     5. Log the interaction to the event log.
+   - A PR with unanswered reviewer comments older than 24 hours is a driveby. Don't push new PRs to a repo while an existing one has unaddressed feedback.
+3. Count entries with status `open`. If any open PR has unaddressed reviewer feedback, stop. Address feedback first, push new PRs second. If < `max_open`, no unaddressed feedback, and there are `queued` entries:
    - Take the next `queued` entry
    - **Staleness check (hard block).** Before pushing, verify the issue is still open: `gh issue view <number> --repo <repo> --json state`. If closed, mark `status: "issue_closed"`, skip. Check for competing PRs: `gh pr list --repo <repo> --search "<keywords>"`. If someone else landed a fix, mark `status: "superseded"`, skip. The gap between triage and push can be days — the world moves.
    - **Test gate (hard block).** The readiness record must include a test command. Run it:
@@ -112,8 +122,8 @@ If you can't tell, say so.
 ```
 
 - If the reviewer can't pick out the candidate: pass.
-- If the reviewer identifies it: the explanation names the tells. Rewrite to fix them, re-shuffle, re-test. Five rounds max.
-- If it's still detectable after two rounds: surface to the human. Some repos have a voice Claude can't imitate, and forcing it makes it worse.
+- If the reviewer identifies it: the explanation names the specific tells. Rewrite to fix those tells only. Do not give the rewriter a checklist or rubric to optimize against. [Detection is a wasting asset under feedback](/slop-detection): any rubric becomes the exploit surface. Re-shuffle, re-test. Five rounds max.
+- If it's still detectable after five rounds: surface to the human. Some repos have a voice Claude can't imitate, and forcing it makes it worse.
 
 ## Integration with /triage
 

@@ -67,7 +67,19 @@ Written to `~/.sweep/retro/<repo>.jsonl`. One object per parameter update, appen
 
 When a lesson changes how a skill should operate, edit the skill file directly. This is the strongest form of consolidation: the lesson becomes code.
 
-Examples from this session:
+**Scope limit.** Retro may only edit pipeline skills:
+- `skills/actionable/skill.md`
+- `skills/sweep/skill.md`
+- `skills/triage/skill.md`
+- `skills/investigate/skill.md`
+- `skills/drip/skill.md`
+- `skills/retro/skill.md`
+- `skills/dashboard/skill.md`
+- `skills/MANIFEST.md`
+
+All other skills (copyedit, humanize, codex, gemini, design, etc.) are off-limits. If a lesson applies to a non-pipeline skill, log it to the worklog for human review.
+
+Examples from prior sessions:
 - Added "fail on master, pass with fix" rule to `/investigate`, `/triage`, `/drip`
 - Added kill list to `/triage`
 - Added tone matching to `/drip`

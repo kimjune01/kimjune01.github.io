@@ -19,7 +19,7 @@ Run `/triage` across a list of repos in parallel. Each repo gets its own triage 
 
 **Composition:** `sweep([A]) + sweep([B]) = sweep([A, B])` — per-repo triage is independent, cross-references are post-hoc. Running sweep on a superset re-triages only repos without completed graphs (idempotent).
 
-**Preconditions:** `/review-schema` per repo (checked in Phase 0, interactive).
+**Preconditions:** `/review-schema` per repo (induced automatically in Phase 0, no human gate).
 
 ## Input
 
@@ -56,7 +56,7 @@ Adding a repo sets it to `pending_schema`. Removing sets it to `removed` (kept f
 
 ## Process
 
-### Phase -1: Discover
+### Phase -1: Actionable
 
 Run `/actionable`. Read retro parameters, score active repos, find new candidates, update `repos.json`. This is what closes the loop — retro's lessons feed back into which repos get swept next. Skip if `repos.json` was provided explicitly via argument. In `--dry-run`, actionable reports changes without writing.
 
@@ -66,7 +66,7 @@ Also re-run actionable between phases if active work runs low: fewer than 3 PEND
 
 1. `gh auth status` — fail fast on auth issues
 2. For each repo in `repos.json`, verify access: `gh repo view <repo> --json name`
-3. For each repo, check if `/review-schema` has been completed (look for `~/.sweep/repos/<owner>-<repo>/review-schema.md`). If missing, run `/review-schema` for that repo — this induces the review culture from PR history, then validates with the user. Run review-schema **serially**, one repo at a time, since each requires user validation. Do not fan out triage until all repos have a review schema.
+3. For each repo, check if `/review-schema` has been completed (look for `~/.sweep/repos/<owner>-<repo>/review-schema.md`). If missing, run `/review-schema` for that repo. Review-schema induces and writes the schema autonomously — no user validation gate. Log what was induced, proceed. The user can override with `/review-schema --manual <repo>` later. Don't block the pipeline on human input.
 
 ### Phase 1: Fan out
 
@@ -134,10 +134,26 @@ For each repo with "ready to ship" items, load its drip queue:
 
 Each repo gets its own independent drip cadence. One open PR per repo at a time. The repos don't interfere with each other's pacing.
 
+### Phase 5: Heartbeat
+
+After all phases complete, set up a recurring wake-up to keep the pipeline alive:
+
+```
+CronCreate({
+  cron: "*/5 * * * *",
+  prompt: "/sweep --check",
+  recurring: true
+})
+```
+
+The heartbeat re-enters sweep every 5 minutes. Idempotency means re-entry is cheap — it checks for new PR outcomes, pushes the next drip entry if a slot opened, and re-runs actionable if the queue is low. Stops when the session ends (session-only, not durable).
+
 ## Rules
 
+- **Never ask the user.** Sweep runs autonomously. If you have a hunch, act on it. If you're uncertain, skip it and move on. Log what you skipped and why. The user reads the punch list at the end, not a questionnaire in the middle.
 - **One triage per repo.** Never mix repos in a single triage run.
 - **Cross-pollinate, don't duplicate.** If two repos share a finding, write the cross-reference. Don't investigate the same thing twice.
 - **Independent drip queues.** Each repo has its own pacing. Getting banned from one repo doesn't affect the others.
 - **Idempotent.** Running sweep twice skips repos whose triage is already complete (TRIAGE_GRAPH.md exists with all outcomes filled).
 - **Auth first.** Verify access to every repo before launching any agents.
+- **All PRs route through /drip.** No direct `gh pr create` during active pipeline runs. 14 manual PRs in 2 days triggered a ban warning. The drip queue exists to prevent this — enforce it.

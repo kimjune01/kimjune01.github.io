@@ -19,38 +19,29 @@ An issue where:
 
 The ideal issue is a maintainer-acknowledged bug with a reproducer, sitting for months because it's hard. The maintainer pre-committed when they said "PRs welcome." You're claiming work from a queue, not pitching.
 
-## Sources, in priority order
+## Sources
 
-### 1. Issues on active repos (retro-informed)
+Only other people's repos. Never your own — you don't need a pipeline to work on your own code.
 
-For repos already in `~/.sweep/repos.json`, search for unclaimed issues:
-
-```
-gh search issues --repo <repo> --label "help wanted" --sort created
-gh search issues --repo <repo> --label "good first issue" --sort created
-```
-
-Also check for performance issues with reproducers, stale maintainer-acknowledged bugs, and issues where the maintainer sketched a fix but nobody implemented it.
-
-### 2. Repos you've already touched
+### 1. Repos you've already contributed to
 
 ```
 gh api graphql -f query='{ viewer { contributionsCollection { pullRequestContributions(first: 100) { nodes { pullRequest { repository { nameWithOwner } } } } } } }'
 ```
 
-You already have context. The maintainer knows your name. Filter: still active, has open issues, not on cooldown.
+Filter: not owned by you, still active, has open issues, not on cooldown. You have context, the maintainer knows your name.
 
-### 3. Adjacent repos (expand from what works)
+### 2. Adjacent repos (expand from what works)
 
 For repos with high merge rates, check the same org, same dependency graph, same topic tags. Retro says what "good" looks like — actionable finds more of it.
 
-### 4. Cold search (lowest confidence)
+### 3. Cold search
 
 ```
 gh search issues --label "help wanted" --language <lang> --sort created
 ```
 
-Use topics and languages from high-merge repos. Cold candidates get `pending_review` — the human confirms before any work starts.
+Use topics and languages from high-merge repos. Score by issue quality, not repo familiarity.
 
 ## What to skip
 
@@ -74,6 +65,7 @@ Updated `~/.sweep/repos.json`. Log additions and removals to `~/.sweep/actionabl
 
 - **Respect cooldowns.** If retro says cooldown, don't add the repo.
 - **Cap at 10 active repos.** The human needs to be able to review drip output.
+- **Never your own repos.** Filter out repos where you are the owner. The pipeline is for contributing to other people's projects.
 - **Cold discovery needs human approval.** Repos the agent hasn't touched before get `pending_review`.
 - **Issue-first.** Don't add a repo unless there's a specific issue worth investigating. Repos without actionable issues are noise.
 - **Mundane is fine.** Doc fixes, error messages, edge case handling — the agent doesn't get bored. Easy merges build contributor trust that makes harder PRs land later. Don't skip "good first issue" just because it's boring.
