@@ -45,11 +45,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-Content License (CC BY-SA 4.0)
-===============================
+Content License (CC BY-SA 4.0 + Network Services clause)
+==========================================================
 
 All blog posts and written content are licensed under the
-Creative Commons Attribution-ShareAlike 4.0 International License.
+Creative Commons Attribution-ShareAlike 4.0 International License,
+with the following additional condition:
+
+Network Services. If you use a Derivative Work to provide a service
+over a computer network, you must make the Corresponding Source of the
+Derivative Work available to users of the service, under the terms of
+this license or a Compatible License, at no charge.
+
+Corresponding Source means the complete source material from which the
+Derivative Work can be regenerated: the original prose, any modifications
+to it, and any build instructions (prompts, configuration, scripts) used
+in the compilation.
+
+Compatible License means CC BY-SA 4.0, AGPL 3.0, or any later version
+of either.
 
 You are free to:
   - Share: copy and redistribute the material in any medium or format
@@ -61,5 +75,8 @@ Under the following terms:
     license, and indicate if changes were made.
   - ShareAlike: If you remix, transform, or build upon the material, you
     must distribute your contributions under the same license.
+  - Network Services: If you serve a derivative over a network, you must
+    make the source available to users of the service.
 
 Full license text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+Network Services clause: https://june.kim/cc-by-sa-ns
