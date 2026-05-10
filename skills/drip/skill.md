@@ -105,9 +105,21 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
      2. Checkout the fix branch. Run the test. It must **pass**. If it fails, mark `status: "test_fails_on_fix"`, skip, report. The fix is broken.
    - **PR description (generated from diff).** Read the diff from the fix branch. Generate title and body tone-matched against 5 recent merged PRs from the repo. The description is a drip artifact — triage doesn't write it.
    - **Gemini volley (final review).** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max. [Won't converge to zero findings](/does-iteration-mitigate-slop-slope) — iterate until the structure is sound.
+   - **Write gate attestation (hard block).** Before pushing, write `~/.sweep/gates/<owner>-<repo>.gate` as JSON. The `gh pr create` hook validates this file exists and has `gemini_verdict`, `codex_verdict`, and `test_attestation`. Format:
+     ```json
+     {
+       "ts": "2026-05-09T23:05:00Z",
+       "repo": "owner/repo",
+       "branch": "fix/123-thing",
+       "gemini_verdict": "pass",
+       "codex_verdict": "pass",
+       "test_attestation": "go test ./pkg/foo/... PASS 2026-05-09T23:04:50Z"
+     }
+     ```
+     Test attestation is a string with both legs: `"main:FAIL fix:PASS <test cmd> <timestamp>"`. Both results required — a fix that doesn't flip a test from fail to pass isn't a fix. If skipped: `"skipped: <reason>"`. The hook checks the field is not empty. The content is for humans auditing after the fact.
    - `git push fork <branch>` (branch must exist locally)
    - `gh pr create --repo <repo> --title <title> --body <body> --head <user>:<branch>`
-   - Update entry: status → `open`, pushed_at → now, pr_number → result
+   - Update entry: status → `open`, pushed_at → now, pr_number → result, gates → `{gemini_verdict, codex_verdict, test_attestation}` (copied from the gate file before it's consumed)
 4. Report: what was pushed, what's still queued, what's blocking.
 
 ### Tone matching

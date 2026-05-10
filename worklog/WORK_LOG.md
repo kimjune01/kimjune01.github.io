@@ -881,3 +881,94 @@ charmbracelet/bubbletea triage: scanned 50 issues + 50 PRs, selected #1689 (Kill
 ### 17:35 — FyroxEngine/Fyrox triage
 
 Fyrox triage complete. 7 good-first-issues scanned, 2 UB bug fixes submitted: PR#917 (transmute_slice alignment/divisibility/ZST guards, closes #877) and PR#918 (read_pixels_of_type bytemuck::cast_slice, closes #827). Both passed 2-round codex+gemini gate. 5 issues skipped (competing PRs, massive scope, or icon sourcing). Drip queue written to ~/.sweep/drip-queue/FyroxEngine-Fyrox.jsonl. Triage graph appended to TRIAGE_GRAPH.md.
+
+### 17:40 — apache/opendal full triage
+
+apache/opendal full triage: forked+cloned to ~/Documents/opendal. Scanned 21 good-first-issues + 21 help-wanted + 16 bugs. Implemented 2 branches: (1) feat/azdls-user-metadata -- add user_metadata via x-ms-properties header for Azure Data Lake Storage Gen2 (#4842), with 10 unit tests, codex-reviewed; (2) feat/buffer-split -- add split_to/split_off to Buffer (#4593), with unit + fuzz tests, gemini-reviewed. Both pushed to fork. Apache org-blocked, cannot open PRs. Drip queue written with 2 ready items + 5 backlog. Triage graph updated.
+
+### 17:50 — databendlabs/databend full triage
+
+databend triage: scanned 16 good-first-issues, scored by actionability (competing PRs, staleness, maintainer ack). Implemented TH/th ordinal suffix + V shift-digits patterns for to_char (#16524). 3 rounds: impl, codex+gemini gate, fixes (Tk0 Multi bug, round_ties_even, inline TH emission, checked i128 overflow). PR#19830 open. Drip queue created at ~/.sweep/drip-queue/databendlabs-databend.jsonl. Triage graph appended to TRIAGE_GRAPH.md.
+
+### 19:00 — Drip push: 4 repos, 5 branches
+
+Drip push: 4 repos, 5 branches. Created PRs: harper #3336 (ThereOwn linter), hyper #4065 (error doc comments), jj #9459 (redacted op log commit summary), servo #44816 (ElementInternals error messages). Hyper feat/h2-reset-stream-duration branch pushed but PR gated behind #4065. All quality gates passed — no staleness, no competing PRs, org gates clear.
+
+## 2026-05-10
+
+### 07:45 — MyPerf4J triage complete
+
+MyPerf4J triage complete: Investigated 5 issues (#115 config, #114 question, #110 large feature, #90 Windows file ops, #40 large feature). Issue #90 had closed PR #91 - codex flagged complex DOS readonly handling needed. Extracted simpler fix from #90 discussion: ConfigKey toString() for better logging (8 lines). Branch fix-windows-file-rename pushed to fork, drip queue entry written. First contribution to Java profiler (3.5K stars).
+
+### 08:30 — GreptimeTeam/greptimedb triage complete
+
+GreptimeTeam/greptimedb triage complete. Issue #8087 fixed (remove unparsed heartbeat config). Commit e67c780a4. Codex + Gemini reviews passed. Drip queue ready.
+
+### 15:35 — binocle #64 fix committed
+
+binocle #64: Fixed view shift with non-integer scaling. Codex caught that my initial fix (rounding scale_factor) was wrong - it only updated GUI, not pixels surface. Gemini confirmed the correct fix: sync egui_state.set_pixels_per_point() with screen_descriptor.pixels_per_point() in scale_factor() method. Fix committed, queued in drip (NOT pushed per instruction).
+
+### 15:36 — EmbarkStudios/puffin triage complete
+
+Triage complete: EmbarkStudios/puffin issue #240 (broken Discord link). Fixed invite URL + badge alt text across 4 READMEs. Codex approved structure, Gemini caught alt text bug. Committed to fix-discord-link branch, queued in drip. First contribution to warm org (cargo-deny PR pending).
+
+---
+**2026-05-10 09:15** - Triage: prometheus/jmx_exporter - ABORT
+Scanned top 5 issues from prometheus/jmx_exporter (Java JMX metrics exporter). All are questions, feature requests, or waiting on feedback. No actionable bugs.
+
+Key findings:
+- 9/10 recent merges by maintainer @dhoard
+- Stale external PRs (2+ years for docs PR #882)
+- Pattern: maintainer fixes bugs himself, low external contributor merge rate
+- Warm org (prometheus) + no clear bugs = abort
+
+Recommendation: Add to effective denylist. Search for better first-contribution targets with clear "good first issue" labels.
+
+Branch: investigate/triage-scan committed to ~/Documents/jmx_exporter
+Findings document: TRIAGE_FINDINGS.md
+
+### 15:42 — rye triage complete
+
+rye triage complete: issue #106 (human-panic). Branch ready in drip queue. Codex found &'static str edge case, Gemini caught Box deref bug + overly broad string check. astral-sh warm (ruff PR open). First contribution to rye.
+
+## 2026-05-10 08:38 - dbg-macro #142 triage complete
+
+Full triage pipeline on sharkdp/dbg-macro (warm org - bat merged in April).
+
+**Scan:** 5 open issues. Selected #142 (CMake deprecation warning, 1 comment, maintainer approved). Rejected #144 (Windows-specific), #137 (complex feature), #131 (Eigen, 7 comments), #109 (variadic templates, unsolved).
+
+**Fix:** `cmake_minimum_required(VERSION 3.5)` → `VERSION 3.5...3.10`. Range syntax suppresses CMake 3.31+ deprecation while preserving 3.5 minimum.
+
+**Quality gates:** Codex caught breaking change (initially wrote 3.10...3.30 which raises minimum to 3.10). Gemini confirmed backward compatibility and low policy risk.
+
+**Outcome:** Committed to fix-cmake-deprecation-142, added to drip queue. Zero competing PRs. H0 evidence: gates prevented shipping a breaking change.
+
+Location: `/Users/junekim/Documents/dbg-macro`
+
+## 2026-05-10 15:50 - prometheus/client_java #1090 ready
+
+Fixed counter negative value error messages to include metric name.
+
+**Issue**: Error messages like "-2.0: counters cannot have a negative value" don't identify which counter failed in large applications.
+
+**Solution**:
+- Added optional `metricName` field to `CounterDataPointSnapshot` (local to Counter, not base class per codex recommendation)
+- New public 6-arg constructor for external callers (Micrometer) to provide name
+- Package-private 7-arg constructor with `internal` flag (Gemini caught public API leak)
+- Pass name from `Counter.collect()` → `DataPoint.collect()` → snapshot
+- Error now shows: "my_counter=-2.0: counters cannot have a negative value"
+- Backward compatible: existing constructors delegate with `metricName=null`
+
+**Tests**: Full coverage - direct constructor, builder, null-name fallback. All 21 CounterTest cases pass.
+
+**Review**: Codex approved minimal approach. Gemini caught constructor visibility issue (internal flag exposed across packages).
+
+**Branch**: `fix/counter-error-message-1090` at `/Users/junekim/Documents/client_java`
+
+**Drip queue**: Entry written. Waiting for prometheus org-level pacing window.
+
+**Hypothesis**: H2 (diagnostic improvement) - small diff, clear user benefit, warm org relationship.
+
+### 15:46 — risingwave triage complete
+
+risingwave triage complete. Issue #20187 (count distinct _row_id bug) selected. Root cause: distinct_agg_rule.rs used input_indices()[0] for expand skip check but full subset for column_subsets dedup. Fixed by aligning both to use group_keys + all input_indices. Codex identified cause, Gemini recommended GROUP BY test. 2 commits, queued in drip.

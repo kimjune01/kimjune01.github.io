@@ -89,31 +89,72 @@ Agent({
 
 # Agents 2–N: one per repo, full pipeline (background)
 for repo in repos.jsonl:
-  Agent({
+  Agent(triage_prompt(repo, denylist=[]))
+```
+
+### Triage prompt (reusable)
+
+`triage_prompt(repo)` — the unit of work. Callable from sweep fan-out, pipeline tick (stalled repos), monitor tick (issue closed upstream), or drip (PR rejected). No denylist parameter — the agent reads persisted state to build its own.
+
+```
+def triage_prompt(repo):
+  owner_repo = repo.replace('/', '-')
+  return Agent({
     subagent_type: "general-purpose",
-    model: "opus",
+    model: "sonnet",
     run_in_background: true,
-    prompt: "Full triage pipeline for <repo> [--dry-run]:
+    prompt: f"Full triage pipeline for {repo}:
+             
+             0. BUILD DENYLIST from persisted state before scanning issues:
+                a. Read ~/.sweep/repos/{owner_repo}/TRIAGE_GRAPH.md — any issue marked KILLED, rejected, or gate_fail is denied.
+                b. Read ~/.sweep/drip-queue/{owner_repo}.jsonl — any issue with status closed, superseded, issue_closed, gate_fail, or test_passes_on_master is denied.
+                c. Collect all denied issue numbers. These were already attempted — do not re-investigate them.
              1. Fork (gh repo fork --clone=false) if not already forked.
              2. Clone to ~/Documents/<repo-name> if not already cloned.
-             3. Scan issues: competing PRs, scoring, kill list.
-             4. For the best actionable issue:
+             3. Scan issues: competing PRs, scoring, kill list. Rank top 5.
+                EXCLUDE any issue in the denylist — they were already tried and killed.
+                For solo-maintainer repos (first contribution), prefer the smallest/easiest issue — docs, error messages, edge cases. Standing first, ambition second.
+             4. FOR EACH of the top 5 issues, in rank order, attempt the full pipeline:
                 a. Read code, understand the problem, gather relevant file contents.
                 b. Send problem + code to /codex: 'Here is issue #N. Here are the relevant files. Implement a minimal fix.' Apply codex's output — edit the files yourself based on codex's response.
                 c. Test gate — run tests if feasible.
                 d. Send the fix diff to /gemini: 'Review this fix for logic errors, missed edge cases, inverted conditions.'
-                e. ITERATE: If codex or gemini suggest changes, apply them yourself (edit files), then re-send to the reviewer. Max 3 rounds. If gemini still rejects after 3 rounds, skip this issue and try the next one.
+                e. ITERATE: If codex or gemini suggest changes, apply them yourself (edit files), then re-send to the reviewer. Max 3 rounds.
+                f. If gemini still rejects after 3 rounds: log why in TRIAGE_GRAPH.md, reset the working tree (git checkout .), and MOVE TO THE NEXT ISSUE. Do not stop.
+                g. If reviews pass: break out of the loop — you have your fix.
              5. IMMEDIATELY after reviews pass: git add + git commit. Do not narrate, do not summarize, do not ask. Commit.
-             6. Write branch pointer to ~/.sweep/drip-queue/<owner>-<repo>.jsonl.
-             7. Write TRIAGE_GRAPH.md to ~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md.
+             6. Write branch pointer to ~/.sweep/drip-queue/{owner_repo}.jsonl.
+                EXACT PATH EXAMPLE: for repo 'sharkdp/bat', write to ~/.sweep/drip-queue/sharkdp-bat.jsonl
+                NOT ~/.sweep/drip_queue.jsonl (wrong — that's a global file)
+                NOT ~/.sweep/drip/repo-issue.json (wrong — wrong directory and format)
+                NOT ~/.drip/anything (wrong — wrong root)
+                The file MUST be at ~/.sweep/drip-queue/{owner_repo}.jsonl where {owner_repo} = repo.replace('/', '-').
+                Format: one JSON object per line with at minimum: repo, branch, issue, status ('queued' or 'ready'), sha.
+             7. Write TRIAGE_GRAPH.md to ~/.sweep/repos/{owner_repo}/TRIAGE_GRAPH.md (include all attempted issues and their outcomes — both kills and the winner).
              
-             CRITICAL: Steps 5-7 are UNCONDITIONAL after step 4 passes. The codex/gemini feedback is a mid-point, not an endpoint. Your job is not done until the drip queue entry exists. If you end without writing a drip queue file, you have failed.
+             CRITICAL: Steps 5-7 are UNCONDITIONAL after step 4 passes. The codex/gemini feedback is a mid-point, not an endpoint. Your job is not done until the drip queue entry exists. If you end without writing a drip queue file, you have failed. Ending after a gemini rejection without trying the next issue is also a failure.
+             
+             NEVER run gh pr create. Triage agents produce branches, not PRs. The gate hook will block any gh pr create attempt without a gate attestation file. Only /drip push agents create PRs.
              
              You have full permission to edit files, run commands, and commit. Never ask for confirmation. Never report feedback and stop. Apply → iterate → commit → write artifacts."
   })
 ```
 
 Each agent runs the full pipeline end-to-end: scan → investigate → implement → test → review → queue. The output is a branch pointer in the drip queue, not a document. Agents that only produce TRIAGE_GRAPH.md without branches have not completed the pipeline.
+
+**Denylist contract.** The agent builds its own denylist from persisted state — callers don't pass it. Source of truth: `TRIAGE_GRAPH.md` (killed/rejected issues) + drip queue JSONL (closed/superseded/gate_fail). Step 0 reads both before scanning.
+
+**Who calls triage_prompt:**
+
+| Caller | When |
+|--------|------|
+| Sweep fan-out (Phase 1) | Initial triage (denylist will be empty — no prior state) |
+| Pipeline tick (stalled) | TRIAGE_GRAPH exists, no drip queue branch (denylist = killed issues) |
+| Monitor tick (issue closed) | Upstream closed the issue (drip queue has issue_closed, denylist grows) |
+| Drip (PR rejected) | Maintainer rejected PR (drip queue has closed, denylist grows) |
+| Manual re-triage | User says "try again on repo X" (denylist = all prior attempts) |
+
+This is the monoidal composition: `triage(repo); triage(repo) = triage(repo)`. Each invocation reads the same persisted state and skips the same issues. The TRIAGE_GRAPH + drip queue are the shared checkpoint. No parameter passing between callers — the filesystem is the interface.
 
 **Model split — opus orchestrates, codex implements, gemini gates:**
 
@@ -199,22 +240,11 @@ This makes half-finished agents a recoverable state, not a failure. The agent di
 
 **Repo clones live in `~/Documents/`.** Fork the repo on GitHub (`gh repo fork --clone=false`), clone to `~/Documents/<repo-name>`, create the fix branch. This is where the code lives — the branch pointer in the drip queue references this local path.
 
-### Phase 5: Quality gates (dry-run runs everything except push)
+### Phase 5: Quality gates
 
-Dry-run produces mergeable PRs locally. Every gate below runs in both modes — only the push at the end is a remote side effect. The output of dry-run is a local branch in `~/Documents/<repo>` that's ready to push and PR.
+`/drip` owns quality. Sweep produces branches, `/drip` pushes them. No `gh pr create` anywhere in sweep — not in agent prompts, not in pipeline ticks, not in push steps. `/drip` is the only path from branch to PR.
 
-For each branch pointer in `~/.sweep/drip-queue/<owner>-<repo>.jsonl`:
-
-1. **Staleness check.** Verify the issue is still open. Check for competing PRs that landed since triage.
-2. **Test gate.** Checkout default branch, run test — must fail. Checkout fix branch, run test — must pass.
-3. **PR description.** Generate from the real diff + issue context. Tone-match against 5 recent merged PRs from the repo.
-4. **Gemini volley.** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max. Gemini is best at tracing logic and catching scope issues.
-5. **Codex crosscheck.** Shuffle the generated description into a lineup of 5 real merged PR descriptions. Send to `/codex`: "One may be AI-generated. Which ones, and why?" Codex (GPT-5.5) is the best performer at AI-likeness detection among SOTA models. If identified, rewrite tells only (no checklist). Re-shuffle, re-test. Five rounds max. If still detectable: surface to the human.
-6. **Push** (full run only). `git push`, `gh pr create`. In dry-run, log what would be pushed and stop.
-
-PR descriptions are a **drip concern**, not a triage concern. Triage produces branches. Drip generates descriptions from diffs at push time.
-
-For full runs, load drip queues per repo. Each repo gets its own independent drip cadence. One open PR per repo at a time.
+Triage agents write branch + issue ref + commit SHA. No `pr_title`, no `pr_body`. `/drip` generates descriptions from the diff at push time.
 
 ### Phase 5: Heartbeat (two crons)
 
@@ -225,8 +255,8 @@ After all phases complete, set up two recurring wake-ups with separated concerns
 CronCreate({
   cron: "*/2 * * * *",
   prompt: "/sweep --pipeline. Three mandatory actions every tick — do ALL, never skip:
-           1. SPAWN up to --concurrency subagents (default 10, from ~/.sweep/config.json) for untriaged ready repos. model:opus, opus+codex+gemini split. Per-tick cap, not global.
-           2. RUN /drip on EVERY unblocked queued branch. Check org gate, then push.
+           1. SPAWN up to --concurrency subagents for untriaged ready repos.
+           2. RUN /drip on every repo with queued entries. /drip owns all quality gates. Never call gh pr create directly.
            3. Spawn impl subagents for stalled pipelines. Counts against per-tick cap.
            'Idle' = zero ready repos AND zero queued branches AND zero stalled pipelines.",
   recurring: true
@@ -246,22 +276,30 @@ Pass `--dry-run` into both if set on the original invocation. **Always create bo
 
 Fast tick for advancing work. **Keep the work queue saturated.** Don't wait for running agents to finish before spawning new ones — agents are independent.
 
-1. **Spawn up to `--concurrency` subagents this tick.** Use `model: "opus"`. Read `~/.sweep/config.json` for the cap (default 10). This is a per-tick spawn limit — spawn up to N new subagents each tick regardless of what's running from prior ticks. Pick order: warm leads first, then high-star.
-2. **Run `/drip` on every unblocked queued branch.** Check org gate, then push. Branches sitting in the queue are wasted work — push them.
-3. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). These count against the concurrency cap.
-4. **If all three are empty:** report idle. `/actionable` runs on the monitor tick (hourly), not here — it's too expensive for a 2-minute cadence.
+1. **Spawn up to `--concurrency` subagents this tick.** Read `~/.sweep/config.json` for the cap (default 5). Per-tick spawn limit. Pick order: warm leads first, then high-star.
+2. **Run `/drip` on every repo with `queued` entries.** `/drip` handles all gates (staleness, test, tone-match, gemini volley, codex crosscheck, org gate) and pushes only if everything passes. No `gh pr create` here — ever.
+3. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). Counts against concurrency cap.
+4. **Run the counit.** Check `~/Documents/` for repos with fix branches but no drip queue entry. Commit uncommitted changes, write the drip queue entry. Don't push — `/drip` handles that on the next tick.
+5. **If all four are empty:** report idle.
 
 #### `--monitor` tick (hourly at :23)
 
-Slow tick matching review cadence. Checks external state.
+Slow tick matching review cadence. Checks external state. Runs commands directly — no prose, no summaries.
 
-1. **Run `/drip --check` on each repo with an open PR.** Drip handles the full checkup: fetch reviewer comments, classify feedback, address changes requested, push follow-up commits, run gemini volley on updates. The monitor tick invokes drip, drip does the work.
-2. **Run eviction checks** per the eviction table below.
-3. **Check competing PRs** on blocked items — competing PR merged? Issue closed? Unblock or kill.
-4. **Update `SWEEP_GRAPH.md` and `~/.sweep/SWEEP_LOG.md`** with state changes.
-5. **If a PR was merged:** `/drip` advances the next queued branch for that repo. Update repos.jsonl.
-6. **If a PR was rejected:** log to `/retro` for the hypothesis graph. Check if approach needs revision or issue should be killed.
-7. **If the roster has zero untriaged repos**, run `/actionable` to expand. Hourly cadence is right for discovery — it's expensive but infrequent.
+1. **Scan all open PRs for new human comments.** Run `~/.sweep/bin/monitor-comments.sh <last_check_timestamp>`. Outputs tab-separated: `REPO#NUMBER\tAUTHOR\tSTATE\tBODY_PREVIEW`. Filters out bots. For each result:
+   - CHANGES_REQUESTED or inline comment: spawn a review-response agent to address it and push a follow-up commit
+   - COMMENTED with a question: spawn agent to reply
+   - APPROVED: log, check if merge is possible
+   - Style nit: apply if trivial
+
+2. **Check for merges and closures.** Run `gh api graphql` for MERGED/CLOSED PRs since last check.
+   For merges: update drip queue status, advance next queued branch.
+   For closures: update drip queue, log to retro, re-triage if warranted.
+
+3. **Run eviction checks** per the eviction table below.
+4. **Check competing PRs** on blocked items — `gh pr list --repo OWNER/REPO --search "KEYWORDS" --state merged`.
+5. **Update `SWEEP_GRAPH.md` and `~/.sweep/SWEEP_LOG.md`** with state changes.
+6. **If the roster has zero untriaged repos**, run `/actionable` to expand.
 
 **Why two crons:** Pipeline work (spawning agents, running tests) completes in minutes. PR reviews take hours to days. Polling PRs every 2 minutes wastes context on "no change" responses. Polling pipeline state hourly delays agent spawning. Each concern runs at its natural cadence.
 
@@ -292,5 +330,5 @@ The roster grows via `/actionable`. Sweep prunes it. Check every heartbeat tick,
 - **Independent drip queues, shared org gate.** Each repo has its own queue, but repos under the same GitHub org share a maintainer surface. Drip enforces `max_open_per_org` (default 1) — one open PR per org at a time. Getting banned from one repo in an org triggers cooldown on all repos in that org.
 - **Idempotent.** Running sweep twice skips repos whose triage is already complete (TRIAGE_GRAPH.md exists with all outcomes filled).
 - **Auth first.** Verify access to every repo before launching any agents.
-- **All PRs route through /drip.** No direct `gh pr create` during active pipeline runs. 14 manual PRs in 2 days triggered a ban warning. The drip queue exists to prevent this — enforce it.
+- **All PRs route through /drip.** No direct `gh pr create` during active pipeline runs. 14 manual PRs in 2 days triggered a ban warning. The drip queue exists to prevent this — enforce it. Triage agents must NEVER run `gh pr create`. If a triage agent's result includes a `pr_url` that wasn't written by a drip push agent, that's a violation — log it to the sweep log and flag for retro.
 - **Never recommend closing a stale PR.** No-review age is a signal to ping, rebase, or break up — not to close. Closing destroys optionality. Only recommend closing when a maintainer explicitly rejects it or the approach is superseded by another merged PR.

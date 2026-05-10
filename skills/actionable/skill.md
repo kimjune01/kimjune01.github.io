@@ -70,7 +70,35 @@ gh search repos --topic=linter --topic=type-checker --language=Python --sort=sta
 ```
 Find repos in the same domain as your highest-merge repos.
 
+**f. Overwhelmed maintainer search (maintainer-first)**
+
+Instead of "what's broken," ask "who needs help." Search for solo maintainers with popular repos and growing issue backlogs. The issue is secondary — any bug on their queue is welcome.
+
+Profile: personal account (not org), top contributor has >80% of recent commits, open issues growing, last external PR was merged (proving they accept contributions).
+
+```bash
+# Search for CLI/TUI tools by personal accounts with issue backlogs
+gh api search/repositories -X GET \
+  -f "q=topic:cli stars:500..5000 pushed:>$(date -v-30d +%Y-%m-%d)" \
+  -f "sort=updated" -f "per_page=20" \
+  --jq '.items[] | "\(.full_name) (\(.stargazers_count)★, \(.open_issues_count) issues)"'
+```
+
+For each candidate, verify the solo-maintainer signal:
+```bash
+# Check if top contributor dominates
+gh api "repos/OWNER/REPO/contributors?per_page=5" --jq '.[0].contributions, .[1].contributions // 0'
+# Check if external PRs merge
+gh pr list --repo OWNER/REPO --state merged --limit 5 --json author --jq '[.[] | .author.login] | unique'
+```
+
+Solo maintainer + popular tool + issue backlog + merge history = high-receptivity target. These maintainers appreciate the small stuff — cosmetic fixes, error messages, edge cases — because they don't have time for it themselves.
+
 **Retro note (2026-05-09):** Compiler/optimizer niche is too narrow for generic labels. But general bug fixes, error messages, and docs span all domains. The pipeline's skillset is "read code, find root cause, write fix" — not limited to compilers. Expand the search to any well-maintained repo with mechanical acceptance criteria.
+
+**Retro note (2026-05-10):** Maintainer-first search found pvolok/mprocs (2.5k★, 65 issues, solo Rust maintainer) via ecosystem graph from existing roster repos. Issue-first search misses repos where the maintainer hasn't labeled issues yet.
+
+**Retro note (2026-05-10):** Maintainer-first repos have 50-100+ open issues — pick the *easiest*, not the most interesting. On mprocs (65 issues) and onecli (228 issues), triage agents picked domain-heavy bugs (config-vs-state, security defaults) and gemini killed both. The maintainer doesn't need you to redesign their state model. They need the 30 boring items off their plate: typos, error messages, missing edge cases, doc fixes. For first contribution to a solo-maintainer repo, filter issues by estimated complexity ≤10 lines and labels like `docs`, `error-message`, `typo`, `good-first-issue`. Standing first, ambition second.
 
 ## What to skip
 
@@ -108,45 +136,33 @@ After scoring candidates, select the final set using DPP-style diversity. Each c
 
 **Selection:** diversify strategies, not just results. Each parallel agent uses a **different search strategy** — one does label search, one does trending, one does dependency graph, one does topic clusters. Strategy diversity prevents correlated search spaces.
 
-### Multi-leg stochastic search
+### d20 stochastic search
 
-Each search leg randomizes its criteria so repeated /actionable runs explore different GitHub slices. Use the shell for randomness — LLMs can't generate it.
+Three dice, three axes. Roll all three, build the query, fetch results, filter deterministically. No learning, no posterior, no feedback loop. The dice don't learn — you can't overfit a d20.
 
-**Before each search, roll the dice:**
 ```bash
-# Pick random language
-LANG=$(python3 -c "import random; print(random.choice(['Go','Rust','Python','TypeScript','Java','C++','C#','Ruby','Zig','Elixir','Haskell','Scala','Swift','Kotlin']))")
-
-# Pick random label combination
-LABELS=$(python3 -c "import random; labels=['good first issue','bug','help wanted','enhancement','documentation','P-low','accepted','confirmed','triaged','easy']; combo=random.sample(labels, random.randint(1,2)); print(' '.join(['--label \"'+l+'\"' for l in combo]))")
-
-# Pick random sort
-SORT=$(python3 -c "import random; print(random.choice(['created','updated','comments','reactions']))")
-
-# Pick random star range
-STARS=$(python3 -c "import random; lo=random.choice([500,1000,2000,5000,10000]); print(f'stars:>{lo}')")
-
-# Pick random age window
-DAYS=$(python3 -c "import random; print(random.randint(7,90))")
+# Roll 3 queries (each is a d12 × d8 × d6 = 576 combinations)
+python3 ~/.sweep/bin/roll-search.py 3
 ```
 
-**Then search with the rolled criteria:**
+Dice tables live in `~/.sweep/bin/roll-search.py`:
+- **d12 Language:** rust, go, python, typescript, cpp, java, csharp, kotlin, ruby, zig, swift, lua
+- **d8 Signal:** unassigned bugs, silent bugs, discussed bugs, good-first-issue, help-wanted, upvoted bugs, kind/bug, broad bugs
+- **d6 Sort+Size:** updated+mid, updated+small, reactions+large, created+any, comments+mid, updated+large
+
+Each roll outputs a query + sort. Search with REST:
 ```bash
-gh search issues $LABELS --language $LANG --sort $SORT --limit 50 --json repository,title,number
-gh search repos --language $LANG --sort stars --limit 50 --json nameWithOwner,stargazerCount -- "$STARS pushed:>$(date -v-${DAYS}d +%Y-%m-%d)"
+python3 ~/.sweep/bin/roll-search.py 3 | while IFS=$'\t' read -r query sort; do
+  gh api search/issues -X GET -f "q=$query" -f "sort=${sort#sort:}" -f per_page=30 \
+    --jq '.items[] | "\(.repository_url | split("/")[-2:]|join("/")) #\(.number) \(.title)"' 2>/dev/null
+done
 ```
 
-**Why multi-leg:** deterministic searches converge to the same repos every time. The first run finds the obvious candidates. The second run finds the same ones. Stochastic legs explore different corners — a random roll of `Zig + "accepted" + sort:reactions` finds repos that `Python + "good first issue" + sort:created` never would. Run enough legs and the coverage is broad without a coordinator.
+**Three rolls per invocation.** Each /actionable run rolls the dice three times, producing three independent queries. Results are pooled, deduped against `repos.jsonl`, then filtered deterministically (competing PRs, maintainer responsiveness, hypothesis coverage, merge ceiling, AI policy).
 
-**Iteration:** if a leg returns zero new repos (all already in roster), re-roll and try again. Max 5 re-rolls per leg before giving up. The skill iterates stochastically until it finds new work or exhausts its re-roll budget.
+**Re-roll on empty.** If a roll returns zero new repos (all already in roster or filtered out), re-roll that leg. Max 3 re-rolls per leg. If still empty, that leg produced nothing — move on.
 
-Within each strategy, jitter scores:
-```bash
-jitter=$(python3 -c "import random; print(random.uniform(0.7, 1.3))")
-jittered_score=$(python3 -c "print($score * $jitter)")
-```
-
-No central coordinator. No partitioning. Strategy diversity × score noise × criteria randomization = broad coverage without bottleneck.
+**No jitter, no weighting, no memory.** The dice are uniform. The filter is deterministic. The exploration comes from the dice. The quality comes from the filter. They don't talk to each other.
 
 ## Standing-gated bug hunt
 
