@@ -63,6 +63,8 @@ Read sentences aloud in your head. Flag where the rhythm breaks.
 
 **3+ single-sentence paragraphs in a row:** bullet-point energy in prose clothing. Make it a list or combine.
 
+**Inline enumerations.** A sentence with 3+ comma-separated items (especially with parenthetical details per item) scans faster as a bulleted list. Flag sentences like "X (detail), Y (detail), Z (detail), and more" — the reader's eye is already parsing vertically. Convert to a list. This applies especially to: sequences of named examples with annotations, pipeline stages with descriptions, and evidence lists with citations.
+
 **Long sentence alone:** a 40-word sentence standing as a paragraph has no breathing room. Pair it.
 
 ### 5. Section sizing

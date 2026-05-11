@@ -105,10 +105,16 @@ def triage_prompt(repo):
     run_in_background: true,
     prompt: f"Full triage pipeline for {repo}:
              
-             0. BUILD DENYLIST from persisted state before scanning issues:
+             0. BUILD DENYLIST AND READ REPO CONTEXT from persisted state before scanning issues:
                 a. Read ~/.sweep/repos/{owner_repo}/TRIAGE_GRAPH.md — any issue marked KILLED, rejected, or gate_fail is denied.
+                   Also read the MAINTAINER PREFERENCES section if present — review style, test conventions, coding patterns.
+                   Apply these preferences to implementation: if the maintainer wants full CHECK lines, write full CHECK lines.
+                   If they want return-failure not fallthrough, use return failure. These are hard requirements, not suggestions.
                 b. Read ~/.sweep/drip-queue/{owner_repo}.jsonl — any issue with status closed, superseded, issue_closed, gate_fail, or test_passes_on_master is denied.
                 c. Collect all denied issue numbers. These were already attempted — do not re-investigate them.
+                d. Read CONTRIBUTING.md (or .github/CONTRIBUTING.md) from the repo. Extract: target branch, max commits per PR, CLA requirements, PR template requirements.
+                   Also check ~/.sweep/retro/{owner_repo}.jsonl for contributing.* params (these override if present — learned from bot rejections).
+                   Write these constraints to the TRIAGE_GRAPH.md MAINTAINER PREFERENCES section. Drip reads them before creating PRs.
              1. Fork (gh repo fork --clone=false) if not already forked.
              2. Clone to ~/Documents/<repo-name> if not already cloned.
              3. Scan issues: competing PRs, scoring, kill list. Rank top 5.
@@ -131,6 +137,9 @@ def triage_prompt(repo):
                 The file MUST be at ~/.sweep/drip-queue/{owner_repo}.jsonl where {owner_repo} = repo.replace('/', '-').
                 Format: one JSON object per line with at minimum: repo, branch, issue, status ('queued' or 'ready'), sha.
              7. Write TRIAGE_GRAPH.md to ~/.sweep/repos/{owner_repo}/TRIAGE_GRAPH.md (include all attempted issues and their outcomes — both kills and the winner).
+                Include a MAINTAINER PREFERENCES section at the top if you learned anything from review comments, merged PR patterns, or maintainer inline feedback.
+                Example: "Prefers full CHECK lines in tests, requires return failure not fallthrough, zero diffe mandatory for constant containers."
+                Future agents read this before implementing — it prevents repeating the same review feedback.
              
              CRITICAL: Steps 5-7 are UNCONDITIONAL after step 4 passes. The codex/gemini feedback is a mid-point, not an endpoint. Your job is not done until the drip queue entry exists. If you end without writing a drip queue file, you have failed. Ending after a gemini rejection without trying the next issue is also a failure.
              
@@ -279,7 +288,9 @@ Fast tick for advancing work. **Keep the work queue saturated.** Don't wait for 
 1. **Spawn up to `--concurrency` subagents this tick.** Read `~/.sweep/config.json` for the cap (default 5). Per-tick spawn limit. Pick order: warm leads first, then high-star.
 2. **Run `/drip` on every repo with `queued` entries.** `/drip` handles all gates (staleness, test, tone-match, gemini volley, codex crosscheck, org gate) and pushes only if everything passes. No `gh pr create` here — ever.
 3. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). Counts against concurrency cap.
-4. **Run the counit.** Check `~/Documents/` for repos with fix branches but no drip queue entry. Commit uncommitted changes, write the drip queue entry. Don't push — `/drip` handles that on the next tick.
+4. **Run the counit.** Two checks:
+   a. **Half-finished agents:** Check `~/Documents/` for repos with fix branches but no drip queue entry. Commit uncommitted changes, write the drip queue entry. Don't push — `/drip` handles that on the next tick.
+   b. **Gate-fail recovery (volley):** Scan drip queues for `gate_fail` entries with actionable findings (the `reason` field). For each, spawn a triage agent with the gate findings as input: "Fix these specific issues on branch X, re-commit, update drip queue status back to `ready`." The agent applies the feedback, iterates with codex/gemini, and re-queues. Max 3 recovery attempts per branch — after that, the gate_fail is terminal. Counts against concurrency cap.
 5. **If all four are empty:** report idle.
 
 #### `--monitor` tick (hourly at :23)

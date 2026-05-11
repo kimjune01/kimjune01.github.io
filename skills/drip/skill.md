@@ -54,13 +54,24 @@ Show the queue. For each entry: branch, title, status, PR number if open.
 
 ### `--check`
 
-Check if it's time to push:
+Two jobs: advance the queue, and respond to reviewer feedback on open PRs.
 
+**Queue advancement:**
 1. `gh pr list --repo <repo> --author @me --state open` — count open PRs
 2. If open PRs < `max_open`: push the next `queued` entry
 3. If open PRs >= `max_open`: report what's blocking and when it was last updated
+4. Update statuses: check if any `open` PRs were merged or closed since last check. Transition them in the queue.
 
-Also update statuses: check if any `open` PRs were merged or closed since last check. Transition them in the queue.
+**Review response (for each open PR):**
+1. Fetch new comments/reviews: `gh pr view <number> --repo <repo> --json comments,reviews,reviewDecision`
+2. Classify each new comment:
+   - **CHANGES_REQUESTED or inline code comment**: read the feedback, implement the fix, push a follow-up commit. Reply acknowledging the change.
+   - **Question**: spawn agent to answer based on the code and PR context.
+   - **Style nit**: apply if trivial, explain if not.
+   - **APPROVED**: log, check merge readiness.
+3. After addressing feedback: run gemini volley on the updated diff before pushing.
+4. **Capture maintainer preferences**: if the reviewer's feedback reveals a pattern (e.g., "use CHECK-NEXT not CHECK-DAG", "return failure not fallthrough"), write it to the MAINTAINER PREFERENCES section of `~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md`. Future triage agents read this before implementing — prevents repeating the same feedback.
+5. A PR with unanswered reviewer comments older than 24 hours is a driveby. Don't push new PRs to the repo while feedback is unaddressed.
 
 ### `--push`
 
@@ -99,6 +110,7 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
 3. Count entries with status `open`. If any open PR has unaddressed reviewer feedback, stop. Address feedback first, push new PRs second. If < `max_open`, no unaddressed feedback, and there are `queued` entries:
    - Take the next `queued` entry
    - **Staleness check (hard block).** Before pushing, verify the issue is still open: `gh issue view <number> --repo <repo> --json state`. If closed, mark `status: "issue_closed"`, skip. Check for competing PRs: `gh pr list --repo <repo> --search "<keywords>"`. If someone else landed a fix, mark `status: "superseded"`, skip. The gap between triage and push can be days — the world moves.
+   - **CONTRIBUTING.md compliance gate (hard block).** Read CONTRIBUTING.md (or .github/CONTRIBUTING.md) from the repo's default branch. Extract: target branch (if not default), max commits per PR, required PR template fields, CLA requirements. Check retro params for `contributing.*` overrides. Verify the PR will comply before creating it. If the target branch is not default, use `--base <branch>`. If max commits exceeded, squash. If CLA required, check if already signed. Three pipeline errors from open-webui (#24545, #24546) taught this — bot-rejected PRs are noise on the contributor surface.
    - **Org gate (hard block).** Run `~/.sweep/bin/org-gate <repo>`. If verdict is `"blocked"`: a sibling repo has an open/recent PR, wait. If verdict is `"hostile"`: multiple PRs closed without merge across the org recently, surface to the human before pushing. `max_open_per_org` defaults to 1. Override via retro params.
    - **Test gate (hard block).** The queue entry must include a test command. Run it:
      1. Checkout the repo's default branch. Run the test. It must **fail**. If it passes, mark `status: "test_passes_on_master"`, skip, report. The bug is already fixed or the test is wrong.
@@ -181,6 +193,7 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 
 ## Failure behavior
 
+- **Gate fail (gemini/codex reject):** mark `status: "gate_fail"`, write the specific findings to the `reason` field as actionable text (not just "failed" — list what to fix). The pipeline counit reads these findings and spawns a triage agent to apply fixes and re-queue. Drip doesn't fix code — it gates. The volley loop is: drip finds issues → counit spawns fixer → fixer re-queues → drip re-gates. Max 3 recovery attempts tracked in the queue entry's `gate_fail_count` field.
 - **Auth fails:** stop immediately, report which token/scope is missing.
 - **Branch missing locally:** skip the entry, mark `status: "error"`, report. Don't block the queue.
 - **Branch needs rebase:** skip the entry, mark `status: "needs_rebase"`, report. The user rebases manually, then `/drip` picks it up next cycle.

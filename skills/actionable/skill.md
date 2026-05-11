@@ -1,24 +1,39 @@
 ---
 name: actionable
-description: Find work worth doing. Starts from issues, not repos — finds maintainer-acknowledged problems with mechanical acceptance criteria. Reads retro parameters to score active repos and expand from what works.
+description: Find work worth doing. Starts from intent, not repos — finds maintainer-acknowledged problems and maintainer-desired improvements with mechanical acceptance criteria. Reads retro parameters to score active repos and expand from what works.
 argument-hint: [--dry-run]
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # Actionable
 
-Find work worth doing. Start from issues, not repos.
+Find work worth doing. Start from intent, not repos.
+
+Work worth doing is anything the maintainer wants done — bugs are a subset. The full space is **desirable improvements**: bugs, planned features, roadmap items, conformance gaps, performance targets, doc holes. The common thread is maintainer pre-commitment: they signaled they want this, nobody's doing it, and the acceptance criteria are readable.
 
 ## What makes a good candidate
 
-An issue where:
-1. **Maintainer acknowledged it** — they commented, labeled it, or opened it themselves
-2. **Acceptance criteria are mechanical** — a test fails, a benchmark regresses, a conformance suite has a gap
+An item where:
+1. **Maintainer signaled intent** — they opened it, commented, labeled it, added it to a milestone, listed it in a roadmap, pinned it, or wrote "PRs welcome"
+2. **Acceptance criteria are mechanical** — a test fails, a benchmark regresses, a conformance suite has a gap, a spec is documented, a checklist exists
 3. **Nobody's working on it** — no assigned contributor, no open PR addressing it
 4. **The repo has a harness** — CI + bench that gives a definitive yes/no before you submit
 5. **Estimated fix fits the merge ceiling** — check the repo's merged PR size distribution (from review schema or retro). If the median external merge is ~30 lines and the fix looks like 500+, score it down hard. Prior PRs at 10-50x the merge ceiling don't land regardless of quality.
 
-The ideal issue is a maintainer-acknowledged bug with a reproducer, sitting for months because it's hard. The maintainer pre-committed when they said "PRs welcome." You're claiming work from a queue, not pitching.
+### Intent signals (strongest to weakest)
+
+| Signal | Where to find it | Strength |
+|---|---|---|
+| Maintainer opened the issue | Issue author = repo owner/collaborator | Very strong — they defined the problem |
+| Milestone assignment | `gh issue view --json milestone` | Strong — scheduled, not aspirational |
+| Roadmap / tracking issue | Pinned issues, `ROADMAP.md`, `TODO.md`, project boards | Strong — published plan |
+| `enhancement` + maintainer comment | Issue labels + comment authors | Medium — acknowledged want |
+| `help wanted` / `contributions welcome` | Issue labels | Medium — explicit invitation |
+| `planned` / `accepted` / `next-release` labels | Issue labels | Medium — intent without urgency |
+| `CONTRIBUTING.md` listing areas of help | Repo docs | Weak — general, not specific |
+| `good first issue` | Issue labels | Weak — high competition, but standing-builder |
+
+Bugs with reproducers are the safest entry point. Roadmap items with specs are the highest-leverage. Features without maintainer endorsement are noise — inventing problems.
 
 ## Sources
 
@@ -44,33 +59,57 @@ Keyword trawling alone fails for niche skillsets. Use all of these:
 ```
 gh search issues --label "good first issue" --language <lang> --sort created --limit 200
 gh search issues --label "help wanted" --language <lang> --sort created --limit 200
+gh search issues --label "enhancement" --label "accepted" --language <lang> --sort created --limit 100
+gh search issues --label "planned" --language <lang> --sort created --limit 100
 ```
 Cast wide — 200 results per language per label. Score by issue quality. At 1000 slots, false positives are cheap; false negatives are expensive.
 
-**b. GitHub trending**
+**b. Intent search (roadmap mining)**
+
+Find items the maintainer already wants done — not just bugs, but planned improvements, conformance gaps, and accepted enhancements.
+
+```bash
+# Milestone items with no assignee — scheduled work nobody's claimed
+gh api "repos/OWNER/REPO/milestones" --jq '.[].number' | while read ms; do
+  gh api "repos/OWNER/REPO/issues?milestone=$ms&assignee=none&state=open&per_page=20" \
+    --jq '.[] | "\(.number) \(.title)"'
+done
+
+# Pinned issues — maintainer's priorities
+gh api "repos/OWNER/REPO/issues?state=open&per_page=100" \
+  --jq '[.[] | select(.labels[]?.name | test("tracking|roadmap|planned|accepted|meta"))] | .[] | "\(.number) \(.title)"'
+
+# Tracking issues with unchecked items
+gh api "repos/OWNER/REPO/issues?state=open&per_page=50" \
+  --jq '.[] | select(.body | test("- \\[ \\]")) | "\(.number) \(.title)"'
+```
+
+Roadmap files (`ROADMAP.md`, `TODO.md`, project boards) are also intent signals but aren't API-searchable across repos. Check them per-repo after the repo enters the roster.
+
+**d. GitHub trending**
 ```
 gh api /search/repositories?q=stars:>1000+pushed:>$(date -v-7d +%Y-%m-%d)&sort=updated&per_page=100
 ```
 Active high-star repos. Filter for open good-first-issues. These repos have review bandwidth.
 
-**c. Dependency graph traversal**
+**e. Dependency graph traversal**
 For repos where you've merged PRs, check their dependency tree:
 ```
 gh api repos/OWNER/REPO/dependency-graph/sbom
 ```
 Upstream dependencies often share maintainers. If you have standing in `ruff`, check `astral-sh/uv`, `astral-sh/ty`, etc.
 
-**d. "Used by" expansion**
+**f. "Used by" expansion**
 GitHub shows repos that depend on a project. High-star dependents of projects you've contributed to are warm leads — you understand the dependency.
 
-**e. Topic cluster search**
+**g. Topic cluster search**
 ```
 gh search repos --topic=parser --topic=formatter --language=Go --sort=stars --limit 50
 gh search repos --topic=linter --topic=type-checker --language=Python --sort=stars --limit 50
 ```
 Find repos in the same domain as your highest-merge repos.
 
-**f. Overwhelmed maintainer search (maintainer-first)**
+**h. Overwhelmed maintainer search (maintainer-first)**
 
 Instead of "what's broken," ask "who needs help." Search for solo maintainers with popular repos and growing issue backlogs. The issue is secondary — any bug on their queue is welcome.
 
@@ -102,10 +141,10 @@ Solo maintainer + popular tool + issue backlog + merge history = high-receptivit
 
 ## What to skip
 
-- Issues with no maintainer response — until they engage, you don't know if they want it fixed
-- Issues with active discussion or assigned contributors — someone's on it
+- Items with no maintainer response — until they engage, you don't know if they want it done
+- Items with active discussion or assigned contributors — someone's on it
 - **Issues with an existing open PR** — always run `gh pr list --repo OWNER/REPO --search "KEYWORD" --state open` before scoring. If a PR exists and was updated in the last 30 days, skip. If stale (>30 days, no reviews), note as opportunity to pick up the stalled work. Retro 2026-05-09: gemini-cli #25693 and #25689 both had competing PRs (#25728, #25729) that triage agents discovered only after full investigation.
-- Feature requests with no maintainer endorsement — inventing problems
+- Feature requests with no maintainer endorsement — inventing problems, not solving them
 - Issues that need hardware you don't have — can't verify
 - **Fix exceeds merge ceiling** — if the estimated diff is >3x the repo's median merged PR size for external contributors, skip. A 2000-line feature on a repo that merges 30-line fixes is dead on arrival.
 - **Repos with `process_depth: shallow`** in their review schema — the pipeline produces investigation-backed PRs. Shallow-review repos can't absorb them. Only add shallow repos if the issue is trivial enough that investigation depth is unnecessary (1-line fix, obvious bug, failing test with known cause).

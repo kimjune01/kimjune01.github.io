@@ -972,3 +972,7 @@ Fixed counter negative value error messages to include metric name.
 ### 15:46 — risingwave triage complete
 
 risingwave triage complete. Issue #20187 (count distinct _row_id bug) selected. Root cause: distinct_agg_rule.rs used input_indices()[0] for expand skip check but full subset for column_subsets dedup. Fixed by aligning both to use group_keys + all input_indices. Codex identified cause, Gemini recommended GROUP BY test. 2 commits, queued in drip.
+
+### 18:19 — GreptimeTeam/greptimedb #8092 pushed
+
+drip: pushed GreptimeTeam/greptimedb #8092 - remove misleading [heartbeat] sections from node example configs. Issue #8087: intervals negotiated from metasrv, not parsed locally. Gemini + codex: approved, config-only fix. No test gate (config change).
