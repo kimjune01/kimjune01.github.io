@@ -122,9 +122,15 @@ def triage_prompt(repo):
                 For solo-maintainer repos (first contribution), prefer the smallest/easiest issue — docs, error messages, edge cases. Standing first, ambition second.
              4. FOR EACH of the top 5 issues, in rank order, attempt the full pipeline:
                 a. Read code, understand the problem, gather relevant file contents.
-                b. Send problem + code to /codex: 'Here is issue #N. Here are the relevant files. Implement a minimal fix.' Apply codex's output — edit the files yourself based on codex's response.
-                c. Test gate — run tests if feasible.
-                d. Send the fix diff to /gemini: 'Review this fix for logic errors, missed edge cases, inverted conditions.'
+                   BEFORE FIXING: answer "why does the current code do it this way?" If you can't answer that from the code and comments, you don't understand enough to change it.
+                   Devil's advocate: argue the opposite ("this isn't a bug because..."). If that argument is stronger than the bug hypothesis:
+                   - Comment on the issue with the code-level evidence for why it's working as intended. Reference specific files, test paths, and code behavior. No speculation, only what you verified by reading the code. Zero em dashes.
+                   - Log the issue as NOT_A_BUG in TRIAGE_GRAPH.md with the reasoning.
+                   - Move to the next issue.
+                   The comment is the escape hatch: investigation that doesn't produce a fix can still produce knowledge. A well-reasoned "this isn't a bug" comment is more valuable than a wrong fix.
+                b. TDD PHASE 1 — WRITE TEST FIRST. On the default branch (master/main), write a test that demonstrates the bug. Run it. It MUST FAIL. If it passes, the bug doesn't exist or your test is wrong. Do not proceed to the fix. Commit the failing test separately: "test: reproduce #N (fails on main)".
+                c. TDD PHASE 2 — IMPLEMENT FIX. Send problem + code + failing test to /codex: 'Here is issue #N, here is a failing test that proves the bug, implement a minimal fix.' Apply codex's output. Run the test again. It MUST PASS. Commit the fix separately: "fix: #N description".
+                d. Send the fix diff (both commits) to /gemini: 'Review this fix for logic errors, missed edge cases, inverted conditions.'
                 e. ITERATE: If codex or gemini suggest changes, apply them yourself (edit files), then re-send to the reviewer. Max 3 rounds.
                 f. If gemini still rejects after 3 rounds: log why in TRIAGE_GRAPH.md, reset the working tree (git checkout .), and MOVE TO THE NEXT ISSUE. Do not stop.
                 g. If reviews pass: break out of the loop — you have your fix.
@@ -143,7 +149,7 @@ def triage_prompt(repo):
              
              CRITICAL: Steps 5-7 are UNCONDITIONAL after step 4 passes. The codex/gemini feedback is a mid-point, not an endpoint. Your job is not done until the drip queue entry exists. If you end without writing a drip queue file, you have failed. Ending after a gemini rejection without trying the next issue is also a failure.
              
-             NEVER run gh pr create. Triage agents produce branches, not PRs. The gate hook will block any gh pr create attempt without a gate attestation file. Only /drip push agents create PRs.
+             NEVER run gh pr create. Triage agents produce branches, not PRs. Only /ship creates PRs.
              
              You have full permission to edit files, run commands, and commit. Never ask for confirmation. Never report feedback and stop. Apply → iterate → commit → write artifacts."
   })
@@ -251,9 +257,11 @@ This makes half-finished agents a recoverable state, not a failure. The agent di
 
 ### Phase 5: Quality gates
 
-`/drip` owns quality. Sweep produces branches, `/drip` pushes them. No `gh pr create` anywhere in sweep — not in agent prompts, not in pipeline ticks, not in push steps. `/drip` is the only path from branch to PR.
+`/drip` owns quality gates. `/ship` owns PR creation. Sweep produces branches, `/drip` validates them (advancing `queued` to `dripped`), `/ship` publishes them (advancing `dripped` to `shipped`). No `gh pr create` anywhere in sweep or drip. `/ship` is the only path from branch to PR.
 
-Triage agents write branch + issue ref + commit SHA. No `pr_title`, no `pr_body`. `/drip` generates descriptions from the diff at push time.
+Triage agents write branch + issue ref + commit SHA. No `pr_title`, no `pr_body`. `/drip` generates descriptions from the diff during the gate sequence and stores them in the gate attestation file. `/ship` reads them at PR creation time.
+
+**`--dry-run` controls `/ship`.** When sweep runs with `--dry-run`, the pipeline tick runs `/drip` (gates) but skips `/ship` (PR creation). Entries accumulate as `dripped`. When `--dry-run` is off, the pipeline tick runs both. The user can always run `/ship` manually regardless of sweep mode. This is the sleep toggle: `--dry-run` means the pipeline keeps working but nothing goes public.
 
 ### Phase 5: Heartbeat (two crons)
 
@@ -265,8 +273,9 @@ CronCreate({
   cron: "*/2 * * * *",
   prompt: "/sweep --pipeline. Three mandatory actions every tick — do ALL, never skip:
            1. SPAWN up to --concurrency subagents for untriaged ready repos.
-           2. RUN /drip on every repo with queued entries. /drip owns all quality gates. Never call gh pr create directly.
-           3. Spawn impl subagents for stalled pipelines. Counts against per-tick cap.
+           2. RUN /drip on every repo with queued entries. /drip runs quality gates, advances queued to dripped.
+           3. IF NOT --dry-run: RUN /ship on repos with dripped entries. /ship creates PRs.
+           4. Spawn impl subagents for stalled pipelines. Counts against per-tick cap.
            'Idle' = zero ready repos AND zero queued branches AND zero stalled pipelines.",
   recurring: true
 })
@@ -279,15 +288,16 @@ CronCreate({
 })
 ```
 
-Pass `--dry-run` into both if set on the original invocation. **Always create both crons, even in dry-run.** Dry-run still needs the pipeline to keep cooking — the only thing it skips is remote side effects (no PRs, no pushes).
+Pass `--dry-run` into both if set on the original invocation. **Always create both crons, even in dry-run.** Dry-run still needs the pipeline to keep cooking. The only thing `--dry-run` skips is `/ship` (PR creation). `/drip` (quality gates) runs regardless.
 
 #### `--pipeline` tick (every 2 minutes)
 
 Fast tick for advancing work. **Keep the work queue saturated.** Don't wait for running agents to finish before spawning new ones — agents are independent.
 
 1. **Spawn up to `--concurrency` subagents this tick.** Read `~/.sweep/config.json` for the cap (default 5). Per-tick spawn limit. Pick order: warm leads first, then high-star.
-2. **Run `/drip` on every repo with `queued` entries.** `/drip` handles all gates (staleness, test, tone-match, gemini volley, codex crosscheck, org gate) and pushes only if everything passes. No `gh pr create` here — ever.
-3. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). Counts against concurrency cap.
+2. **Run `/drip` on every repo with `queued` entries.** `/drip` runs all quality gates (staleness, test, tone-match, gemini volley, codex crosscheck, org gate) and advances passing entries to `dripped`. No PR creation.
+3. **If not `--dry-run`: Run `/ship`** on repos with `dripped` entries. `/ship` creates PRs, respecting org gate.
+4. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). Counts against concurrency cap.
 4. **Run the counit.** Two checks:
    a. **Half-finished agents:** Check `~/Documents/` for repos with fix branches but no drip queue entry. Commit uncommitted changes, write the drip queue entry. Don't push — `/drip` handles that on the next tick.
    b. **Gate-fail recovery (volley):** Scan drip queues for `gate_fail` entries with actionable findings (the `reason` field). For each, spawn a triage agent with the gate findings as input: "Fix these specific issues on branch X, re-commit, update drip queue status back to `ready`." The agent applies the feedback, iterates with codex/gemini, and re-queues. Max 3 recovery attempts per branch — after that, the gate_fail is terminal. Counts against concurrency cap.
@@ -341,5 +351,5 @@ The roster grows via `/actionable`. Sweep prunes it. Check every heartbeat tick,
 - **Independent drip queues, shared org gate.** Each repo has its own queue, but repos under the same GitHub org share a maintainer surface. Drip enforces `max_open_per_org` (default 1) — one open PR per org at a time. Getting banned from one repo in an org triggers cooldown on all repos in that org.
 - **Idempotent.** Running sweep twice skips repos whose triage is already complete (TRIAGE_GRAPH.md exists with all outcomes filled).
 - **Auth first.** Verify access to every repo before launching any agents.
-- **All PRs route through /drip.** No direct `gh pr create` during active pipeline runs. 14 manual PRs in 2 days triggered a ban warning. The drip queue exists to prevent this — enforce it. Triage agents must NEVER run `gh pr create`. If a triage agent's result includes a `pr_url` that wasn't written by a drip push agent, that's a violation — log it to the sweep log and flag for retro.
+- **All PRs route through /ship.** No direct `gh pr create` in triage or drip. Triage produces branches, drip validates them, ship publishes them. Triage agents must NEVER run `gh pr create`. `--dry-run` skips `/ship` entirely, letting branches accumulate as `dripped` until the human invokes `/ship` or disables dry mode.
 - **Never recommend closing a stale PR.** No-review age is a signal to ping, rebase, or break up — not to close. Closing destroys optionality. Only recommend closing when a maintainer explicitly rejects it or the approach is superseded by another merged PR.

@@ -1,13 +1,13 @@
 ---
 name: drip
-description: Queue PRs and push one at a time. Waits for the current open PR to be merged or closed before pushing the next. Prevents inbox flooding.
-argument-hint: <repo> [--check] [--push] [--list] [--ingest] [--watch]
+description: Run quality gates on queued branches. Advances entries from queued to dripped. Does not create PRs. Use /ship to create PRs from dripped entries.
+argument-hint: <repo> [--check] [--list] [--watch]
 allowed-tools: Read, Write, Edit, Bash, Glob
 ---
 
-# Drip: One PR at a Time
+# Drip: Quality Gates
 
-Queue PRs locally. Push the next one only when you have zero open PRs on the repo. The throttle between triage and the maintainer's inbox.
+Run all quality gates on queued branches. Advance entries from `queued` to `dripped` (gates passed, ready to ship). Does not create PRs. `/ship` handles PR creation as a separate, human-gated step.
 
 ## Why
 
@@ -17,7 +17,7 @@ Eleven PRs in two days gets you banned. One PR per merge cycle builds contributo
 
 | Input | Output | Valid alone? |
 |-------|--------|--------------|
-| Queue file (JSONL) | PRs created, one at a time | Yes — paced delivery from any source |
+| Queue file (JSONL) | Gate-passed entries (`dripped`) | Yes — quality validation from any source |
 
 **Identity:** drip on an empty queue is a no-op. Drip on a queue with no `queued` entries and no open PRs is a no-op.
 
@@ -25,7 +25,7 @@ Eleven PRs in two days gets you banned. One PR per merge cycle builds contributo
 
 **Standalone use:** The queue file is the interface. Any process that appends valid JSONL entries to `~/.sweep/drip-queue/<owner>-<repo>.jsonl` can feed drip — triage, manual `drip add`, a script, or another skill. Drip doesn't care who enqueued the entry.
 
-**Pipeline composition:** `sweep(repos) = foreach(repo, drip(triage(review_schema(repo))))`. Each function is idempotent. Queue is per-repo. No shared mutable state between repos.
+**Pipeline composition:** `sweep(repos) = foreach(repo, ship(drip(triage(review_schema(repo)))))`. Each function is idempotent. Queue is per-repo. No shared mutable state between repos. `/drip` gates, `/ship` publishes.
 
 ## Artifact formats
 
@@ -42,9 +42,9 @@ Eleven PRs in two days gets you banned. One PR per merge cycle builds contributo
 {"ts":"2026-05-09T01:00:00Z","action":"outcome","pr_number":16116,"status":"merged"}
 ```
 
-Statuses: `queued` → `open` → `merged` | `closed` | `rejected`
+Statuses: `queued` → `dripped` (gates passed) → `shipped` (PR created by `/ship`) → `merged` | `closed` | `rejected`
 
-Also: `test_passes_on_master`, `test_fails_on_fix`, `issue_closed`, `superseded`, `needs_rebase`, `error` (set by failure checks, never by hand).
+Also: `test_passes_on_master`, `test_fails_on_fix`, `issue_closed`, `superseded`, `needs_rebase`, `error`, `gate_fail` (set by failure checks, never by hand).
 
 ## Commands
 
@@ -54,15 +54,13 @@ Show the queue. For each entry: branch, title, status, PR number if open.
 
 ### `--check`
 
-Two jobs: advance the queue, and respond to reviewer feedback on open PRs.
+Two jobs: run quality gates on queued entries, and respond to reviewer feedback on shipped PRs.
 
-**Queue advancement:**
-1. `gh pr list --repo <repo> --author @me --state open` — count open PRs
-2. If open PRs < `max_open`: push the next `queued` entry
-3. If open PRs >= `max_open`: report what's blocking and when it was last updated
-4. Update statuses: check if any `open` PRs were merged or closed since last check. Transition them in the queue.
+**Gate advancement:**
+1. For each `queued` entry: run all quality gates (staleness, test, tone, gemini, codex, why, em dash). If all pass, mark `dripped`. If any fail, mark `gate_fail` with reason.
+2. Update statuses: check if any `shipped` PRs were merged or closed since last check. Transition them in the queue.
 
-**Review response (for each open PR):**
+**Review response (for each shipped PR):**
 1. Fetch new comments/reviews: `gh pr view <number> --repo <repo> --json comments,reviews,reviewDecision`
 2. Classify each new comment:
    - **CHANGES_REQUESTED or inline code comment**: read the feedback, implement the fix, push a follow-up commit. Reply acknowledging the change.
@@ -71,15 +69,11 @@ Two jobs: advance the queue, and respond to reviewer feedback on open PRs.
    - **APPROVED**: log, check merge readiness.
 3. After addressing feedback: run gemini volley on the updated diff before pushing.
 4. **Capture maintainer preferences**: if the reviewer's feedback reveals a pattern (e.g., "use CHECK-NEXT not CHECK-DAG", "return failure not fallthrough"), write it to the MAINTAINER PREFERENCES section of `~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md`. Future triage agents read this before implementing — prevents repeating the same feedback.
-5. A PR with unanswered reviewer comments older than 24 hours is a driveby. Don't push new PRs to the repo while feedback is unaddressed.
-
-### `--push`
-
-Force-push the next queued entry regardless of open PR count. Use when you know the timing is right.
+5. A PR with unanswered reviewer comments older than 24 hours is a driveby. Don't ship new PRs to the repo while feedback is unaddressed.
 
 ### (no flag)
 
-Same as `--check`. The default action is: check and push if ready.
+Same as `--check`. The default action is: run gates and respond to reviews.
 
 ## Process
 
@@ -98,7 +92,7 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
 
 0. Read `~/.sweep/retro/<owner>-<repo>.jsonl` if it exists. Check `cooldown_until` — if today < cooldown date, halt with "Cooldown active until {date}." Check `drip.title_format` for tone guidance.
 1. Read `~/.sweep/drip-queue/<owner>-<repo>.jsonl`
-2. For each entry with status `open`:
+2. For each entry with status `shipped`:
    - Check if the PR was merged or closed. Update status.
    - **Checkup.** Fetch reviewer comments since last check: `gh pr view <number> --repo <repo> --json comments,reviews,reviewDecision`. If there are new comments or requested changes:
      1. Read the feedback. Classify: requested change, question, style nit, or approval.
@@ -106,8 +100,8 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
      3. For style nits: apply if trivial, reply explaining if not.
      4. Run the gemini volley on the updated PR before pushing the follow-up.
      5. Log the interaction to the event log.
-   - A PR with unanswered reviewer comments older than 24 hours is a driveby. Don't push new PRs to a repo while an existing one has unaddressed feedback.
-3. Count entries with status `open`. If any open PR has unaddressed reviewer feedback, stop. Address feedback first, push new PRs second. If < `max_open`, no unaddressed feedback, and there are `queued` entries:
+   - A PR with unanswered reviewer comments older than 24 hours is a driveby. Don't ship new PRs to a repo while an existing one has unaddressed feedback.
+3. For each `queued` entry (skip if any shipped PR has unaddressed feedback):
    - Take the next `queued` entry
    - **Staleness check (hard block).** Before pushing, verify the issue is still open: `gh issue view <number> --repo <repo> --json state`. If closed, mark `status: "issue_closed"`, skip. Check for competing PRs: `gh pr list --repo <repo> --search "<keywords>"`. If someone else landed a fix, mark `status: "superseded"`, skip. The gap between triage and push can be days — the world moves.
    - **CONTRIBUTING.md compliance gate (hard block).** Read CONTRIBUTING.md (or .github/CONTRIBUTING.md) from the repo's default branch. Extract: target branch (if not default), max commits per PR, required PR template fields, CLA requirements. Check retro params for `contributing.*` overrides. Verify the PR will comply before creating it. If the target branch is not default, use `--base <branch>`. If max commits exceeded, squash. If CLA required, check if already signed. Three pipeline errors from open-webui (#24545, #24546) taught this — bot-rejected PRs are noise on the contributor surface.
@@ -115,7 +109,10 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
    - **Test gate (hard block).** The queue entry must include a test command. Run it:
      1. Checkout the repo's default branch. Run the test. It must **fail**. If it passes, mark `status: "test_passes_on_master"`, skip, report. The bug is already fixed or the test is wrong.
      2. Checkout the fix branch. Run the test. It must **pass**. If it fails, mark `status: "test_fails_on_fix"`, skip, report. The fix is broken.
-   - **PR description (generated from diff).** Read the diff from the fix branch. Generate title and body tone-matched against 5 recent merged PRs from the repo. The description is a drip artifact — triage doesn't write it.
+   - **PR description (generated from diff + hypothesis graph).** Read the diff from the fix branch. Then read `~/.sweep/repos/<owner>-<repo>/TRIAGE_GRAPH.md` and any `HYPOTHESIS_GRAPH.md` for the issue — these contain the root cause analysis, competing approaches considered, and why this specific approach was chosen. The PR body must lead with *why*, not *what*: why this root cause, why this approach over alternatives, why this is the minimal correct fix. The diff already shows *what* — repeating it in prose is waste. Tone-match against 5 recent merged PRs from the repo. The description is a drip artifact — triage doesn't write it, but triage's investigation artifacts are the source of the reasoning.
+   - **Why gate (hard block).** The PR body must lead with *why* this change is needed, not *what* changed. Verify the first paragraph answers "why does this problem exist and why is this the correct fix?" If the body only describes what the diff does, rewrite it. The issue describes what's broken; the PR body explains why the fix is correct.
+   - **Em dash gate (hard block).** Zero em dashes (`—`) in the PR body. Em dashes are the easiest visual tell for AI-generated text. Replace with periods, commas, or restructure the sentence. No exceptions.
+   - **Summary reasoning check.** Verify the PR body contains independent technical rationale — not "based on review feedback" or "as suggested." If the body can't explain *why* without referencing a reviewer, the agent didn't understand the problem deeply enough. Rewrite until it can. ruff#25066 was closed for "mainly produced by AI" because the summary referenced reviewer feedback instead of stating independent reasoning.
    - **Gemini volley (final review).** Send diff + generated PR description + issue link to `/gemini`: "You are a maintainer seeing this for the first time. Would you merge it?" Five rounds max. [Won't converge to zero findings](/does-iteration-mitigate-slop-slope) — iterate until the structure is sound.
    - **Write gate attestation (hard block).** Before pushing, write `~/.sweep/gates/<owner>-<repo>.gate` as JSON. The `gh pr create` hook validates this file exists and has `gemini_verdict`, `codex_verdict`, and `test_attestation`. Format:
      ```json
@@ -129,10 +126,10 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
      }
      ```
      Test attestation is a string with both legs: `"main:FAIL fix:PASS <test cmd> <timestamp>"`. Both results required — a fix that doesn't flip a test from fail to pass isn't a fix. If skipped: `"skipped: <reason>"`. The hook checks the field is not empty. The content is for humans auditing after the fact.
-   - `git push fork <branch>` (branch must exist locally)
-   - `gh pr create --repo <repo> --title <title> --body <body> --head <user>:<branch>`
-   - Update entry: status → `open`, pushed_at → now, pr_number → result, gates → `{gemini_verdict, codex_verdict, test_attestation}` (copied from the gate file before it's consumed)
-4. Report: what was pushed, what's still queued, what's blocking.
+   - `git push fork <branch>` (branch must exist locally, pushed to fork so `/ship` can create the PR without local access)
+   - Update entry: status → `dripped`, dripped_at → now, gates → `{gemini_verdict, codex_verdict, test_attestation}` (copied from the gate file)
+   - Store the generated PR title and body in the gate attestation file so `/ship` can use them directly.
+4. Report: what was dripped, what's still queued, what's blocking, what's waiting for `/ship`.
 
 ### Tone matching
 
@@ -161,11 +158,11 @@ Drip generates PR descriptions from the diff at push time, not from triage artif
 
 `/drip --watch` runs the check cycle on a 15-minute heartbeat as a background agent. It:
 
-1. Checks open PR status every 15 minutes
-2. Pushes the next queued entry when a slot opens
-3. Updates the queue file after each transition
-4. Logs each push and status change
-5. Stops when the queue is empty
+1. Runs quality gates on queued entries every 15 minutes
+2. Advances passing entries to `dripped`
+3. Checks shipped PR status (merges, closures, reviews)
+4. Updates the queue file after each transition
+5. Stops when no queued or shipped entries remain
 
 Use `/loop 15m /drip` or set up a cron. The skill is stateless between invocations — the queue file is the checkpoint.
 
@@ -189,7 +186,8 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 - **Check before push.** Always verify the branch exists locally, is up to date with the repo's default branch, and tests pass before adding to the queue.
 - **Fail on master, pass with fix.** Before pushing any candidate, checkout master's code and run the test. It must fail. Then checkout the fix and run the test. It must pass. If either check fails, do not push. This is the assertion that every PR makes — verify it locally before asking a reviewer to verify it for you.
 - **Idempotent.** Running `/drip` twice with no state change produces the same output. Merged/closed PRs get their status updated but nothing else happens.
-- **Log transitions.** When a PR moves from queued → open or open → merged/closed, append to the worklog via `/log` if available.
+- **No PR creation.** Drip never runs `gh pr create`. That's `/ship`'s job. Drip gates; ship publishes.
+- **Log transitions.** When an entry moves from queued → dripped or shipped → merged/closed, append to the worklog via `/log` if available.
 
 ## Failure behavior
 
@@ -202,6 +200,5 @@ If this fails, stop immediately with: "GitHub auth not established. Run `gh auth
 - **Issue already closed:** skip the entry, mark `status: "issue_closed"`, report. Someone else fixed it.
 - **Superseded by another PR:** skip the entry, mark `status: "superseded"`, report with link to the competing PR.
 - **Fork remote missing:** stop, report. The user sets up the fork.
-- **PR creation fails (permissions):** mark `status: "error"`, report the `gh` error. Don't retry.
 - **PR closed by maintainer:** mark `status: "closed"`, advance to next entry. Don't reopen.
 - **Org-level rejection:** Multiple PRs closed without review across repos in the same org within 24 hours = org-level rejection. Set cooldown on **all repos in that org**, not just the closed one. Log the cross-repo pattern to each repo's retro file. Don't push to any repo in the org until the cooldown expires or the human overrides.
