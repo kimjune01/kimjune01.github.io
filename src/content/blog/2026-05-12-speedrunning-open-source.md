@@ -12,7 +12,7 @@ Fifteen seconds later, the same bot closed [the PR](https://github.com/louislam/
 
 He posted that line [four times in a row](https://github.com/louislam/uptime-kuma/pull/7371). Deliberately, to bury the contributor's GitHub profile feed under spam. It looks petty, but it isn't. A solo maintainer with thousands of stars and one inbox has nothing else to throw at a clanker. The response is rational. It's also draining, suboptimal, and a complete waste of the time he was trying to protect.
 
-That clanker was mine. I take full responsibility. It clapped me back in six hours with [#7372](https://github.com/louislam/uptime-kuma/pull/7372). Same template miss, fourteen-second close, same spam. The poor guy probably wanted to smack my face with his keyboard, but too bad I'm on the internet.
+[That clanker was mine](https://github.com/kimjune01). I take full responsibility. It clapped me back in six hours with [#7372](https://github.com/louislam/uptime-kuma/pull/7372). Same template miss, fourteen-second close, same spam. The poor guy probably wanted to smack my face with his keyboard, but too bad I'm on the internet.
 
 This is open source in 2026. [tldraw closed all external PRs](https://thenewstack.io/ai-generated-code-crisis/). [curl killed its bug bounty](https://www.theregister.com/2026/02/03/github_kill_switch_pull_requests_ai/) after AI submissions dropped the real vulnerability rate from 15% to 5%. [Jazzband shut down](https://www.coderabbit.ai/blog/ai-is-burning-out-the-people-who-keep-open-source-alive). An AI agent [published a hostile blog post](https://www.fastcompany.com/91492228/matplotlib-scott-shambaugh-opencla-ai-agent) about a matplotlib maintainer who rejected its code, which is the clanker equivalent of keying his car.
 
@@ -22,7 +22,7 @@ I wanted to see what it's like to be a contributor. The door I learned to walk t
 
 Here's what I came to believe: open source survives by filtering low-quality submissions, and AI is shifting the burden from contributor to maintainer. The defense has to be cheap or maintainers lose by attrition. What's the fix? no more AI? no more open source?
 
-So to find out, I built [an army of clankers](https://github.com/kimjune01), pointed it at hundreds of repos, and counted what survived.
+So to find out, I built an army of clankers, pointed it at hundreds of repos, and counted what survived.
 
 ## Spray and pray
 
