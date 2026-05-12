@@ -100,6 +100,7 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 | Net-addition performance optimization | "We never trade complexity for speed." Only perf work that deletes lines |
 | Requires pre-discussion or design alignment | Politics. If the fix isn't obvious from the issue, skip it |
 | Requires off-platform communication (Discord, mailing list, etc.) | Pipeline only speaks GitHub. If the contribution process routes through another channel, skip the repo |
+| Already fixed on main/default branch | Check `git log --oneline -20` or recent commits. If the issue's root cause was addressed, mark SKIP. Ballista #1673 taught this — pushed a fix for code already changed on main |
 
 Mark killed items as `SKIP` in the scan table with the reason. They don't enter Phase 2.
 
@@ -150,6 +151,10 @@ Use a worker pool with `--concurrency` slots (default 5). The pool processes ite
      run_in_background: true,
      prompt: "Run /investigate on [item]. Read TRIAGE_GRAPH.md for context.
               [context]. After investigation, run /bug-hunt on any candidate fix.
+              CRITICAL: if bug-hunt identifies an existing architecture or mechanism
+              that addresses the concern, the fix MUST work within that architecture,
+              not around it. If bug-hunt says 'the app uses dirty flags', do not add
+              an fps cap. The diagnosis constrains the implementation.
               Write YOUR results to TRIAGE_RESULT.T<number>.md (not TRIAGE_GRAPH.md).
               Test before fix: write a failing test first, then the fix."
    })
@@ -198,7 +203,7 @@ As agents complete:
 For each candidate, write a **branch pointer** to the drip queue `~/.sweep/drip-queue/<owner>-<repo>.jsonl`:
 
 ```jsonl
-{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "base": "abc123", "status": "queued"}
+{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "base": "abc123", "status": "triaged"}
 ```
 
 The branch is the artifact. It contains the diff, commits, and test changes. PR descriptions are generated from the diff at push time by `/drip` (tone-matched to the repo's voice). Triage does not write PR descriptions.

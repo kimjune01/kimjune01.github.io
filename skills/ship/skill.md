@@ -52,7 +52,7 @@ Ship all `dripped` entries that pass the org gate. Use when you're watching and 
    - `gemini_verdict` is `"pass"`
    - `codex_verdict` is `"pass"`
    - `test_attestation` is present and non-empty
-   - If any field is missing, empty, or not `"pass"`: mark entry back to `queued` in the drip queue (so `/drip` re-runs gates on the next tick), log the reason, skip. This is the feedback loop: ship validates what drip stamped.
+   - If any field is missing, empty, or not `"pass"`: mark entry back to `triaged` in the drip queue (so `/qa` and `/drip` re-run on the next tick), log the reason, skip. This is the feedback loop: ship validates what drip stamped.
 5. **Create PR.**
    - Read the PR title and body from the gate attestation file (drip wrote them during the gate sequence).
    - `gh pr create --repo <repo> --title <title> --body <body> --head <user>:<branch>`
@@ -71,7 +71,7 @@ Ship all `dripped` entries that pass the org gate. Use when you're watching and 
 ## Failure behavior
 
 - **Auth fails:** stop immediately, report.
-- **Gate file missing or incomplete:** mark entry back to `queued`, report. `/drip` re-runs gates on the next tick.
+- **Gate file missing or incomplete:** mark entry back to `triaged`, report. `/qa` and `/drip` re-run on the next tick.
 - **PR creation fails (permissions):** mark `status: "error"`, report the `gh` error. Don't retry.
 - **Branch not on fork remote:** skip, report. Drip should have pushed it.
 - **Org-blocked:** skip, report which org and which PR is blocking.

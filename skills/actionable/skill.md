@@ -118,7 +118,7 @@ Profile: personal account (not org), top contributor has >80% of recent commits,
 ```bash
 # Search for CLI/TUI tools by personal accounts with issue backlogs
 gh api search/repositories -X GET \
-  -f "q=topic:cli stars:500..5000 pushed:>$(date -v-30d +%Y-%m-%d)" \
+  -f "q=topic:cli stars:200..5000 pushed:>$(date -v-30d +%Y-%m-%d)" \
   -f "sort=updated" -f "per_page=20" \
   --jq '.items[] | "\(.full_name) (\(.stargazers_count)★, \(.open_issues_count) issues)"'
 ```

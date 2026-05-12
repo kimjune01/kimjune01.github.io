@@ -101,7 +101,7 @@ def triage_prompt(repo):
   owner_repo = repo.replace('/', '-')
   return Agent({
     subagent_type: "general-purpose",
-    model: "sonnet",
+    model: "opus",
     run_in_background: true,
     prompt: f"Full triage pipeline for {repo}:
              
@@ -121,27 +121,27 @@ def triage_prompt(repo):
                 EXCLUDE any issue in the denylist — they were already tried and killed.
                 For solo-maintainer repos (first contribution), prefer the smallest/easiest issue — docs, error messages, edge cases. Standing first, ambition second.
              4. FOR EACH of the top 5 issues, in rank order, attempt the full pipeline:
-                a. Read code, understand the problem, gather relevant file contents.
-                   BEFORE FIXING: answer "why does the current code do it this way?" If you can't answer that from the code and comments, you don't understand enough to change it.
-                   Devil's advocate: argue the opposite ("this isn't a bug because..."). If that argument is stronger than the bug hypothesis:
-                   - Comment on the issue with the code-level evidence for why it's working as intended. Reference specific files, test paths, and code behavior. No speculation, only what you verified by reading the code. Zero em dashes.
-                   - Log the issue as NOT_A_BUG in TRIAGE_GRAPH.md with the reasoning.
-                   - Move to the next issue.
-                   The comment is the escape hatch: investigation that doesn't produce a fix can still produce knowledge. A well-reasoned "this isn't a bug" comment is more valuable than a wrong fix.
-                b. TDD PHASE 1 — WRITE TEST FIRST. On the default branch (master/main), write a test that demonstrates the bug. Run it. It MUST FAIL. If it passes, the bug doesn't exist or your test is wrong. Do not proceed to the fix. Commit the failing test separately: "test: reproduce #N (fails on main)".
-                c. TDD PHASE 2 — IMPLEMENT FIX. Send problem + code + failing test to /codex: 'Here is issue #N, here is a failing test that proves the bug, implement a minimal fix.' Apply codex's output. Run the test again. It MUST PASS. Commit the fix separately: "fix: #N description".
-                d. Send the fix diff (both commits) to /gemini: 'Review this fix for logic errors, missed edge cases, inverted conditions.'
-                e. ITERATE: If codex or gemini suggest changes, apply them yourself (edit files), then re-send to the reviewer. Max 3 rounds.
-                f. If gemini still rejects after 3 rounds: log why in TRIAGE_GRAPH.md, reset the working tree (git checkout .), and MOVE TO THE NEXT ISSUE. Do not stop.
-                g. If reviews pass: break out of the loop — you have your fix.
-             5. IMMEDIATELY after reviews pass: git add + git commit. Do not narrate, do not summarize, do not ask. Commit.
+                a. BUG HUNT (mandatory, runs on every issue). Diagnose before fixing. Answer:
+                   (1) What is the existing mechanism that handles this concern? (dirty flags, caching, retry logic, etc.)
+                   (2) Why does the current code do it this way? If you can't answer from code and comments, you don't understand enough to change it.
+                   (3) What would a WRONG fix look like? What approach would the maintainer reject?
+                   (4) Devil's advocate: argue "this isn't a bug because..." If that argument is stronger than the bug hypothesis:
+                       - Comment on the issue with code-level evidence. Zero em dashes.
+                       - Log as NOT_A_BUG in TRIAGE_GRAPH.md.
+                       - Move to the next issue.
+                   The bug hunt output is a diagnosis, not a fix. If the diagnosis says "the existing architecture already handles this, the symptom has a different root cause," do NOT override the architecture. Find the actual root cause or skip the issue.
+                   Session 4 retro: jellyfin-tui #192 rejected because sonnet agent overrode dirty-flag architecture with frame cap. Opus bug-hunt independently identified the correct root cause (143Hz busy loop from short poll timeouts) and the correct fix (increase idle sleep, not cap frame rate). Bug hunt prevents wrong-approach fixes.
+                b. TDD PHASE 1 — WRITE TEST FIRST. On the default branch (master/main), write a test that demonstrates the bug. Run it. It MUST FAIL. If it passes, the bug doesn't exist or your test is wrong. Do not proceed to the fix. Commit the failing test separately: "test: reproduce #N (fails on main)". THIS COMMIT IS MANDATORY AND SEPARATE. Session 4 retro: 18% TDD compliance when agents bundle test+fix. The separate commit is the proof that the test fails on main.
+                c. TDD PHASE 2 — IMPLEMENT FIX. Send problem + code + failing test to /codex: 'Here is issue #N, here is a failing test that proves the bug, implement a minimal fix.' Apply codex's output. Run the test again. It MUST PASS. Commit the fix separately: "fix: #N description". TWO COMMITS MINIMUM: test commit + fix commit. Never bundle them.
+                d. CODE REVIEW IS NOT YOUR JOB. `/qa` handles volley review + adversarial bug hunt on the committed branch. Do not send to /gemini or /codex for review. Your job ends at a committed, tested branch.
+             5. IMMEDIATELY after tests pass: git add + git commit. Do not narrate, do not summarize, do not ask. Commit.
              6. Write branch pointer to ~/.sweep/drip-queue/{owner_repo}.jsonl.
                 EXACT PATH EXAMPLE: for repo 'sharkdp/bat', write to ~/.sweep/drip-queue/sharkdp-bat.jsonl
                 NOT ~/.sweep/drip_queue.jsonl (wrong — that's a global file)
                 NOT ~/.sweep/drip/repo-issue.json (wrong — wrong directory and format)
                 NOT ~/.drip/anything (wrong — wrong root)
                 The file MUST be at ~/.sweep/drip-queue/{owner_repo}.jsonl where {owner_repo} = repo.replace('/', '-').
-                Format: one JSON object per line with at minimum: repo, branch, issue, status ('queued' or 'ready'), sha.
+                Format: one JSON object per line with at minimum: repo, branch, issue, status ('triaged'), sha.
              7. Write TRIAGE_GRAPH.md to ~/.sweep/repos/{owner_repo}/TRIAGE_GRAPH.md (include all attempted issues and their outcomes — both kills and the winner).
                 Include a MAINTAINER PREFERENCES section at the top if you learned anything from review comments, merged PR patterns, or maintainer inline feedback.
                 Example: "Prefers full CHECK lines in tests, requires return failure not fallthrough, zero diffe mandatory for constant containers."
@@ -229,10 +229,10 @@ NO ACTION
 
 ### Phase 4: Qualify (triage agents produce branches, not descriptions)
 
-Triage agents run the full pipeline per item: `/investigate` (read code, find root cause, write fix, create branch) → `/codex` (structural review) → `/bug-hunt` (adversarial verification). The output is a **branch pointer** in the drip queue, not a prose document:
+Triage agents run the implementation pipeline per item: bug hunt (diagnosis) → TDD (write test + fix) → commit. The output is a **branch pointer** in the drip queue. `/qa` then validates the branch independently (volley review + adversarial bug hunt). Example queue entry:
 
 ```jsonl
-{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "worktree": "/Users/junekim/Documents/click", "status": "queued"}
+{"repo": "pallets/click", "branch": "fix-3362-hyphens", "issue": 3362, "test_cmd": "pytest tests/test_formatting.py", "worktree": "/Users/junekim/Documents/click", "status": "triaged"}
 ```
 
 The branch is the artifact. It contains the diff, commits, and test changes. Everything downstream reads from it.
@@ -257,7 +257,7 @@ This makes half-finished agents a recoverable state, not a failure. The agent di
 
 ### Phase 5: Quality gates
 
-`/drip` owns quality gates. `/ship` owns PR creation. Sweep produces branches, `/drip` validates them (advancing `queued` to `dripped`), `/ship` publishes them (advancing `dripped` to `shipped`). No `gh pr create` anywhere in sweep or drip. `/ship` is the only path from branch to PR.
+`/qa` owns code review. `/drip` owns process gates. `/ship` owns PR creation. Sweep produces branches, `/qa` validates them (advancing `triaged` to `qa_passed`), `/drip` gates them (advancing `qa_passed` to `dripped`), `/ship` publishes them (advancing `dripped` to `shipped`). No `gh pr create` anywhere in sweep, qa, or drip. `/ship` is the only path from branch to PR.
 
 Triage agents write branch + issue ref + commit SHA. No `pr_title`, no `pr_body`. `/drip` generates descriptions from the diff during the gate sequence and stores them in the gate attestation file. `/ship` reads them at PR creation time.
 
@@ -270,20 +270,16 @@ After all phases complete, set up two recurring wake-ups with separated concerns
 ```
 # Pipeline tick — fast, does work
 CronCreate({
-  cron: "*/2 * * * *",
-  prompt: "/sweep --pipeline. Three mandatory actions every tick — do ALL, never skip:
-           1. SPAWN up to --concurrency subagents for untriaged ready repos.
-           2. RUN /drip on every repo with queued entries. /drip runs quality gates, advances queued to dripped.
-           3. IF NOT --dry-run: RUN /ship on repos with dripped entries. /ship creates PRs.
-           4. Spawn impl subagents for stalled pipelines. Counts against per-tick cap.
-           'Idle' = zero ready repos AND zero queued branches AND zero stalled pipelines.",
+  cron: "*/4 * * * *",
+  prompt: "Run `python3 ~/.sweep/bin/tick.py <mode>` and print the output. Then act on ⚡ markers: spawn /qa agents for triaged entries (up to concurrency cap per tick), advance drip entries where org gate is clear (tick.py does this mechanically), run counit check. Skip /ship if dry-run.
+           'Idle' = zero ready repos AND zero triaged branches AND zero stalled pipelines.",
   recurring: true
 })
 
 # Monitor tick — slow, checks state
 CronCreate({
   cron: "23 * * * *",
-  prompt: "/sweep --monitor. Use /drip --check on each repo with an open PR to check for reviews, comments, CI status, merges, or closures — /drip handles reviewer feedback and follow-up commits. Run eviction checks per the eviction table in the sweep skill. Check competing PRs on blocked items. Update SWEEP_GRAPH.md and ~/.sweep/SWEEP_LOG.md with state changes. If a PR merged, /drip advances the next queued branch for that repo. If a PR was rejected, log to /retro. Max 50 GitHub API calls.",
+  prompt: "/sweep --monitor. Use /drip --check on each repo with an open PR to check for reviews, comments, CI status, merges, or closures — /drip handles reviewer feedback and follow-up commits. Run eviction checks per the eviction table in the sweep skill. Check competing PRs on blocked items. Update SWEEP_GRAPH.md and ~/.sweep/SWEEP_LOG.md with state changes. If a PR merged, /drip advances the next triaged branch for that repo. If a PR was rejected, log to /retro. Max 50 GitHub API calls.",
   recurring: true
 })
 ```
@@ -295,9 +291,10 @@ Pass `--dry-run` into both if set on the original invocation. **Always create bo
 Fast tick for advancing work. **Keep the work queue saturated.** Don't wait for running agents to finish before spawning new ones — agents are independent.
 
 1. **Spawn up to `--concurrency` subagents this tick.** Read `~/.sweep/config.json` for the cap (default 5). Per-tick spawn limit. Pick order: warm leads first, then high-star.
-2. **Run `/drip` on every repo with `queued` entries.** `/drip` runs all quality gates (staleness, test, tone-match, gemini volley, codex crosscheck, org gate) and advances passing entries to `dripped`. No PR creation.
-3. **If not `--dry-run`: Run `/ship`** on repos with `dripped` entries. `/ship` creates PRs, respecting org gate.
-4. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). Counts against concurrency cap.
+2. **Run `/qa` on every repo with `triaged` entries.** `/qa` runs volley review (constructive, iterative) + adversarial bug hunt (codex). Advances passing entries to `qa_passed`. Fixes bugs it finds. Fails entries it can't fix.
+3. **Run `/drip` on every repo with `qa_passed` entries.** `/drip` runs process gates (staleness, competing PRs, tone-match, org gate, em dash, PR description) and advances passing entries to `dripped`. No code review — QA already did that.
+4. **If not `--dry-run`: Run `/ship`** on repos with `dripped` entries. `/ship` creates PRs, respecting org gate.
+5. **Spawn impl agents** for any stalled pipeline (TRIAGE_GRAPH.md exists but no drip queue branch). Counts against concurrency cap.
 4. **Run the counit.** Two checks:
    a. **Half-finished agents:** Check `~/Documents/` for repos with fix branches but no drip queue entry. Commit uncommitted changes, write the drip queue entry. Don't push — `/drip` handles that on the next tick.
    b. **Gate-fail recovery (volley):** Scan drip queues for `gate_fail` entries with actionable findings (the `reason` field). For each, spawn a triage agent with the gate findings as input: "Fix these specific issues on branch X, re-commit, update drip queue status back to `ready`." The agent applies the feedback, iterates with codex/gemini, and re-queues. Max 3 recovery attempts per branch — after that, the gate_fail is terminal. Counts against concurrency cap.
@@ -314,7 +311,7 @@ Slow tick matching review cadence. Checks external state. Runs commands directly
    - Style nit: apply if trivial
 
 2. **Check for merges and closures.** Run `gh api graphql` for MERGED/CLOSED PRs since last check.
-   For merges: update drip queue status, advance next queued branch.
+   For merges: update drip queue status, advance next triaged branch.
    For closures: update drip queue, log to retro, re-triage if warranted.
 
 3. **Run eviction checks** per the eviction table below.

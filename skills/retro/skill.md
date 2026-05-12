@@ -21,7 +21,7 @@ In the [Natural Framework](/the-natural-framework), Consolidate reads from Trans
 
 **Composition:** `retro(A) + retro(B) = retro(A ∪ B)` — parameter files are last-value-wins per key, memories dedup by topic, skill patches are idempotent edits. Hypothesis graphs are per-repo and keyed by PR number: re-running retro on the same repo updates existing entries (idempotent per PR) and appends new ones. Prior art entries are keyed by `PR#contributor` to prevent duplicates across passes.
 
-**Standalone use:** Run `/retro <repo>` with only `gh` access. No triage graph, no drip queue, no sweep state required. With zero local logs, retro still produces a hypothesis graph from prior art (other contributors' outcomes) and pre-registrations (predictions for queued fixes). The minimum useful retro is prior art + pre-registration — no own outcomes needed.
+**Standalone use:** Run `/retro <repo>` with only `gh` access. No triage graph, no drip queue, no sweep state required. With zero local logs, retro still produces a hypothesis graph from prior art (other contributors' outcomes) and pre-registrations (predictions for triaged fixes). The minimum useful retro is prior art + pre-registration — no own outcomes needed.
 
 ## What it reads
 
@@ -196,7 +196,7 @@ Examples from prior sessions:
 3. **Build per-repo hypothesis graphs.** For each repo with PR outcomes:
    - Create or update `~/.sweep/repos/<owner>-<repo>/RETRO_GRAPH.md`
    - For each PR, classify evidence for/against H0-H6
-   - For repos with no outcomes yet, write pre-registrations for queued fixes
+   - For repos with no outcomes yet, write pre-registrations for triaged fixes
    - Cross-reference: does this repo's evidence change the aggregate picture?
 
 4. **Diff against existing parameters.** What changed since the last retro? If merge rate dropped, why? If a new category appeared in the kill list, what triggered it?
