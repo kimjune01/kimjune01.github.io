@@ -1,88 +1,88 @@
 ---
 name: em-dash
-description: Flag em-dash usage in prose. Deterministic grep for detection, subagent for triage (earned vs dead-weight), report only — no edits applied. Sister skill to /not-but.
+description: Eliminate em-dashes (—), double en-dashes (––), and double hyphens (--) from prose. Deterministic grep for detection, subagent picks replacement punctuation and applies edits, reports reversal candidates for user review. Sister skill to /not-but.
 argument-hint: <file_path>
-allowed-tools: Read, Grep, Bash, Agent
+allowed-tools: Read, Grep, Bash, Edit, Agent
 ---
 
-# Em-dash: Overuse Flagger
+# Em-dash: Auto-Replace with Reversal Prompts
 
-Em-dash overuse is a top LLM tell — second only to negative parallelism in how reliably it betrays AI prose. This skill uses **deterministic grep for detection** (regex doesn't have stylistic preferences) and a subagent for **triage** (where a comma, period, colon, semicolon, or parens would do the job without loss).
+Em-dash overuse is a top LLM tell, second only to negative parallelism in how reliably it betrays AI prose. The same tic surfaces in three forms: `—` (em-dash, U+2014), `––` (double en-dash, two U+2013), and `--` (double hyphen, what models substitute when told to avoid em-dashes). This skill **eliminates all three from prose** by default, replacing each with the punctuation that fits (comma, period, colon, semicolon, parens). Edits are applied immediately. The user is prompted only for **reversals**: cases where the original dash served a structural / typographic purpose (list separator, attribution, definition entry) and the user can decide to put it back.
 
-**Flag only — no auto-apply.** Em-dashes have more legitimate uses than "not X but Y" does, so the triage rubric carries more weight and the false-positive rate is higher than /not-but's. The user reads the report and decides which to cut. Sister skill to `/not-but`.
+**Scope: prose only.** Run this on blog posts, essays, and articles — not on technical docs, READMEs, code-heavy Markdown, or anywhere `--` legitimately appears inline as a CLI flag. The prose-only assumption is what lets the `--` rule stay strict.
+
+**Apply-first, reverse-on-request.** Matches the copyedit-apply-first pattern: the user reads a diff and reverses anything they want kept, instead of approving each cut individually. Sister skill to `/not-but`.
 
 ## Process
 
-1. Read the file at the given path. Note the word count and total em-dash count.
+1. Read the file at the given path. Note word count and total em-dash + double en-dash count.
 
-2. **Detect (deterministic).** Run grep, capturing every em-dash with surrounding context:
+2. **Detect (deterministic).** Run **three greps**, one per dash form, so each gets its own count even when others are zero:
 
    ```bash
    FILE="<file_path>"
 
-   # Every em-dash with line number
+   # Em-dashes (U+2014)
    grep -nE '—' "$FILE"
+
+   # Double en-dashes (two U+2013 in a row)
+   grep -nE '––' "$FILE"
+
+   # Double hyphens (two ASCII hyphens) — the model's em-dash workaround
+   grep -nE '\-\-' "$FILE"
    ```
 
-   Skip hits inside fenced code blocks, tables (lines starting with `|`), HTML tags, frontmatter, and inline code spans. Deduplicate by line number, but record per-occurrence positions when multiple em-dashes share a line.
+   Skip hits inside fenced code blocks, tables (lines starting with `|`), HTML tags, frontmatter, and inline code spans. Treat all three forms the same in triage and replacement.
 
-3. **Triage (subagent).** Dispatch to the `general-purpose` agent (or a registered `em-dash` agent if one exists). Pass:
+   **`--` rule: code blocks are the only exception.** Any `--` outside a fenced code block is treated as an em-dash workaround and replaced. CLI examples, flag references, HTML comment openers belong inside code fences; if they appear inline in prose, they get replaced like any other dash.
+
+3. **Replace (subagent).** Dispatch to the `general-purpose` agent (or a registered `em-dash` agent if one exists). Pass:
    - The file path
    - The deduplicated list of hits with line numbers and matched lines
-   - The rubric below
+   - The replacement rubric below
 
-   **Rubric:** *Could a comma, period, colon, semicolon, or parens do this job with no loss of meaning, rhythm, or visual jolt?* If yes → dead-weight. If no → earned.
+   For each hit the subagent picks the best replacement punctuation (comma / period / colon / semicolon / parens) based on sentence rhythm and **applies the edit via Edit**. Every prose em-dash is replaced — the subagent does not skip "earned" cases. Each replacement is classified as either **clear-cut** (don't surface) or **reversal candidate** (surface for user review).
 
-   **Earned categories** (preserve):
-   - Parenthetical insertion where commas would be ambiguous (already nested commas in the surrounding clause)
-   - Genuine abrupt break or interruption mid-thought (the dash is the *content*)
-   - List intro after an independent clause where a colon would feel too formal
+   **Reversal candidate categories** (apply replacement, then surface — structural / non-prose uses only):
+   - List item description separator (label — description)
    - Attribution dash before a quote source
+   - Parenthetical fencing in reference / technical contexts (definition lists, glossaries, tables of terms)
 
-   **Dead-weight categories** (flag for cut):
-   - Soft pause where a period would land harder
-   - Comma replacement with no special break needed
-   - Setup-and-pivot construction (often co-occurs with /not-but findings)
-   - Conversational connector / hedging glue
-   - Two em-dashes in one sentence doing different jobs (one is almost always cuttable)
-   - Em-dash density >1 per 200 words (mechanical flag — even if each individual case looks defensible, the cumulative rhythm reads AI)
+   **Clear-cut categories** (apply silently, never surface):
+   - Any em-dash in narrative prose: soft pauses, abrupt breaks, comma replacements, setup-and-pivot, conversational connectors, hedging glue
+   - Two em-dashes in one sentence doing different jobs
+   - Em-dash density >1 per 200 words (the cumulative rhythm reads AI even when individual cases look defensible)
+   - Any double en-dash (no legitimate use case — `––` is always an AI tic or encoding accident)
 
-   The subagent returns per-hit verdicts (earned / dead-weight) with a proposed replacement punctuation for each dead-weight case. The subagent does NOT apply edits.
+   **Rule of thumb:** if the dash sits inside a flowing sentence, it goes silently. Reversals are reserved for dashes doing typographic/structural work the reader expects to see (list labels, attributions, definition entries).
 
-4. **Report.** Numbered list, sorted by line number:
+4. **Reversal report.** Numbered list of replacements the user might want to undo:
 
    ```
-   {file}: {N} em-dashes in {word_count} words ({density} per 1000)
+   {file}: replaced {N_em} em-dashes, {N_dee} double en-dashes, {N_dh} double hyphens ({total_density} per 1000 words)
 
-   Dead-weight ({count}):
-   1. L{line}: "{original sentence}"
-      → "{suggested rewrite with replacement punctuation}"
-      reason: {one-line rubric reason}
+   Reversal candidates ({count}):
+   1. L{line}: was: "{original sentence with — / –– / --}"
+              now: "{replaced sentence}"
+      reverse if: {one-line reason the dash served a structural purpose}
 
-   Earned ({count}):
-   1. L{line}: "{sentence}"
-      reason: {why it earned its dash}
-
-   Ambiguous ({count}):
-   1. L{line}: "{sentence}"
-      → "{candidate rewrite}"
-      reason: {what makes it borderline}
+   Clear-cut replacements applied silently: {N}
    ```
 
-   Don't apply edits. The user reads the report and decides.
+   Clear-cut replacements aren't itemized; they're in the diff but not in the report. The user scans the reversal candidates and decides which (if any) to put back.
+
+5. **Postcondition (mandatory).** After all replacements, re-run the three greps. Filter out hits inside fenced code blocks, tables, HTML tags, frontmatter, and inline code. The remaining prose hit count must be **zero** for all three forms. If any prose hit survives, it is a bug — locate it, replace it, and re-verify before completing. The skill does not return until the postcondition holds.
 
 ## Composability
 
 - **Standalone**: `/em-dash <file>` for any prose file.
-- **Inside `/humanize`**: /humanize's em-dash pattern section defers to this skill the way it defers to /not-but for negative parallelism. /humanize flags obvious instances opportunistically and applies them; /em-dash is the authoritative drill and its flag-only output attaches to /humanize's post-apply earn-back report as additional candidates the user can apply by line number.
-- **Pairs with `/not-but`**: setup-and-pivot em-dashes ("X — not Y") often surface in both. Run /not-but first; remaining em-dashes are easier to triage once the pivot cases are gone.
+- **Inside `/humanize`**: /humanize defers to this skill for all three dash forms (`—`, `––`, `--`) the way it defers to /not-but for negative parallelism. Both apply by default; the user reverses what they want kept.
+- **Pairs with `/not-but`**: setup-and-pivot dashes ("X — not Y", "X -- not Y", "X –– not Y") often surface in both. Run /not-but first; remaining hits are easier to handle once the pivot cases are gone.
 
-## Why flag-only
+## Why apply-first
 
-Unlike negative parallelism, where the cut decision is mechanical once a hit is verdicted dead-weight, em-dash replacement requires picking the *right* punctuation (comma vs period vs colon vs parens) — and that pick reshapes sentence rhythm in ways the orchestrator should weigh against surrounding sentences. Auto-apply would either pick conservatively (always commas, flattening rhythm) or get it wrong often enough that the user rewrites half the cuts.
-
-The flag-only output respects that the user is the rhythm authority. The skill's job is to surface every em-dash with a verdict and a candidate, so the user spends judgment on phrasing instead of on detection.
+Em-dash overuse is a corrigible AI tic, and apply-first has consistently beaten propose-first across the copyedit family. The user reads the diff in a fraction of the time it takes to per-item-approve a flag list, and the rare earned dash is easier to add back than to wade through dozens of "do you want to cut this?" prompts. The reversal report keeps the surface area for genuine judgment small — only cases where the dash plausibly earned its keep get the user's attention.
 
 ## Why deterministic detection
 
-Em-dashes are visually obvious to humans but blend into the LLM's training distribution. A regex has no aesthetic preference. False positives (earned cases flagged for review) are cheap; false negatives (missed em-dashes) defeat the skill's purpose, and grep has none.
+Em-dashes are visually obvious to humans but blend into the LLM's training distribution. A regex has no aesthetic preference. False positives (earned cases auto-replaced) are recoverable via the reversal report; false negatives (missed em-dashes) defeat the skill's purpose, and grep has none.

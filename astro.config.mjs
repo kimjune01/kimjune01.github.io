@@ -24,6 +24,20 @@ export default defineConfig({
     server: {
       headers: { 'Cache-Control': 'no-store' },
       hmr: { overlay: true },
+      watch: {
+        ignored: [
+          '**/.claude/worktrees/**',
+          '**/.claude/projects/**',
+          '**/torch_compile_debug/**',
+          '**/test/**',
+          '**/check/**',
+          '**/.petricode/**',
+          '**/worklog/**',
+          '**/data/**',
+          '**/dump.rdb',
+          '**/_site/**',
+        ],
+      },
     },
   },
 });
