@@ -25,9 +25,9 @@ cp -r data/* "$BUILD/data/" 2>/dev/null || true
 # Content snapshot — bot loads these via tool calls
 cp "$ROOT/src/content/blog/"*.md "$BUILD/content/blog/" 2>/dev/null || true
 cp "$ROOT/src/content/blog/"*.mdx "$BUILD/content/blog/" 2>/dev/null || true
-if [ -d "$ROOT/src/pages/reading" ]; then
+if [ -d "$ROOT/reading-src/pages/reading" ]; then
   rsync -a --include='*/' --include='index.astro' --exclude='*' \
-    "$ROOT/src/pages/reading/" "$BUILD/content/reading/"
+    "$ROOT/reading-src/pages/reading/" "$BUILD/content/reading/"
 fi
 
 echo "==> Installing deps into staging dir (linux x86_64 wheels)"

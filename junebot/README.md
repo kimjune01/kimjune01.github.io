@@ -196,4 +196,4 @@ Attempting to front the Function URL with CloudFront OAC (to get same-origin + h
 
 ### 7. Manifest path split between zip and repo
 
-`tools.py` resolves paths one way in the Lambda zip (flat: `content/blog/`, `content/reading/`) and a different way in local dev (repo-relative: `src/content/blog/`, `src/pages/reading/`). The detection is in `tools.py`'s module-level block. Don't refactor it away unless you want to debug `(no post found)` in production.
+`tools.py` resolves paths one way in the Lambda zip (flat: `content/blog/`, `content/reading/`) and a different way in local dev (repo-relative: `src/content/blog/`, `reading-src/pages/reading/`). The detection is in `tools.py`'s module-level block. Don't refactor it away unless you want to debug `(no post found)` in production.

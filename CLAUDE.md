@@ -50,7 +50,7 @@ Posts that need component imports use `.mdx` extension. Content collection glob 
 - **Blog layouts**: `src/layouts/BlogPost.astro`, `src/layouts/TagPage.astro`
 - **Components**: `src/components/*.astro` (ChatThread, ChapterTable, etc.)
 - **Content config**: `src/content.config.ts` — Zod schema for blog frontmatter
-- **Reading site**: `src/pages/reading/` (Astro + React islands, Scheme/Python REPLs)
+- **Reading site**: `reading-src/pages/reading/` (separate Astro config, `pnpm dev:reading` on port 12346)
 - **Apps** (pre-built, in `public/`): jamdojo, pinyin-chart, advertising-journey, croupier, vectorspace-ads
 - **Static assets**: `public/assets/` — images, SVGs, JS
 - **Styling**: Tailwind — `src/styles/blog.css` for blog, reading pages use their own

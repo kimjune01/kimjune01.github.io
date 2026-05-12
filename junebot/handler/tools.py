@@ -5,7 +5,7 @@ _HERE = Path(__file__).parent
 
 # Data and content layout differs between Lambda zip (flat) and local dev (repo):
 #   Lambda:    /var/task/{data,content/blog,content/reading}
-#   Local dev: junebot/data, src/content/blog, src/pages/reading
+#   Local dev: junebot/data, src/content/blog, reading-src/pages/reading
 if (_HERE / "content").exists():
     DATA = _HERE / "data"
     BLOG_DIR = _HERE / "content" / "blog"
@@ -14,7 +14,7 @@ else:
     DATA = _HERE.parent / "data"
     _REPO = _HERE.parents[2]
     BLOG_DIR = _REPO / "src" / "content" / "blog"
-    READING_DIR = _REPO / "src" / "pages" / "reading"
+    READING_DIR = _REPO / "reading-src" / "pages" / "reading"
 
 
 TOOL_SCHEMAS = [
