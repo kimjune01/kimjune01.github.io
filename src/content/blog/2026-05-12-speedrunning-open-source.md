@@ -22,7 +22,7 @@ I wanted to see what it's like to be a contributor. The door I learned to walk t
 
 Here's what I came to believe: open source survives by filtering low-quality submissions, and AI is shifting the burden from contributor to maintainer. The defense has to be cheap or maintainers lose by attrition. What's the fix? no more AI? no more open source?
 
-So to find out, I built an army of clankers, pointed it at hundreds of repos, and counted what survived.
+So to find out, I built [an army of clankers](https://github.com/kimjune01), pointed it at hundreds of repos, and counted what survived.
 
 ## Spray and pray
 
