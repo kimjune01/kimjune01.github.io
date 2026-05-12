@@ -90,10 +90,11 @@ Triage writes branch pointers directly to `~/.sweep/drip-queue/<owner>-<repo>.js
 
 ### Check cycle
 
-0. Read `~/.sweep/retro/<owner>-<repo>.jsonl` if it exists. Check `cooldown_until` — if today < cooldown date, halt with "Cooldown active until {date}." Check `drip.title_format` for tone guidance.
+0. **Repo status gate (hard block).** Run `~/.sweep/bin/repo-status <owner/repo>`. If verdict is not `"clear"`, halt with the reason. This single script checks DENYLIST.md, permanent eviction, cooldown expiry, and 7-day rejection cooldown. No need to reimplement these checks — the script is the source of truth.
 1. Read `~/.sweep/drip-queue/<owner>-<repo>.jsonl`
 2. For each entry with status `shipped`:
    - Check if the PR was merged or closed. Update status.
+   - **AI slop detection response (on closure).** When a PR is closed without merge, run `~/.sweep/bin/ai-detect <owner/repo> <pr-number>`. If `detected: true`, run `~/.sweep/bin/slop-recommend <owner/repo> <pr-number>` to post the filter recommendation, then write `permanent_eviction` to the repo's retro params. This must fire on the FIRST AI-detection closure — by the second, you may already be blocked. jellyfin-tui taught this: blocked after 3 PRs, couldn't comment the recommendation manually.
    - **Checkup.** Fetch reviewer comments since last check: `gh pr view <number> --repo <repo> --json comments,reviews,reviewDecision`. If there are new comments or requested changes:
      1. Read the feedback. Classify: requested change, question, style nit, or approval.
      2. For requested changes and questions: address them. Push a follow-up commit to the same branch. Reply to the comment acknowledging the change.

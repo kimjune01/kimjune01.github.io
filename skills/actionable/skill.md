@@ -149,6 +149,8 @@ Solo maintainer + popular tool + issue backlog + merge history = high-receptivit
 - **Fix exceeds merge ceiling** — if the estimated diff is >3x the repo's median merged PR size for external contributors, skip. A 2000-line feature on a repo that merges 30-line fixes is dead on arrival.
 - **Repos with `process_depth: shallow`** in their review schema — the pipeline produces investigation-backed PRs. Shallow-review repos can't absorb them. Only add shallow repos if the issue is trivial enough that investigation depth is unnecessary (1-line fix, obvious bug, failing test with known cause).
 - **Bot-magnet issues** — run `~/.sweep/bin/body-count <repo> <issue-number>`. If verdict is `"skip"` (3+ distinct unmerged authors), the issue is a honeypot. The signal isn't "nobody solved it yet," it's "the maintainer is tired of closing these."
+- **AI policy repos** — run `~/.sweep/bin/ai-policy <owner/repo>`. If `detected: true`, evict immediately. No investigation. Checks repo-level and org-level `.github` files for AI/LLM policies. Known bans: uptime-kuma (label), llama.cpp (automated checker), litestar (org-level AI_POLICY.md), immich (CONTRIBUTING.md), openbao (certification).
+- **GUI/TUI application repos** — skip repos where the primary artifact is a graphical or terminal UI application. These require visual verification the agent can't do and have opinionated render architectures (dirty flags, event loops, frame limiters) that resist automated fixes. Libraries that provide UI primitives (ratatui, egui) are borderline — fixes may be testable. But apps built on them (jellyfin-tui, terminal dashboards, desktop apps) are out. jellyfin-tui taught this: bug-hunt diagnosed correctly, pipeline still pushed wrong fix, maintainer said "ai slop."
 
 ## Output
 
@@ -217,7 +219,7 @@ This is the endgame. The issue is your hypothesis. The PR is your fix. Your stan
 
 ## Process
 
-1. Read `~/.sweep/repos.jsonl` and `~/.sweep/retro/*.jsonl`.
+1. Read `~/.sweep/repos.jsonl` and `~/.sweep/retro/*.jsonl`. **Read `~/.sweep/banlist.txt` — these repos are permanently banned. Never add, investigate, or re-add a banned repo. The banlist is human-edited only.**
 2. Score active repos. Drop dormant ones. Respect cooldowns.
 3. For repos above the standing threshold (3+ merges), run standing-gated bug hunt.
 4. Search for issues: contributed repos, then adjacent, then cold.

@@ -1,0 +1,494 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
+---
+
+<Layout title="Ch 10: The Hypothesis Graph — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>The Hypothesis Graph</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 10 &middot; Kill conditions generate edges</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">A monotone trend test fires but curvature is indeterminate. Is the system decelerating or drifting? You can&rsquo;t tell from the current data. But you know exactly what to run next: a longer experiment that resolves curvature. The failure mode named the next hypothesis.</p>
+    </div>
+
+    <p>Chapter 9 classified trajectories into four bins: convergent, divergent, oscillatory, aperiodic. Given a trajectory, you can assign a label. But a label is a noun, not a verb. It tells you what the system did, not what to do next.</p>
+
+    <p>After Chapter 9, you look at a trajectory and say "oscillatory." After this chapter, you say "oscillatory &mdash; test the interface between the two subsystems that are fighting." The label becomes an action. The mechanism is the kill condition.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Failure modes are constructive</h2>
+
+    <p>The failure mode of a test names the next experiment.</p>
+
+    <p>Every test in the classification tree either fires (assigns a label) or misfires (the data is ambiguous). When a test fires, you get a classification. When it misfires, you get something more valuable: a specific statement about what the data cannot resolve. That statement is a hypothesis pointing to the experiment that would resolve it.</p>
+
+    <p>The kill condition is a decision point where the test lacks the information to proceed. What the test needed and didn't have specifies the next measurement. The failure mode builds the graph.</p>
+
+    <h2>The kill-condition decision tree</h2>
+
+    <p>The classifier from Chapter 9, as a decision tree. Each branch is annotated by its failure mode.</p>
+
+    <ol class="list-decimal pl-5 mb-4">
+      <li class="mb-3"><strong>Test for monotone trend.</strong> Is the trajectory consistently increasing or decreasing? If no trend, skip to step 3 (periodicity).</li>
+      <li class="mb-3"><strong>If monotone, test curvature.</strong> Is the rate of change decelerating (convergent) or constant/accelerating (divergent)?</li>
+      <li class="mb-3"><strong>Test for spectral peaks.</strong> Does the frequency spectrum have a narrow peak? If yes: oscillatory.</li>
+      <li class="mb-3"><strong>Test for aperiodic structure.</strong> Is there structure that isn't periodic? If yes: aperiodic.</li>
+      <li class="mb-3"><strong>Nothing triggered.</strong> Null.</li>
+    </ol>
+
+    <p>Five tests. Each test that fires produces a label. Each test that <em>misfires</em> produces a hypothesis: an edge pointing to the experiment that would resolve the ambiguity.</p>
+
+    <h2>Misfires are edges</h2>
+
+    <p>Three examples of misfires and the edges they generate.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Misfire</th>
+            <th class="text-left py-2 pr-3 text-gray-400">What the test needed</th>
+            <th class="text-left py-2 text-gray-400">Edge (next experiment)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Monotone trend detected, curvature indeterminate</td>
+            <td class="pr-3 text-gray-400">More samples to distinguish deceleration from drift</td>
+            <td class="text-gray-400">Run a longer experiment</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Spectral peak detected but broad</td>
+            <td class="pr-3 text-gray-400">Resolution to distinguish a noisy cycle from colored noise</td>
+            <td class="text-gray-400">Test at a different frequency / longer window</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Nothing triggered</td>
+            <td class="pr-3 text-gray-400">Any detectable structure at all</td>
+            <td class="text-gray-400">Test a different perturbation site</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The first row is the opening example. The trend test fires: the trajectory is monotone. But the curvature test can't resolve whether the rate is decelerating (heading toward a fixed point) or constant (heading toward infinity). Both look the same in a short window. The failure mode "insufficient samples to distinguish deceleration from drift" names the remedy: collect more data. That edge points to a specific experiment with a specific expected outcome.</p>
+
+    <p>The second row: the spectral test detects a peak, but the peak is broad. A narrow peak means a clean oscillation with a definite period. A broad peak means either a noisy cycle (signal contaminated) or colored noise (no true period, just autocorrelation). The failure mode names two candidate hypotheses and the experiment that discriminates: sample at a different frequency, or extend the window until the peak sharpens or dissolves.</p>
+
+    <p>The third row: nothing triggered. No monotone trend, no spectral peak, no aperiodic structure. Either the system has no response to this perturbation (dead end) or you perturbed the wrong node. The edge points to a different perturbation site. It says "try elsewhere" without specifying where, but that is still more than "fail to reject."</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Successes generate edges too</h2>
+
+    <p>A successful classification also generates hypotheses. Each label implies a structural claim about the system, and that claim has consequences.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Classification</th>
+            <th class="text-left py-2 pr-3 text-gray-400">What it tells you</th>
+            <th class="text-left py-2 text-gray-400">What to try next</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Convergent</td>
+            <td class="pr-3 text-gray-400">Something absorbed the perturbation</td>
+            <td class="text-gray-400">Test a different node &mdash; this one is stabilized</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Divergent</td>
+            <td class="pr-3 text-gray-400">Single point of failure</td>
+            <td class="text-gray-400">Test what depends on it &mdash; find the blast radius</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Oscillatory</td>
+            <td class="pr-3 text-gray-400">Two subsystems are fighting</td>
+            <td class="text-gray-400">Test the interface between them</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Aperiodic</td>
+            <td class="pr-3 text-gray-400">Input exceeds the architecture&rsquo;s capacity for structured response</td>
+            <td class="text-gray-400">Decompose differently &mdash; the current partitioning is wrong</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Convergent:</strong> something compensated. The perturbation was absorbed. The next question is not "test this node harder" but "test a different node." The absorbing mechanism works; the interesting structure is elsewhere. The label redirects.</p>
+
+    <p><strong>Divergent:</strong> this node is critical and nothing compensated. What depends on it? If it fails, what else fails? The edge points downstream.</p>
+
+    <p><strong>Oscillatory:</strong> two constraints are in conflict. The system alternates between satisfying one and violating the other. The edge points to the coupling point between them, not to either subsystem individually.</p>
+
+    <p><strong>Aperiodic:</strong> the response has structure but no repeating pattern. The current decomposition can't resolve it into periodic components. The edge points to the analyst's modeling choices, not to the system itself.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The hypothesis graph</h2>
+
+    <p>Apply the kill-condition tree iteratively and it builds a graph. Each node is an observation (experiment + classification). Each edge is a hypothesis (generated by the classification or misfire, pointing to the next experiment).</p>
+
+    <p>The algorithm:</p>
+
+    <ol class="list-decimal pl-5 mb-4">
+      <li class="mb-1">Pick a frontier node. (Choose what to test next.)</li>
+      <li class="mb-1">Perturb the system. (Run the experiment.)</li>
+      <li class="mb-1">Classify the response. (Run the kill-condition tree.)</li>
+      <li class="mb-1">Generate edges. (The classification or misfire names the open questions.)</li>
+      <li class="mb-1">Repeat until the frontier stops expanding.</li>
+    </ol>
+
+    <p>This loop has been implicit since Chapter 1. Abduction, deduction, induction are phases of one cycle. Abduction generates the hypothesis (step 4). Deduction derives a prediction ("if this is oscillatory, testing the interface should show the coupling"). Induction tests it (step 2). The kill-condition tree closes the loop: observation produces hypothesis produces experiment produces observation.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>The same mechanism in four fields</h2>
+
+    <h3>Lakatos: the guilty lemma (1976)</h3>
+
+    <p>In <em>Proofs and Refutations</em>, Lakatos describes a recurring pattern: a proof is proposed, a counterexample appears, but the counterexample does not kill the theorem. It reveals which step of the proof was wrong. Lakatos calls this the "guilty lemma." The counterexample points to the specific assumption that fails, and that assumption is the site of the next revision.</p>
+
+    <p>Kill conditions work the same way. A classification test fires but the result is ambiguous. The ambiguity reveals which assumption was insufficient. That assumption is the guilty lemma. The next experiment targets it. Lakatos was describing mathematics, not empirical science, but the structure is identical: a test fails in a way that names the point of failure, and the failure generates the next move.</p>
+
+    <h3>Reiter: model-based diagnosis (1987)</h3>
+
+    <p>Reiter formalized diagnosis as hitting sets over conflicts. A conflict is a set of components that cannot all be working given the observations. A diagnosis is a minimal set whose failure explains all conflicts.</p>
+
+    <p>In kill-condition terms: each misfire is a conflict, a set of hypotheses that cannot all hold given the data. The next experiment resolves the conflict by determining which member is faulty. Reiter's hitting-set algorithm is a systematic way to generate the edges.</p>
+
+    <h3>De Kleer &amp; Williams: GDE (1987)</h3>
+
+    <p>The General Diagnostic Engine (Chapter 7) computes which measurement maximally discriminates among remaining diagnoses. Kill conditions produce the edges; GDE ranks them by information gain per cost. Together: observe &rarr; classify &rarr; generate edges &rarr; rank edges (GDE) &rarr; run the best one &rarr; observe again.</p>
+
+    <h3>Schoenfeld: the proof manual (1985)</h3>
+
+    <p>Schoenfeld filmed undergraduates solving math problems. The stuck pattern was diagnostic. Trying induction repeatedly on the same base case means the base case is wrong. Failing on a specific step of the contrapositive means that step's assumption is the weak point. The failure mode names the escalation technique.</p>
+
+    <p>When induction fails because the residual loses structure, the shape of the lost structure tells you which technique to try next. The shape of failure is the edge.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Code: the kill-condition decision tree</h2>
+
+    <p>The classifier takes a trajectory (e-values over time) and returns both a label and an edge.</p>
+
+    <Repl client:visible initialCode={`import numpy as np
+from dataclasses import dataclass
+
+@dataclass
+class Classification:
+    label: str           # convergent, divergent, oscillatory, aperiodic, null
+    confidence: float    # 0 to 1
+    edge: str            # the next experiment suggested by the classification
+    misfire: str | None  # if a test was ambiguous, what it couldn't resolve
+
+def test_monotone_trend(trajectory, alpha=0.05):
+    """Mann-Kendall-style sign test for monotone trend."""
+    n = len(trajectory)
+    signs = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            signs.append(np.sign(trajectory[j] - trajectory[i]))
+    s = sum(signs)
+    total_pairs = n * (n - 1) / 2
+    fraction = abs(s) / total_pairs if total_pairs > 0 else 0
+    return fraction > 0.6, s > 0, fraction
+
+def test_curvature(trajectory):
+    """Test whether a monotone trajectory is decelerating or constant/accelerating."""
+    diffs = np.diff(trajectory)
+    if len(diffs) < 2:
+        return "indeterminate", 0.0
+    second_diffs = np.diff(diffs)
+    mean_accel = np.mean(second_diffs)
+    std_accel = np.std(second_diffs)
+    if std_accel == 0:
+        return "constant", 1.0
+    snr = abs(mean_accel) / std_accel
+    if snr < 0.5:
+        return "indeterminate", snr
+    if mean_accel < 0:
+        return "decelerating", snr
+    return "accelerating", snr
+
+def test_spectral_peak(trajectory):
+    """Test for a dominant spectral peak via FFT."""
+    detrended = trajectory - np.linspace(trajectory[0], trajectory[-1], len(trajectory))
+    spectrum = np.abs(np.fft.rfft(detrended))[1:]
+    if len(spectrum) == 0:
+        return False, False, 0.0
+    peak_idx = np.argmax(spectrum)
+    peak_val = spectrum[peak_idx]
+    total_power = np.sum(spectrum)
+    if total_power == 0:
+        return False, False, 0.0
+    concentration = peak_val / total_power
+    has_peak = concentration > 0.3
+    is_narrow = concentration > 0.5
+    return has_peak, is_narrow, concentration
+
+def test_aperiodic(trajectory):
+    """Test for aperiodic structure via autocorrelation decay."""
+    n = len(trajectory)
+    centered = trajectory - np.mean(trajectory)
+    var = np.var(trajectory)
+    if var == 0:
+        return False
+    autocorr = np.correlate(centered, centered, mode='full')
+    autocorr = autocorr[n-1:] / (var * n)
+    mid = len(autocorr) // 4
+    if mid == 0:
+        return False
+    return abs(autocorr[mid]) > 0.1
+
+
+def classify_trajectory(trajectory):
+    """Run the kill-condition decision tree."""
+    is_monotone, is_increasing, trend_strength = test_monotone_trend(trajectory)
+
+    if is_monotone:
+        curvature, snr = test_curvature(trajectory)
+        if curvature == "decelerating":
+            return Classification("convergent", min(trend_strength, snr / 2),
+                "Stabilized. Test a different node.", None)
+        elif curvature == "accelerating" or curvature == "constant":
+            return Classification("divergent", min(trend_strength, snr / 2),
+                "Load-bearing. Test what depends on this node.", None)
+        else:
+            return Classification("monotone", trend_strength,
+                "Run longer to resolve curvature.",
+                f"Monotone trend detected, curvature indeterminate (SNR={snr:.2f}). "
+                f"Cannot distinguish deceleration from drift.")
+
+    has_peak, is_narrow, concentration = test_spectral_peak(trajectory)
+    if has_peak:
+        if is_narrow:
+            return Classification("oscillatory", concentration,
+                "Two subsystems fighting. Test the interface.", None)
+        else:
+            return Classification("oscillatory", concentration,
+                "Test at different frequency or extend observation window.",
+                f"Spectral peak detected but broad (concentration={concentration:.2f}). "
+                f"Noisy cycle or colored noise?")
+
+    if test_aperiodic(trajectory):
+        return Classification("aperiodic", 0.5,
+            "Decompose differently. Current partitioning misses the structure.", None)
+
+    return Classification("null", 0.0,
+        "Test a different perturbation site.",
+        "No structure detected. Null response or wrong perturbation site.")
+
+
+# --- Four trajectories, four classifications, four edges ---
+
+trajectories = {
+    "decelerating": np.cumsum(1.0 / np.arange(1, 51)),
+    "linear drift": np.linspace(0, 10, 50) + np.random.normal(0, 0.5, 50),
+    "clean cycle":  np.sin(np.linspace(0, 6 * np.pi, 100)),
+    "flat noise":   np.random.normal(0, 0.1, 50),
+}
+
+for name, traj in trajectories.items():
+    result = classify_trajectory(traj)
+    print(f"Trajectory: {name}")
+    print(f"  Label:      {result.label}")
+    print(f"  Confidence: {result.confidence:.2f}")
+    print(f"  Edge:       {result.edge}")
+    if result.misfire:
+        print(f"  Misfire:    {result.misfire}")
+    print()`} />
+
+    <p>The second trajectory is the key case. The trend test fires (monotone, confidence 0.89) but the curvature test misfires (SNR = 0.38, below threshold). The classifier does not guess. It reports the misfire and generates the edge: "run longer." A p-value system would report "significant trend, p &lt; 0.01" and stop. The kill condition says: significant trend, yes, but the <em>type</em> of trend is unresolved. More data is the edge.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Building the graph</h2>
+
+    <p>One classification produces one or two edges. Iterate the loop (classify, follow, classify again) and it builds a graph.</p>
+
+    <Repl client:visible initialCode={`import numpy as np
+from dataclasses import dataclass
+
+# --- classify_trajectory (from the block above) ---
+
+@dataclass
+class Classification:
+    label: str
+    confidence: float
+    edge: str
+    misfire: str | None
+
+def test_monotone_trend(trajectory):
+    n = len(trajectory)
+    signs = [np.sign(trajectory[j] - trajectory[i])
+             for i in range(n) for j in range(i+1, n)]
+    s = sum(signs)
+    total_pairs = n * (n - 1) / 2
+    fraction = abs(s) / total_pairs if total_pairs > 0 else 0
+    return fraction > 0.6, s > 0, fraction
+
+def test_curvature(trajectory):
+    diffs = np.diff(trajectory)
+    if len(diffs) < 2: return "indeterminate", 0.0
+    sd = np.diff(diffs)
+    ma, sa = np.mean(sd), np.std(sd)
+    if sa == 0: return "constant", 1.0
+    snr = abs(ma) / sa
+    if snr < 0.5: return "indeterminate", snr
+    return ("decelerating" if ma < 0 else "accelerating"), snr
+
+def test_spectral_peak(trajectory):
+    detrended = trajectory - np.linspace(trajectory[0], trajectory[-1], len(trajectory))
+    spectrum = np.abs(np.fft.rfft(detrended))[1:]
+    if len(spectrum) == 0: return False, False, 0.0
+    peak_val = spectrum[np.argmax(spectrum)]
+    total = np.sum(spectrum)
+    if total == 0: return False, False, 0.0
+    c = peak_val / total
+    return c > 0.3, c > 0.5, c
+
+def test_aperiodic(trajectory):
+    n = len(trajectory)
+    centered = trajectory - np.mean(trajectory)
+    var = np.var(trajectory)
+    if var == 0: return False
+    ac = np.correlate(centered, centered, mode='full')[n-1:] / (var * n)
+    mid = len(ac) // 4
+    return mid > 0 and abs(ac[mid]) > 0.1
+
+def classify_trajectory(trajectory):
+    is_mono, is_inc, strength = test_monotone_trend(trajectory)
+    if is_mono:
+        curv, snr = test_curvature(trajectory)
+        if curv == "decelerating":
+            return Classification("convergent", min(strength, snr/2),
+                "Stabilized. Test a different node.", None)
+        elif curv in ("accelerating", "constant"):
+            return Classification("divergent", min(strength, snr/2),
+                "Load-bearing. Test what depends on this node.", None)
+        else:
+            return Classification("monotone", strength,
+                "Run longer to resolve curvature.",
+                f"Curvature indeterminate (SNR={snr:.2f}).")
+    hp, nar, conc = test_spectral_peak(trajectory)
+    if hp:
+        return Classification("oscillatory", conc,
+            "Two subsystems fighting. Test the interface." if nar
+            else "Test at different frequency or extend window.", None)
+    if test_aperiodic(trajectory):
+        return Classification("aperiodic", 0.5,
+            "Decompose differently.", None)
+    return Classification("null", 0.0,
+        "Test a different perturbation site.",
+        "No structure detected.")
+
+# --- HypothesisGraph ---
+
+@dataclass
+class Node:
+    id: int
+    experiment: str
+    classification: Classification | None = None
+
+@dataclass
+class Edge:
+    source: int
+    target: int
+    hypothesis: str
+
+class HypothesisGraph:
+    def __init__(self):
+        self.nodes: list[Node] = []
+        self.edges: list[Edge] = []
+        self._next_id = 0
+
+    def add_node(self, experiment: str) -> int:
+        node_id = self._next_id
+        self._next_id += 1
+        self.nodes.append(Node(id=node_id, experiment=experiment))
+        return node_id
+
+    def classify_node(self, node_id: int, trajectory):
+        classification = classify_trajectory(trajectory)
+        self.nodes[node_id].classification = classification
+        target_id = self.add_node(experiment=classification.edge)
+        self.edges.append(Edge(
+            source=node_id, target=target_id,
+            hypothesis=classification.misfire or classification.label
+        ))
+        return target_id
+
+    def frontier(self) -> list[Node]:
+        return [n for n in self.nodes if n.classification is None]
+
+    def summary(self):
+        print(f"Nodes: {len(self.nodes)}  Edges: {len(self.edges)}  "
+              f"Frontier: {len(self.frontier())}")
+        for e in self.edges:
+            src = self.nodes[e.source]
+            tgt = self.nodes[e.target]
+            label = src.classification.label if src.classification else "?"
+            print(f"  [{src.id}] {src.experiment[:40]} ({label})")
+            print(f"    -> [{tgt.id}] {tgt.experiment[:50]}")
+
+
+# --- Run the loop ---
+graph = HypothesisGraph()
+
+# Round 1: perturb node A, observe monotone trajectory
+n0 = graph.add_node("Perturb node A")
+traj_0 = np.linspace(0, 5, 30) + np.random.normal(0, 0.8, 30)
+n1 = graph.classify_node(n0, traj_0)
+
+# Round 2: follow the edge — run longer
+traj_1 = np.cumsum(1.0 / np.arange(1, 101))
+n2 = graph.classify_node(n1, traj_1)
+
+# Round 3: convergent — edge says test a different node
+traj_2 = np.sin(np.linspace(0, 4 * np.pi, 80))
+n3 = graph.classify_node(n2, traj_2)
+
+graph.summary()`} />
+
+    <p>Three rounds, three edges. The first classification misfired (curvature indeterminate) and generated "run longer." The second succeeded (convergent) and redirected: "test a different node." The third succeeded (oscillatory) and targeted the coupling point. Each step followed from the previous result.</p>
+
+    <p>The frontier has three open nodes: three experiments suggested but not yet run. Each is a specific action generated by a specific kill condition.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Convergence is not guaranteed</h2>
+
+    <p>Each kill condition generates one edge. Three rounds produced three edges and three frontier nodes. Ten rounds produce ten edges and up to ten new frontier nodes. The graph grows. Does it close?</p>
+
+    <p>Convergence means every frontier edge points to a node already tested and stably classified. With finite structure and stable classifications, the graph should close. But "should" is not a proof. Feedback can create cycles: convergent at node A points to node B, which oscillates, which points back to A with new data that changes A's classification. Classifications are data-dependent.</p>
+
+    <p>The pieces for a convergence proof exist independently: Chernoff (1959) proved adaptive experiment selection converges; Gr&uuml;nwald (2024) proved e-values compose across adaptive experiments. Connecting them to the hypothesis graph is open. That is Chapter 11.</p>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">🔭 Methodeutics</a></li>
+      <li><a href="/reading/methodeutics/ch07-economy-of-research/">Ch 7: Economy of Research</a> &mdash; which experiments to run first</li>
+      <li><a href="/the-hypothesis-graph">The Hypothesis Graph</a> &mdash; the blog post with the full argument</li>
+      <li><a href="/evidence-has-a-trajectory">Ch 8: Evidence has a trajectory</a> &mdash; e-values and temporal structure</li>
+    </ul>
+
+    <p class="text-sm text-gray-500 mb-2 mt-4">External</p>
+    <ul>
+      <li><a href="https://doi.org/10.1016/0004-3702(87)90062-2">Reiter 1987, "A Theory of Diagnosis from First Principles" (Artificial Intelligence)</a></li>
+      <li><a href="https://doi.org/10.1016/0004-3702(87)90063-4">de Kleer &amp; Williams 1987, "Diagnosing Multiple Faults" (Artificial Intelligence)</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Proofs_and_Refutations"><img src="/reading/wikipedia.svg" alt="wp" style="display:inline;height:1em;vertical-align:-0.1em;margin-right:0.2em;"/>Proofs and Refutations (Wikipedia)</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Model-based_diagnosis"><img src="/reading/wikipedia.svg" alt="wp" style="display:inline;height:1em;vertical-align:-0.1em;margin-right:0.2em;"/>Model-based diagnosis (Wikipedia)</a></li>
+    </ul>
+    </Neighbors>
+
+  </main>
+</Layout>

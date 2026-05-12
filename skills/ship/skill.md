@@ -48,7 +48,10 @@ Ship all `dripped` entries that pass the org gate. Use when you're watching and 
 1. **Preflight.** `gh auth status`. Fail fast on auth issues.
 2. **Read drip queues.** Scan `~/.sweep/drip-queue/*.jsonl` for entries with status `dripped`.
 3. **Org gate.** For each dripped entry, check if the org already has a shipped PR open. If so, skip (report as org-blocked). `max_open_per_org` defaults to 1.
-4. **Verify gate attestation.** Load `~/.sweep/gates/<owner>-<repo>.gate`. Check:
+4. **Repo status gate (hard block).** Run `~/.sweep/bin/repo-status <owner/repo>`. If verdict is not `"clear"`, skip immediately. Do not create PR. Covers denylist, permanent eviction, cooldown, and rejection cooldown in one call. Learned from immich#28375/28377 — shipped twice to an evicted repo.
+5. **AI policy check (hard block).** Run `~/.sweep/bin/ai-policy <owner/repo>`. If `detected: true`, evict the repo and skip. Checks CONTRIBUTING.md, AGENTS.md, and org-level `.github` files. This is the last line of defense — actionable and triage should have caught it, but ship verifies.
+6. **Banlist (enforced by hook, not by ship).** `~/.sweep/banlist.txt` is checked by the `gate-pr-create.sh` PreToolUse hook. If the repo is banned, `gh pr create` is blocked at the system level. Ship doesn't need to check — the hook is the enforcement. But ship should still skip banned repos early to avoid wasting time on push + gate file prep.
+6. **Verify gate attestation.** Load `~/.sweep/gates/<owner>-<repo>.gate`. Check:
    - `gemini_verdict` is `"pass"`
    - `codex_verdict` is `"pass"`
    - `test_attestation` is present and non-empty

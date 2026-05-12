@@ -53,7 +53,7 @@ Before scoring, check for retro-derived parameters that adjust behavior:
 2. Apply overrides to scoring and behavior:
    - `scoring.maintainer_filed_bonus` → adjusts maintainer-filed issue score
    - `scoring.skip_categories` → extends the kill list
-   - `cooldown_until` → if today < cooldown date, halt with "Cooldown active until {date}"
+   - **Repo status gate.** Run `~/.sweep/bin/repo-status <owner/repo>`. If verdict is not `"clear"`, halt with the reason. Covers cooldowns, permanent eviction, denylist, and rejection cooldown in one call.
    - `merge_rate` → informs pacing expectations (logged, not enforced)
 3. Log which parameters were loaded. If no retro file exists, proceed with defaults.
 

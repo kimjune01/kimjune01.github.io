@@ -1,0 +1,290 @@
+---
+import Layout from '../../../../layouts/Base.astro';
+import Neighbors from "../../../../components/Neighbors.astro";
+import Repl from '../../../../components/Repl';
+---
+
+<Layout title="Ch 3: Eight Names, One Operation — Methodeutics" favicon="🔭">
+  <main>
+    <a href="/reading/methodeutics/" class="text-sm mb-4 inline-block">&larr; back to methodeutics</a>
+
+    <h1>Eight Names, One Operation</h1>
+    <p class="text-gray-400 text-sm mb-6">Chapter 3 · Rubin 1915, Koffka 1935, Piaget 1975, Laird et al. 1987, Calcagno et al. 2009, Pearl 2009, Lake et al. 2015, Arjovsky et al. 2019</p>
+
+    <div class="bg-zinc-800 rounded-lg p-5 mb-8 callout">
+      <p class="text-lg" style="max-width:none">Six fields independently formalized operations that share the same role structure: isolate a salient part against a retained background. Each formalized it separately: bi-abduction, figure-ground, equilibration, intervention. Eight names, no crosswalk.</p>
+    </div>
+
+    <h2>The citation gap</h2>
+
+    <p>Calcagno et al. (2009) introduced bi-abduction to scale separation-logic analysis at Facebook. They cite Peirce zero times. Rubin (1915) described figure-ground segregation in visual perception — citing Gestalt colleagues, never the pragmatists. Piaget (1975) formalized equilibration as the mechanism of cognitive development. He cited Piaget. Pearl (2009) built a calculus of interventions for causal inference, citing Rubin (Donald, not Edgar) — the statistician, not the psychologist. Laird, Rosenbloom, and Newell (1987) formalized chunking in Soar. Lake et al. (2015) proposed Bayesian program learning for one-shot concept acquisition. Arjovsky et al. (2019) separated invariant from spurious features in domain generalization.</p>
+
+    <p>Eight entries, six fields, separate citation networks. The pattern recurs: given an observation, separate what demands attention from what can be retained. The words differ: anti-frame, figure, perturbation, treatment variable, surprising fact, invariant feature. The role structure is the same.</p>
+
+    <p>Each field defines a concrete mechanism: computational (bi-abduction, IRM), perceptual (figure-ground), or developmental (equilibration). Each takes an input and partitions it: salient (signal, figure, novelty) versus retained (noise, ground, frame). That recurrence is evidence for a shared abstraction. Chapter 4 proposes the formal identity.</p>
+
+    <h2>The table</h2>
+
+    <p>Chapter 2 established that abduction has maximal <a href="/reading/methodeutics/ch02-security-uberty/">uberty</a> — the only mode in Peirce's triad that introduces explanatory hypotheses. The question: is this fertile, insecure mode a single role structure or a family of unrelated operations that happen to look similar? The claim is not that a heap frame, a visual ground, and an exogenous variable are interchangeable. They are not. The claim is that each formalism begins by assigning the same roles inside a state: selected part, retained context, and admissible variation. The table below is the evidence.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-zinc-700">
+            <th class="text-left py-2 pr-3 text-gray-400">Field</th>
+            <th class="text-left py-2 pr-3 text-gray-400">The operation</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Salient (selected)</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Retained (backgrounded)</th>
+            <th class="text-left py-2 pr-3 text-gray-400">Branching version</th>
+            <th class="text-left py-2 text-gray-400">Key ref</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">PL / separation logic</td>
+            <td class="pr-3 text-gray-300">Bi-abduction</td>
+            <td class="pr-3 text-gray-400">Anti-frame (missing precondition)</td>
+            <td class="pr-3 text-gray-400">Frame (untouched heap fragment)</td>
+            <td class="pr-3 text-gray-400">Tri-abduction</td>
+            <td class="text-gray-400"><a href="https://dl.acm.org/doi/10.1145/1480881.1480917">Calcagno et al. 2009</a>; <a href="https://arxiv.org/abs/2305.04842">Zilberstein et al. 2024</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Cognitive arch (Soar)</td>
+            <td class="pr-3 text-gray-300">Chunking</td>
+            <td class="pr-3 text-gray-400">Result (WMEs resolving the impasse)</td>
+            <td class="pr-3 text-gray-400">Superstate conditions (tested WMEs &rarr; chunk LHS)</td>
+            <td class="pr-3 text-gray-400">Operator-tie impasse</td>
+            <td class="text-gray-400"><a href="https://apps.dtic.mil/sti/tr/pdf/ADA188742.pdf">Laird et al. 1987</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Cognitive arch (BPL)</td>
+            <td class="pr-3 text-gray-300">Program induction</td>
+            <td class="pr-3 text-gray-400">Type (structural program)</td>
+            <td class="pr-3 text-gray-400">Token-level variance (marginalized out)</td>
+            <td class="pr-3 text-gray-400">Implicit</td>
+            <td class="text-gray-400"><a href="https://www.science.org/doi/10.1126/science.aab3050">Lake et al. 2015</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Gestalt (Rubin/Koffka)</td>
+            <td class="pr-3 text-gray-300">Figure-ground segregation</td>
+            <td class="pr-3 text-gray-400"><em>Figur</em> (bounded, salient)</td>
+            <td class="pr-3 text-gray-400"><em>Grund</em> (formless, extending)</td>
+            <td class="pr-3 text-gray-400">Multistability</td>
+            <td class="text-gray-400"><a href="https://philpapers.org/rec/RUBSF">Rubin 1915</a>; <a href="https://en.wikipedia.org/wiki/Principles_of_Gestalt_Psychology">Koffka 1935</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Developmental (Piaget)</td>
+            <td class="pr-3 text-gray-300">Equilibration</td>
+            <td class="pr-3 text-gray-400">Perturbation (novel element)</td>
+            <td class="pr-3 text-gray-400">Schema (assimilates without changing)</td>
+            <td class="pr-3 text-gray-400">Reflective abstraction</td>
+            <td class="text-gray-400"><a href="https://en.wikipedia.org/wiki/Equilibration">Piaget 1975/1985</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Causal inference (Pearl)</td>
+            <td class="pr-3 text-gray-300">Intervention / identification</td>
+            <td class="pr-3 text-gray-400">Treatment variable (<em>do(X=x)</em>)</td>
+            <td class="pr-3 text-gray-400">Background variables <em>U</em> (held fixed)</td>
+            <td class="pr-3 text-gray-400">Counterfactual contrast <em>Y&#x2081; - Y&#x2080;</em></td>
+            <td class="text-gray-400"><a href="https://www.cambridge.org/core/books/causality/B0046844FAE10CBF274D4ACBDAEB5F5B">Pearl 2009</a></td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Philosophy (Peirce)</td>
+            <td class="pr-3 text-gray-300">Abduction (retroduction)</td>
+            <td class="pr-3 text-gray-400">Surprising fact <em>C</em></td>
+            <td class="pr-3 text-gray-400">Settled expectations</td>
+            <td class="pr-3 text-gray-400">Economy of research</td>
+            <td class="text-gray-400"><a href="https://archive.org/details/pragmatismasprin0000peir">Peirce 1903</a></td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">ML/RL</td>
+            <td class="pr-3 text-gray-300">Invariant feature separation</td>
+            <td class="pr-3 text-gray-400">Invariant features (stable across envs)</td>
+            <td class="pr-3 text-gray-400">Spurious features (env-specific)</td>
+            <td class="pr-3 text-gray-400">Counterfactual policy evaluation</td>
+            <td class="text-gray-400"><a href="https://arxiv.org/abs/1907.02893">Arjovsky et al. 2019</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Read any row. Take an observation, split it into figure and ground, name the figure. The figure is the hypothesis, the part that explains. The ground is everything else: the heap untouched, the schema unbroken, the background variables held fixed.</p>
+
+    <h2>Reading the entries</h2>
+
+    <h3>Bi-abduction (Calcagno et al. 2009)</h3>
+
+    <p>Separation logic describes heap-manipulating programs with assertions <em>P * F</em>, where <em>P</em> is the precondition and <em>F</em> is the frame: the heap fragment the operation doesn't touch. The frame rule: if the operation is safe given <em>P</em>, it stays safe in the presence of <em>F</em>, because <em>F</em> is disjoint and untouched.</p>
+
+    <p>Bi-abduction infers <em>both</em> pieces simultaneously: what precondition is missing (the anti-frame), and what heap fragment survives unchanged (the frame)? Anti-frame is figure; frame is ground. This powers Facebook's <a href="https://fbinfer.com/">Infer</a> static analyzer — millions of lines analyzed compositionally, because the figure-ground split is modular.</p>
+
+    <h3>Chunking (Laird, Rosenbloom, Newell 1987)</h3>
+
+    <p>When Soar cannot decide which operator to apply, it hits an impasse and drops into a subgoal, reasoning until it finds a result. Chunking caches that result as a production rule: tested conditions become the left-hand side (ground — superstate conditions already true), and the result becomes the right-hand side (figure — new working-memory elements that resolved the impasse). Next time those conditions arise, the chunk fires directly. No impasse, no subgoal.</p>
+
+    <p>The figure-ground split is automatic. Soar traces which working-memory elements were tested during the subgoal and which were produced. Tested elements become ground; produced elements become figure. The system doesn't decide what to cache — the architecture decides, by recording what was used and what was created.</p>
+
+    <h3>Program induction (Lake, Salakhutdinov, Tenenbaum 2015)</h3>
+
+    <p>Bayesian program learning (BPL) sees a single handwritten character and infers a generative program: a stroke sequence, a motor plan. The type is invariant structure: number of strokes, relative positions, topological relations. Token-level variance (pen pressure, speed, slant, jitter) is marginalized out. One example suffices because the model separates what makes the letter that letter (figure) from what makes this instance different from others (ground).</p>
+
+    <p>This is abduction in the Peircean sense: given a surprising observation (a novel character), propose a structural explanation (a program that would produce it). The explanation is insecure (it might be wrong, might hallucinate structure) but maximally fertile. One example, one hypothesis, and the hypothesis is a program.</p>
+
+    <h3>Figure-ground segregation (Rubin 1915, Koffka 1935)</h3>
+
+    <p>Edgar Rubin's doctoral thesis introduced the figure-ground distinction. The <em>Figur</em> is bounded, has shape, appears in front. The <em>Grund</em> is shapeless, extends behind the figure, continues underneath it. Rubin's vase demonstrates: you see either a vase (white figure, black ground) or two faces (black figure, white ground), never both simultaneously.</p>
+
+    <p>Koffka generalized this into a principle of perceptual organization: the visual field partitions into regions of different salience. The partition is not in the stimulus. The same pixels produce vase or faces depending on the observer's state. Figure-ground segregation is something the observer does.</p>
+
+    <h3>Equilibration (Piaget 1975/1985)</h3>
+
+    <p>Piaget's equilibration is the mechanism by which cognitive structures change. A child has a schema, a stable cognitive structure. A novel element arrives that the schema cannot assimilate without distortion: the perturbation (figure). The schema either accommodates (restructures to incorporate the novelty) or assimilates (absorbs it without structural change). Accommodation alters the schema permanently; assimilation confirms it and discards the novelty as noise.</p>
+
+    <p>Perturbation is figure: the element that doesn't fit. Schema is ground: what was already there. Equilibration decides which wins — does the observation challenge the structure, or does the structure absorb the observation? This is the <a href="/reading/methodeutics/ch02-security-uberty/">security-uberty tradeoff</a> in developmental terms. Assimilation is secure (the schema survives). Accommodation is fertile (the schema changes). Equilibration navigates between them.</p>
+
+    <h3>Intervention (Pearl 2009)</h3>
+
+    <p>Pearl's <em>do</em>-calculus formalizes the difference between observing and intervening. Observing <em>X=x</em> conditions on it; the causal structure stays intact. Intervening <em>do(X=x)</em> sets it, severing the incoming arrows to <em>X</em>. The treatment variable is figure: what you changed. The background variables <em>U</em> are ground: held fixed across the intervention.</p>
+
+    <p>The counterfactual contrast <em>Y&#x2081; - Y&#x2080;</em> is the branching version: what would have happened under a different intervention? Peirce's economy of research asks which hypothesis to test next; Pearl's counterfactual asks what the outcome would have been. Same question, different notation: which figure-ground split?</p>
+
+    <h3>Abduction (Peirce 1903)</h3>
+
+    <p>Peirce's formulation is the most general. A surprising fact <em>C</em> is observed. If <em>A</em> were true, <em>C</em> would be a matter of course. Therefore there is reason to suspect <em>A</em>. The surprising fact is figure — what stands out against settled expectations. Settled expectations are ground — the background model against which surprise registers.</p>
+
+    <p>Peirce is also the most honest about insecurity. "There is reason to suspect <em>A</em>" is weaker than "A is true," weaker than "A is probable." It claims where to look next. Abduction produces questions, not knowledge — that is why its <a href="/reading/methodeutics/ch02-security-uberty/">uberty is maximal and its security minimal</a>: a new direction.</p>
+
+    <h3>Invariant risk minimization (Arjovsky et al. 2019)</h3>
+
+    <p>IRM separates features into two classes: invariant features that predict the label across all environments, and spurious features that predict it in some but not others. A cow on grass is reliably bovine in a farm dataset; on a beach, the grass feature fails. Cow is invariant (figure). Grass is spurious (ground).</p>
+
+    <p>The branching version is counterfactual policy evaluation: would this feature still predict the outcome in a different environment? IRM operationalizes the split by training a classifier that performs well across environments simultaneously. Features surviving the distributional shift are figure; features that don't are ground. Same role structure: partition, separate, name the invariant. (IRM is the loosest fit in the table: "ground" here means discarded rather than retained. The role assignment is the same; the fate of the ground component differs.)</p>
+
+    <h2>The common structure</h2>
+
+    <p>Strip the vocabulary. Every row in the table implements the same three-step operation:</p>
+
+    <ol>
+      <li><strong>Observe</strong> — take in a state (heap, visual field, schema, dataset, surprising fact).</li>
+      <li><strong>Partition</strong> — split the state into two parts: what matters (figure, anti-frame, perturbation, treatment variable, surprising fact, invariant feature) and what doesn't (ground, frame, schema, background, settled expectations, spurious feature).</li>
+      <li><strong>Name the figure</strong> — the figure becomes the hypothesis. The ground is everything the hypothesis doesn't touch.</li>
+    </ol>
+
+    <p>The branching column is the fourth step some formulations include: what if the partition were different? Tri-abduction branches on the heap state. Multistability branches on the percept. Reflective abstraction on the schema. Counterfactual contrast on the intervention. Economy of research on the hypothesis. All ask the same question: given that this partition is one of many, which one is right?</p>
+
+    <p>This is why the operation is insecure. No deductive guarantee pins down the correct partition. The same observation admits multiple figure-ground splits — Rubin's vase is the literal demonstration: same stimulus, two partitions, both valid, mutually exclusive. Security demands one correct partition. Uberty demands many, each fertile in a different direction.</p>
+
+    <Repl client:visible initialCode={`def partition(observation, prior):
+    """The common operation: split observation into salient and retained."""
+    salient = {k: v for k, v in observation.items() if v != prior.get(k)}
+    retained = {k: v for k, v in observation.items() if v == prior.get(k)}
+    return salient, retained
+
+# Gestalt: figure-ground
+scene = {"face": "visible", "vase": "visible", "background": "white"}
+prior = {"face": "hidden", "vase": "visible", "background": "white"}
+figure, ground = partition(scene, prior)
+print(f"figure: {figure}")
+print(f"ground: {ground}")
+
+# Debugging: what changed
+after_deploy = {"cpu": "90%", "memory": "4GB", "disk": "50GB", "config": "v2"}
+before_deploy = {"cpu": "30%", "memory": "4GB", "disk": "50GB", "config": "v1"}
+changed, held = partition(after_deploy, before_deploy)
+print(f"changed: {changed}")
+print(f"held: {held}")
+
+# Separation logic: frame inference (simplified)
+heap_after = {"ptr_a": "allocated", "ptr_b": "freed", "ptr_c": "allocated"}
+heap_before = {"ptr_a": "allocated", "ptr_b": "allocated", "ptr_c": "allocated"}
+footprint, frame = partition(heap_after, heap_before)
+print(f"footprint: {footprint}")
+print(f"frame: {frame}")`} />
+
+    <p>The vocabulary changes (figure/ground, changed/held, footprint/frame) but the role assignment is the same dict comparison every time. The toy flattens real semantics deliberately: it shows the shared role structure, not the domain-specific meaning of each partition. The separation-logic example is the loosest fit: a real frame includes cells read but unchanged, not just cells with different values. The toy version captures the structural roles without full semantics. Chapter 4 formalizes the shared primitive as diff.</p>
+
+    <h2>Why they don't cite each other</h2>
+
+    <p>Three causes, and together they explain why the operation stayed unnamed for a century.</p>
+
+    <p><strong>Vocabulary isolation.</strong> Separation logic speaks heap fragments and entailment. Gestalt psychology speaks percepts and phenomenal fields. Causal inference speaks structural equations and counterfactuals. A PL researcher reading Koffka sees psychology; a psychologist reading Calcagno sees notation. Neither sees the same operation.</p>
+
+    <p><strong>Institutional boundaries.</strong> CS publishes at POPL and PLDI. Psychology publishes in <em>Psychological Review</em>. Causal inference in <em>JRSS-B</em> and <em>Biometrika</em>. Different conferences, different journals, no shared reviewers. Cross-pollination requires fluency in at least two of these languages, and Peirce — who had it — died in 1914, before any of the modern formalizations existed.</p>
+
+    <p><strong>The anti-formalism norm.</strong> Philosophy has discussed abduction extensively, but the discussion lives inside the "inference to the best explanation" (IBE) tradition after Harman (1965). IBE debates center on justification: is IBE a legitimate inference rule? "What is the operation, exactly?" strikes philosophers as reductive and engineers as unmotivated. Philosophers who know the history don't formalize; engineers who formalize don't know the history.</p>
+
+    <h2>Why it matters</h2>
+
+    <p>One person naming a pattern could be pareidolia. Eight groups across six fields naming the same pattern — different words, different starting points, different motivations — is evidence that the role structure is real, not projected.</p>
+
+    <p>But "probably real" is far from "formally defined." The table shows the phenomenon exists, not what it <em>is</em>. Eight instances, no definition. A name for each instance, no name for the class. We can point at figure-ground separation but cannot write down the operation the way modus ponens is written down for deduction, or Bayes' rule for induction.</p>
+
+    <p>Part I has been building toward this gap. The missing mode is everywhere in practice: eight names, same structure. What is missing is the formalization.</p>
+
+    <p>A table is evidence that a formalization should exist. The next chapter proposes the primitive: <strong>diff</strong>.</p>
+
+    <hr class="border-zinc-700 my-8"/>
+
+    <h2>Sources</h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Rubin 1915</td>
+            <td class="text-gray-400"><em><a href="https://philpapers.org/rec/RUBSF">Synsoplevede Figurer</a></em> (Visually Experienced Figures). Introduces the figure-ground distinction.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Koffka 1935</td>
+            <td class="text-gray-400"><em><a href="https://en.wikipedia.org/wiki/Principles_of_Gestalt_Psychology">Principles of Gestalt Psychology</a></em>. Generalizes figure-ground to a principle of perceptual organization.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Harman 1965</td>
+            <td class="text-gray-400">"The Inference to the Best Explanation." <em>Philosophical Review</em> 74(1). Begins the IBE tradition — abduction as justified inference, not formalized operation.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Piaget 1975/1985</td>
+            <td class="text-gray-400"><em><a href="https://en.wikipedia.org/wiki/Equilibration">The Equilibration of Cognitive Structures</a></em>. Perturbation as figure; schema as ground.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Laird et al. 1987</td>
+            <td class="text-gray-400"><em><a href="https://apps.dtic.mil/sti/tr/pdf/ADA188742.pdf">Soar: An Architecture for General Intelligence</a></em>. Chunking as automatic figure-ground separation in working memory.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Peirce 1903</td>
+            <td class="text-gray-400"><em><a href="https://archive.org/details/pragmatismasprin0000peir">Harvard Lectures on Pragmatism</a></em>. MSS [R] 475&ndash;478, Houghton Library, Harvard. EP 2:133&ndash;241. The canonical formulation of abduction: surprising fact, explanatory hypothesis, reason to suspect.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Calcagno et al. 2009</td>
+            <td class="text-gray-400"><a href="https://dl.acm.org/doi/10.1145/1480881.1480917">"Compositional Shape Analysis by Means of Bi-Abduction."</a> <em>POPL</em>. Infers anti-frame and frame simultaneously. Scales to millions of LOC.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Pearl 2009</td>
+            <td class="text-gray-400"><em><a href="https://www.cambridge.org/core/books/causality/B0046844FAE10CBF274D4ACBDAEB5F5B">Causality</a></em> (2nd ed.). The <em>do</em>-calculus. Intervention as figure; background as ground.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Lake et al. 2015</td>
+            <td class="text-gray-400"><a href="https://www.science.org/doi/10.1126/science.aab3050">"Human-Level Concept Learning Through Probabilistic Program Induction."</a> <em>Science</em>. One-shot type inference via Bayesian program learning.</td>
+          </tr>
+          <tr class="border-b border-zinc-800">
+            <td class="py-2 pr-3 pl-0 text-gray-300">Arjovsky et al. 2019</td>
+            <td class="text-gray-400"><a href="https://arxiv.org/abs/1907.02893">"Invariant Risk Minimization."</a> Separates invariant from spurious features across training environments.</td>
+          </tr>
+          <tr>
+            <td class="py-2 pr-3 pl-0 text-gray-300">Zilberstein et al. 2024</td>
+            <td class="text-gray-400"><a href="https://arxiv.org/abs/2305.04842">"Outcome Logic: A Unifying Foundation for Correctness and Incorrectness Reasoning."</a> Tri-abduction — bi-abduction with a branching degree of freedom.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <Neighbors>
+    <ul class="neighbors">
+      <li><a href="/reading/methodeutics/">Methodeutics</a></li>
+      <li><a href="/reading/methodeutics/ch02-security-uberty/">Ch 2: Security and Uberty</a></li>
+      <li><a href="/modes-of-reason">Modes of Reason</a> — blog post with the eight-names table</li>
+      <li><a href="/reading/scientific-method/peirce-1878/">Peirce 1878 — How to Make Our Ideas Clear</a></li>
+    </ul>
+    </Neighbors>
+  </main>
+</Layout>

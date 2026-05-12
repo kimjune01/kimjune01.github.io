@@ -39,7 +39,7 @@ image: "/assets/slug-name.png"
 
 `image:` sets the social preview (`og:image`, `twitter:card`, JSON-LD). It's independent of images in the post body — an inline diagram is not an og:image. Set it when the post has a meaningful preview image. Not all posts need one.
 
-Tags are comma-separated. Available tags: coding, cognition, methodology, reflecting, envelopay, pageleft, vector-space, poetry, crafting, improving, projects, reading.
+Tags are comma-separated. Available tags: coding, cognition, epistemology, methodology, reflecting, envelopay, pageleft, vector-space, poetry, crafting, improving, projects, reading.
 
 Posts that need component imports use `.mdx` extension. Content collection glob accepts both `**/*.{md,mdx}`.
 
