@@ -59,6 +59,8 @@ def read_post(slug: str) -> str:
         f = BLOG_DIR / f"{slug}{ext}"
         if f.exists():
             return f.read_text()
+        for f in BLOG_DIR.glob(f"????-??-??-{slug}{ext}"):
+            return f.read_text()
     return f"(no post found for slug '{slug}')"
 
 
