@@ -5,7 +5,7 @@ tags: experiment, methodology
 ---
 
 
-*Update (2026-05-13): the human-validation question is answered. The loop is deployed via the [sweep pipeline](https://github.com/kimjune01/sweep). 101 PRs to real maintainers, ~80–84% adjusted approval, median 40 lines. Within ten points of the lab. The lab and the field were measuring different denominators, not different ceilings. Details in [It works in production](#it-works-in-production) below.*
+*Update (2026-05-13): the human-validation question is answered. The loop is deployed via [sweep](/sweep-and-triage). 101 PRs to real maintainers, ~80–84% adjusted approval, median 40 lines. Within ten points of the lab. The lab and the field were measuring different denominators, not different ceilings. Details in [It works in production](#it-works-in-production) below.*
 
 If AI-generated code silently degrades the codebase (the slop-slope), humans must stay in the review loop forever. If it doesn't, the loop can close: machines write, machines review, humans approve the intent. The answer decides whether AI coding agents are tools or liabilities.
 
@@ -102,7 +102,7 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 ## It works in production
 
-Same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https://github.com/kimjune01/sweep), shipping PRs autonomously to upstream repos. Real maintainers, real review, real merges.
+Same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](/sweep-and-triage), shipping PRs autonomously to upstream repos. Real maintainers, real review, real merges.
 
 **101 PRs since the pipeline epoch. 54 merged, 47 closed. Median 40 lines per PR.** Back out the closures that aren't about code quality (standing, policy, scope, the social layer — about 70% of them per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md)) and adjusted human approval lands ~80–84%. Within ten points of the lab's 91%, against humans not Gemini, on diffs not toys.
 
