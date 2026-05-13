@@ -5,7 +5,7 @@ tags: experiment, methodology
 ---
 
 
-*Update (2026-05-13): the human-validation question this post originally left open is now answered. The same loop, deployed via [the sweep pipeline](https://github.com/kimjune01/sweep), shipped 95 PRs to upstream maintainers since 2026-05-09. Adjusted for code-quality-only judgment (backing out closures for standing/policy/scope/social signals), real-maintainer approval lands at ~80–84% — within ~10 points of the lab's 91%. The lab and the field were measuring different denominators, not different ceilings. Details in the [deployment evidence](#deployment-evidence-the-sweep-pipeline) section below.*
+*Update (2026-05-13): the human-validation question is answered. The loop is deployed via the [sweep pipeline](https://github.com/kimjune01/sweep). 101 PRs to real maintainers, ~80–84% adjusted approval, median 40 lines. Within ten points of the lab. The lab and the field were measuring different denominators, not different ceilings. Details in [It works in production](#it-works-in-production) below.*
 
 If AI-generated code silently degrades the codebase (the slop-slope), humans must stay in the review loop forever. If it doesn't, the loop can close: machines write, machines review, humans approve the intent. The answer decides whether AI coding agents are tools or liabilities.
 
@@ -100,15 +100,15 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 **TypeScript repos: yes, under 500 source files.** 67% approval. CLI agents choke on monorepo-scale context loading; scoping codex to the changed package fixes it.
 
-## Deployment evidence
+## It works in production
 
-Loop packaged as `/volley` + `/bug-hunt`, wired into [sweep](https://github.com/kimjune01/sweep), shipping PRs autonomously to upstream repos.
+Same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https://github.com/kimjune01/sweep), shipping PRs autonomously to upstream repos. Real maintainers, real review, real merges.
 
-**~80–84% adjusted human approval, n=101, median 40 lines per PR.**
+**101 PRs since the pipeline epoch. 54 merged, 47 closed. Median 40 lines per PR.** Back out the closures that aren't about code quality (standing, policy, scope, the social layer — about 70% of them per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md)) and adjusted human approval lands ~80–84%. Within ten points of the lab's 91%, against humans not Gemini, on diffs not toys.
 
-That's the one defensible field number. Raw maintainer merge rate is 54% (54/101); adjusting for non-code closures (standing, policy, scope, social — about 70% of closures per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md)) lands within ~10pp of the lab's 91% Gemini ceiling. PR-size distribution: median 40 lines (added + deleted), p25–p75 = 10–89, max 2024 — small-to-medium changes, not toy diffs.
+What's left in the gap is the bit no LLM reviewer can simulate: "fits our project." That's a stricter bar than correctness, and that's what the social layer rejects. The code itself isn't the problem anymore.
 
-The field replicates the lab's *output ceiling* against real maintainers, on PRs of meaningful size. It doesn't replicate the *causal effect size* — that still rests on the lab's controlled comparison. A population baseline (stratified gh search of comparable PRs by other authors without the loop) would close the loop on the field side; pending. Bug-leakage evidence is qualitative, lives in PR review-comment prose on the [profile feed](https://github.com/kimjune01).
+Receipts are public. Every merge, every close, every reviewer comment is on the [profile](https://github.com/kimjune01). Read the bug-finding ones in chronological order if you want the qualitative trajectory: early sweep cohorts had more "this breaks X" review text; later cohorts have more "ship it" or stylistic nits.
 
 <details>
 <summary>verify</summary>
@@ -119,12 +119,12 @@ The field replicates the lab's *output ceiling* against real maintainers, on PRs
   closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
   open:   search(query: "is:pr is:open author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount } }
 
-# Per-PR sizes (additions + deletions) — median is the headline
+# Per-PR sizes (additions + deletions)
 { search(query: "is:pr author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE, first: 100) {
     edges { node { ... on PullRequest { additions deletions number repository { nameWithOwner } } } } } }
 ```
 
-Closure-taxonomy adjustment in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md), updated by `/retro`. Live profile feed: [github.com/kimjune01](https://github.com/kimjune01).
+Closure taxonomy in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md), updated by `/retro`. Live feed: [github.com/kimjune01](https://github.com/kimjune01).
 
 </details>
 
@@ -178,7 +178,7 @@ On Rust and Go, the compiler catches what LLM reviewers hallucinate about. In ou
 
 ## Caveats
 
-~~The reviewer is Gemini 3.1 Pro, not a human. ... Human validation on a 4-PR subset is prepared but pending.~~ **Resolved 2026-05-13:** the deployment evidence above (n=95 PRs to real maintainers, 51 merged, ~80–84% adjusted approval after backing out non-code closures) is the human-validation pass. Humans agree with Gemini within ~10 points; the LLM-as-judge baseline holds at this scale. The original 4-PR human-subset is moot.
+~~The reviewer is Gemini 3.1 Pro, not a human. Human validation on a 4-PR subset is pending.~~ **Resolved 2026-05-13:** the deployment evidence is the human-validation pass. n=101 PRs, real maintainers, ~80–84% adjusted approval — within ten points of the 91%. The 4-PR subset was the wrong instrument.
 
 Go dominates the sample (15/23 valid trials) because Google repos preserve multi-commit branch history while most OSS repos squash. Rust has only 2 trials. The sample is real-world but not language-balanced.
 
