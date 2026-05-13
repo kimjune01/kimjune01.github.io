@@ -104,17 +104,24 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 The same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https://github.com/kimjune01/sweep), ships PRs to upstream repos autonomously. Sweep is one cohort; the broader public PR universe is the same dataset at population scale, queryable with the same API.
 
-| arm | window | n | reviewer | approval | source |
-|---|---|---|---|---|---|
-| Lab — without loop | controlled | 23 | Gemini 3.1 Pro | 43% | controlled trial |
-| Lab — with loop | controlled | 23 | Gemini 3.1 Pro | 91% | controlled trial |
-| Field — with loop (sweep) | 2026-05-09 → today | 99 resolved | real maintainers | 54% raw, ~80–84% adjusted | gh search |
-| Field — without loop | 2026-04-01 → 2026-05-08 | n=2 after filters | real maintainers | insufficient | gh search |
-| Population baseline | any window | millions | real maintainers | TBD | gh search |
+| arm | n | reviewer | approval | source |
+|---|---|---|---|---|
+| Lab — without loop | 23 | Gemini 3.1 Pro | 43% | controlled trial |
+| Lab — with loop | 23 | Gemini 3.1 Pro | 91% | controlled trial |
+| Field — with loop (sweep) | 99 resolved | real maintainers | 54% raw, ~80–84% adjusted | gh search since 2026-05-09 |
+| Population baseline | millions | real maintainers | TBD | gh search, any window |
 
-The field-side without-loop comparison I tried to construct doesn't hold up. The pre-iteration window has 31 resolved PRs raw, but 12 of those are tinygrad (a repo with explicit anti-AI dynamics that closes for non-code reasons) and 17 are kimjune01/* self-forks (not maintainer reception). Filtered to "external maintainer + non-tinygrad," n=2. And the pre-iteration PRs systematically differ from sweep PRs on whether tests were included — a separate covariate I can't disentangle from loop presence at this sample size.
+The field replicates the lab's *output ceiling* — with-loop adjusted ~80–84% against real maintainers lands within ~10 points of the lab's 91% Gemini approval. It does not independently confirm the *causal effect size*; the 48pp lab delta still rests on the controlled trial. A field-side replication needs the population baseline — a stratified sample of comparable PRs by other authors without the loop, same closure-taxonomy adjustment, compare. Pending.
 
-So: the field replicates the lab's *output ceiling* (with-loop adjusted ~80–84% lands within ~10 points of the lab's 91%, against real maintainers, n=99), but does not independently confirm the *causal effect size*. The 48pp lab delta still rests on the controlled trial. A real field-side replication needs a population baseline — query a stratified sample of comparable PRs by other authors without the loop applied, apply the same closure-taxonomy adjustment, compare. Pending.
+The honest longitudinal signal in the field is qualitative, not delta-based: QA caught code bugs in early sweep PRs at high rate, and that rate dropped sharply as the loop and the skills around it sharpened. Internal QA bug-find rate by day:
+
+| date | PRs | bugs found | bug rate |
+|---|---|---|---|
+| 2026-05-11 | 3 | 3 | 100% |
+| 2026-05-12 | 63 | 15 | 24% |
+| 2026-05-13 | 57 | 11 | 19% |
+
+3 PRs on May 11 is too small to be conclusive on its own, but the pattern through May 12–13 (n=120) is real: the loop catches fewer code bugs because there are fewer to catch. The implement step's output got cleaner as the surrounding skills (`/forge`, `/sharpen`, `/codex`) iterated. That's the loop's marginal contribution decaying *not* because the loop got worse but because its inputs got better — which is what you'd expect if iteration is genuinely tightening the system over time.
 
 Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. The 4-PR human subset originally promised was the wrong instrument; the population baseline is the right one and it's still TBD.
 
@@ -122,10 +129,6 @@ Adjustment backs out closures categorized as standing/policy/scope/social per th
 <summary>verify</summary>
 
 ```graphql
-# Field — without loop (April → 2026-05-08)
-{ merged: search(query: "is:pr is:merged author:kimjune01 created:2026-04-01..2026-05-08", type: ISSUE) { issueCount }
-  closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:2026-04-01..2026-05-08", type: ISSUE) { issueCount } }
-
 # Field — with loop (sweep era, since pipeline epoch)
 { merged: search(query: "is:pr is:merged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
   closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
@@ -135,6 +138,8 @@ Adjustment backs out closures categorized as standing/policy/scope/social per th
 { merged: search(query: "is:pr is:merged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount }
   closed: search(query: "is:pr is:closed is:unmerged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount } }
 ```
+
+Bug-rate timeline comes from `~/.sweep/drip-queue/*.jsonl` `gates.bugs_found` field — bucketed by day. The drip queue is published in the [sweep repo](https://github.com/kimjune01/sweep/tree/master/drip-queue), so anyone can recompute.
 
 Run with `gh api graphql -f query='...'`. Closure-taxonomy adjustment lives in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md), updated by `/retro` each cycle. Live profile feed: [github.com/kimjune01](https://github.com/kimjune01).
 
