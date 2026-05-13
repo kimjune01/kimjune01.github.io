@@ -104,24 +104,32 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 The same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https://github.com/kimjune01/sweep), ships PRs to upstream repos autonomously. Sweep is one cohort; the broader public PR universe is the same dataset at population scale, queryable with the same API.
 
-| sample | n | reviewer | approval | source |
-|---|---|---|---|---|
-| Lab (this post) | 23 | Gemini 3.1 Pro | 91% | controlled trial |
-| Sweep (deployment) | 95 resolved | real maintainers | 53% raw, ~80–84% adjusted | gh search since 2026-05-09 |
-| Public PR universe | millions | real maintainers | TBD | gh search, any window |
+| arm | window | n | reviewer | approval | source |
+|---|---|---|---|---|---|
+| Lab — without loop | controlled | 23 | Gemini 3.1 Pro | 43% | controlled trial |
+| Lab — with loop | controlled | 23 | Gemini 3.1 Pro | 91% | controlled trial |
+| Field — without loop | 2026-04-01 → 2026-05-08 | 31 resolved | real maintainers | 29% | gh search |
+| Field — with loop (sweep) | 2026-05-09 → today | 99 resolved | real maintainers | 54% raw, ~80–84% adjusted | gh search |
+| Population baseline | any window | millions | real maintainers | TBD | gh search |
 
-Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. Within ~10 points of the lab number once you control for what's being judged. The 4-PR human subset originally promised was the wrong instrument; the right one was already on GitHub.
+Two arms in the field, not one. The pre-iteration window (PRs I shipped manually before wiring `/volley` + `/bug-hunt` into [sweep](https://github.com/kimjune01/sweep)) is the deployment-side without-loop arm. Lab delta: 48 points (43→91). Field delta: 25 points raw (29→54). Same direction, same order of magnitude. The smaller field delta is expected — the field arms aren't matched on repo, topic, or care, while the lab arms are matched on code, spec, and reviewer. The loop's effect survives that uncontrolled comparison.
+
+Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. Adjusted with-loop field rate (~80–84%) lands within ~10 points of the lab's 91%. The 4-PR human subset originally promised was the wrong instrument; the right one was already on GitHub.
 
 <details>
 <summary>verify</summary>
 
 ```graphql
-# Sweep cohort, since pipeline epoch
+# Field — without loop (April → 2026-05-08)
+{ merged: search(query: "is:pr is:merged author:kimjune01 created:2026-04-01..2026-05-08", type: ISSUE) { issueCount }
+  closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:2026-04-01..2026-05-08", type: ISSUE) { issueCount } }
+
+# Field — with loop (sweep era, since pipeline epoch)
 { merged: search(query: "is:pr is:merged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
   closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
   open:   search(query: "is:pr is:open author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount } }
 
-# Population-scale baseline (substitute any author/repo/window)
+# Population baseline (substitute any author/repo/window)
 { merged: search(query: "is:pr is:merged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount }
   closed: search(query: "is:pr is:closed is:unmerged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount } }
 ```
