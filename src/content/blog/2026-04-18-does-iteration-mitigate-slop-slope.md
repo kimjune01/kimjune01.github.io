@@ -100,52 +100,33 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 **TypeScript repos: yes, under 500 source files.** 67% approval. CLI agents choke on monorepo-scale context loading; scoping codex to the changed package fixes it.
 
-## Deployment evidence: the sweep pipeline
+## Deployment evidence
 
-The lab numbers (43% → 91%) used Gemini as the reviewer. The harder test is: does it hold up against actual maintainers?
+The same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https://github.com/kimjune01/sweep), ships PRs to upstream repos autonomously. Sweep is one cohort; the broader public PR universe is the same dataset at population scale, queryable with the same API.
 
-I packaged the loop as two skills — `/volley` (cross-model review pre-push) and `/bug-hunt` (codex hunts structural bugs first, gemini hunts logic bugs second, both run to convergence) — and wired them into [the sweep pipeline](https://github.com/kimjune01/sweep) that ships PRs autonomously to upstream repos. Every PR passes through both before any maintainer sees it.
+| sample | n | reviewer | approval | source |
+|---|---|---|---|---|
+| Lab (this post) | 23 | Gemini 3.1 Pro | 91% | controlled trial |
+| Sweep (deployment) | 95 resolved | real maintainers | 53% raw, ~80–84% adjusted | gh search since 2026-05-09 |
+| Public PR universe | millions | real maintainers | TBD | gh search, any window |
 
-Live numbers (since pipeline epoch 2026-05-09, public on [the profile](https://github.com/kimjune01)):
-
-- **Raw: 51 of 95 resolved PRs merged = 53%** against real upstream maintainers across distinct repos.
-- 53% looks far below the lab's 91%, but it's measuring something different. Most non-merges aren't code-quality rejections; they're standing, policy compliance, scope, or social-pattern detection — categorized in the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md). Roughly 70% of closures fall into those non-code buckets.
-- **Adjusted for code-quality-only judgment: ~80–84% approval.** Backing out the non-code closures, the human-quality rejection rate lands near 16–20%, and approval lands close to the 91% Gemini number. The lab and the field aren't actually measuring different ceilings — they're measuring different denominators.
-- The remaining gap (≤10 points) is real: humans hold a stricter "fits our project" bar than any LLM reviewer, and that's what the social layer rejects.
-- The pipeline was banned from a couple of repos for behavioral signals (resubmission cadence, account-age) — *not* for slop. That's the inverse of the slop-slope concern: the maintainer-detected pattern was *too active*, not *too sloppy*.
-
-So: the loop transfers from controlled trials to production once you control for what's being judged. It doesn't make every PR merge — nothing does — but it removes "the code itself is the problem" from the failure modes. What's left is the social layer.
-
-### The dataset was always public
-
-Sweep's 95 PRs are one slice. The harder version of this study doesn't require a controlled experiment at all: every PR ever opened against an open-source repo is a public record with a structured outcome. GitHub's API exposes author, repo, timestamp, diff, merged/closed/open, review comments, close reason, and the author's prior history — exactly the variables the controlled trial measured, at population scale.
-
-A researcher who wanted to validate or break the 91% number could query, say, all `is:pr is:closed` PRs from the last quarter across a stratified sample of repos, apply the same closure-taxonomy adjustment (back out standing/policy/scope closures), and get a human-approval rate denominator orders of magnitude larger than 23 trials or 95. The same `gh api graphql` calls work; the methodology generalizes.
-
-The 4-PR human-validation subset I originally promised was the wrong instrument. The right instrument was already there — gh's search API over public PR history. Sweep is just the one cohort I happen to have generative control over, useful because the loop's presence/absence is known per PR. For external validation, the broader population is the better fit.
+Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. Within ~10 points of the lab number once you control for what's being judged. The 4-PR human subset originally promised was the wrong instrument; the right one was already on GitHub.
 
 <details>
-<summary>verify (run these against the GitHub GraphQL API)</summary>
-
-The merge and closure counts above come from these queries. They use the pipeline epoch (`2026-05-09T00:34:00Z`), so the numbers will grow over time but the methodology is fixed.
+<summary>verify</summary>
 
 ```graphql
-# Merged PRs since pipeline epoch
-{ search(query: "is:pr is:merged author:kimjune01 created:>2026-05-09T00:34:00Z",
-         type: ISSUE) { issueCount } }
+# Sweep cohort, since pipeline epoch
+{ merged: search(query: "is:pr is:merged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
+  closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
+  open:   search(query: "is:pr is:open author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount } }
 
-# Closed-unmerged PRs since pipeline epoch
-{ search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z",
-         type: ISSUE) { issueCount } }
-
-# Open PRs since pipeline epoch (still in flight, not in the resolved denominator)
-{ search(query: "is:pr is:open author:kimjune01 created:>2026-05-09T00:34:00Z",
-         type: ISSUE) { issueCount } }
+# Population-scale baseline (substitute any author/repo/window)
+{ merged: search(query: "is:pr is:merged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount }
+  closed: search(query: "is:pr is:closed is:unmerged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount } }
 ```
 
-Run with `gh api graphql -f query='...'`. The headline `merged / (merged + closed-unmerged)` is the raw merge rate; the closure taxonomy that backs out non-code-quality closures lives in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) and is updated by `/retro` after each cycle.
-
-For the live count and the per-PR feed (most recent 10 merged + 10 closed), see [the profile README](https://github.com/kimjune01) — same queries, rendered as a table.
+Run with `gh api graphql -f query='...'`. Closure-taxonomy adjustment lives in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md), updated by `/retro` each cycle. Live profile feed: [github.com/kimjune01](https://github.com/kimjune01).
 
 </details>
 
