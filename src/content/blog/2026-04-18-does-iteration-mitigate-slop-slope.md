@@ -108,13 +108,15 @@ The same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https:
 |---|---|---|---|---|---|
 | Lab — without loop | controlled | 23 | Gemini 3.1 Pro | 43% | controlled trial |
 | Lab — with loop | controlled | 23 | Gemini 3.1 Pro | 91% | controlled trial |
-| Field — without loop | 2026-04-01 → 2026-05-08 | 31 resolved | real maintainers | 29% | gh search |
 | Field — with loop (sweep) | 2026-05-09 → today | 99 resolved | real maintainers | 54% raw, ~80–84% adjusted | gh search |
+| Field — without loop | 2026-04-01 → 2026-05-08 | n=2 after filters | real maintainers | insufficient | gh search |
 | Population baseline | any window | millions | real maintainers | TBD | gh search |
 
-Two arms in the field, not one. The pre-iteration window (PRs I shipped manually before wiring `/volley` + `/bug-hunt` into [sweep](https://github.com/kimjune01/sweep)) is the deployment-side without-loop arm. Lab delta: 48 points (43→91). Field delta: 25 points raw (29→54). Same direction, same order of magnitude. The smaller field delta is expected — the field arms aren't matched on repo, topic, or care, while the lab arms are matched on code, spec, and reviewer. The loop's effect survives that uncontrolled comparison.
+The field-side without-loop comparison I tried to construct doesn't hold up. The pre-iteration window has 31 resolved PRs raw, but 12 of those are tinygrad (a repo with explicit anti-AI dynamics that closes for non-code reasons) and 17 are kimjune01/* self-forks (not maintainer reception). Filtered to "external maintainer + non-tinygrad," n=2. And the pre-iteration PRs systematically differ from sweep PRs on whether tests were included — a separate covariate I can't disentangle from loop presence at this sample size.
 
-Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. Adjusted with-loop field rate (~80–84%) lands within ~10 points of the lab's 91%. The 4-PR human subset originally promised was the wrong instrument; the right one was already on GitHub.
+So: the field replicates the lab's *output ceiling* (with-loop adjusted ~80–84% lands within ~10 points of the lab's 91%, against real maintainers, n=99), but does not independently confirm the *causal effect size*. The 48pp lab delta still rests on the controlled trial. A real field-side replication needs a population baseline — query a stratified sample of comparable PRs by other authors without the loop applied, apply the same closure-taxonomy adjustment, compare. Pending.
+
+Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. The 4-PR human subset originally promised was the wrong instrument; the population baseline is the right one and it's still TBD.
 
 <details>
 <summary>verify</summary>
