@@ -102,42 +102,29 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 ## Deployment evidence
 
-The same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https://github.com/kimjune01/sweep), ships PRs to upstream repos autonomously. Sweep is one cohort; the broader public PR universe is the same dataset at population scale, queryable with the same API.
+Loop packaged as `/volley` + `/bug-hunt`, wired into [sweep](https://github.com/kimjune01/sweep), shipping PRs autonomously to upstream repos.
 
-| arm | n | reviewer | approval | source |
-|---|---|---|---|---|
-| Lab — without loop | 23 | Gemini 3.1 Pro | 43% | controlled trial |
-| Lab — with loop | 23 | Gemini 3.1 Pro | 91% | controlled trial |
-| Field — with loop (sweep) | 99 resolved | real maintainers | 54% raw, ~80–84% adjusted | gh search since 2026-05-09 |
-| Population baseline | millions | real maintainers | TBD | gh search, any window |
+**~80–84% adjusted human approval, n=101, median 40 lines per PR.**
 
-The field replicates the lab's *output ceiling* — with-loop adjusted ~80–84% against real maintainers lands within ~10 points of the lab's 91% Gemini approval. It does not independently confirm the *causal effect size*; the 48pp lab delta still rests on the controlled trial. A field-side replication needs the population baseline — a stratified sample of comparable PRs by other authors without the loop, same closure-taxonomy adjustment, compare. Pending.
+That's the one defensible field number. Raw maintainer merge rate is 54% (54/101); adjusting for non-code closures (standing, policy, scope, social — about 70% of closures per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md)) lands within ~10pp of the lab's 91% Gemini ceiling. PR-size distribution: median 40 lines (added + deleted), p25–p75 = 10–89, max 2024 — small-to-medium changes, not toy diffs.
 
-The honest accounting of the field side: one clean number (the with-loop output ceiling, ~80–84% adjusted, n=99), one pending population baseline (without-loop comparator from gh search), and one *qualitative* trail — the bug evidence itself.
-
-Direct evidence of bugs that escaped the loop lives in PR review comments themselves. It doesn't aggregate to a count; it's quotes attached to PR URLs. A maintainer wrote *"this breaks X under Y condition"* on a specific PR; another wrote *"the test doesn't actually exercise the changed branch."* The trajectory shows up by reading those comments in chronological order — early sweep cohorts have more bug-finding review text; later cohorts have more "ship it" or stylistic nits. That's not a number you can put in a table without flattening what makes it evidence. The receipts are in the PR threads on the [profile feed](https://github.com/kimjune01).
-
-A natural-experiment data point that *is* numerical: 22 sweep PRs shipped during a brief gate-bypass when `/volley` was inadvertently skipped. Post-ship review caught 7 critical bugs in that batch — 27% defect rate without the gate, against the field's typical near-zero post-ship bug surface when the gate runs. Documented in the [hypothesis graph](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) under "Gate bypass incident."
-
-Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections.
+The field replicates the lab's *output ceiling* against real maintainers, on PRs of meaningful size. It doesn't replicate the *causal effect size* — that still rests on the lab's controlled comparison. A population baseline (stratified gh search of comparable PRs by other authors without the loop) would close the loop on the field side; pending. Bug-leakage evidence is qualitative, lives in PR review-comment prose on the [profile feed](https://github.com/kimjune01).
 
 <details>
 <summary>verify</summary>
 
 ```graphql
-# Field — with loop (sweep era, since pipeline epoch)
+# Counts
 { merged: search(query: "is:pr is:merged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
   closed: search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount }
   open:   search(query: "is:pr is:open author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE) { issueCount } }
 
-# Population baseline (substitute any author/repo/window)
-{ merged: search(query: "is:pr is:merged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount }
-  closed: search(query: "is:pr is:closed is:unmerged created:2026-04-01..2026-05-01", type: ISSUE) { issueCount } }
+# Per-PR sizes (additions + deletions) — median is the headline
+{ search(query: "is:pr author:kimjune01 created:>2026-05-09T00:34:00Z", type: ISSUE, first: 100) {
+    edges { node { ... on PullRequest { additions deletions number repository { nameWithOwner } } } } } }
 ```
 
-Bug-rate timeline comes from `~/.sweep/drip-queue/*.jsonl` `gates.bugs_found` field — bucketed by day. The drip queue is published in the [sweep repo](https://github.com/kimjune01/sweep/tree/master/drip-queue), so anyone can recompute.
-
-Run with `gh api graphql -f query='...'`. Closure-taxonomy adjustment lives in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md), updated by `/retro` each cycle. Live profile feed: [github.com/kimjune01](https://github.com/kimjune01).
+Closure-taxonomy adjustment in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md), updated by `/retro`. Live profile feed: [github.com/kimjune01](https://github.com/kimjune01).
 
 </details>
 
