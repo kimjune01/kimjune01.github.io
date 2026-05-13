@@ -229,7 +229,7 @@ Two parties to satisfy, one to tolerate. Maintainers want their attention back. 
 
 The maintainer from the opening is still closing AI PRs by hand. One at a time, twenty minutes each, close, next one, close. The filter is [250 lines of bash](https://github.com/kimjune01/sweep/blob/master/action.yml). Drop it in a workflow file and the closing happens before the PR reaches the review queue. The three-strike ban means the third one is the last one.
 
-It cost me 53 merges, 63 closures, a billion Opus tokens, and one account block to curate those 250 lines. That's what it cost. It's free to use.
+It cost me 53 merges, 63 closures, a billion Opus tokens, and eight account blocks. Every check in the file is a lesson earned from a specific block. It's free to use.
 
 ## Run it yourself
 
