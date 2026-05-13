@@ -116,6 +116,14 @@ Live numbers (since pipeline epoch 2026-05-09, public on [the profile](https://g
 
 So: the loop transfers from controlled trials to production once you control for what's being judged. It doesn't make every PR merge — nothing does — but it removes "the code itself is the problem" from the failure modes. What's left is the social layer.
 
+### The dataset was always public
+
+Sweep's 95 PRs are one slice. The harder version of this study doesn't require a controlled experiment at all: every PR ever opened against an open-source repo is a public record with a structured outcome. GitHub's API exposes author, repo, timestamp, diff, merged/closed/open, review comments, close reason, and the author's prior history — exactly the variables the controlled trial measured, at population scale.
+
+A researcher who wanted to validate or break the 91% number could query, say, all `is:pr is:closed` PRs from the last quarter across a stratified sample of repos, apply the same closure-taxonomy adjustment (back out standing/policy/scope closures), and get a human-approval rate denominator orders of magnitude larger than 23 trials or 95. The same `gh api graphql` calls work; the methodology generalizes.
+
+The 4-PR human-validation subset I originally promised was the wrong instrument. The right instrument was already there — gh's search API over public PR history. Sweep is just the one cohort I happen to have generative control over, useful because the loop's presence/absence is known per PR. For external validation, the broader population is the better fit.
+
 <details>
 <summary>verify (run these against the GitHub GraphQL API)</summary>
 
