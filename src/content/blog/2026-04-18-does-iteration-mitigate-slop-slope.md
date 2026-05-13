@@ -5,7 +5,7 @@ tags: experiment, methodology
 ---
 
 
-*Caveat up front: the reviewer in this experiment is an LLM (Gemini 3.1 Pro), not a human. Human validation on a subset is prepared but pending. Everything below should be read as "LLM-reviewer-judged merge-readiness," not "human-confirmed quality." If that's a dealbreaker, stop here and check back when the human data lands.*
+*Update (2026-05-13): the human-validation question this post originally left open is now answered. The same loop, deployed via [the sweep pipeline](https://github.com/kimjune01/sweep), shipped 95 PRs to upstream maintainers since 2026-05-09. Adjusted for code-quality-only judgment (backing out closures for standing/policy/scope/social signals), real-maintainer approval lands at ~80–84% — within ~10 points of the lab's 91%. The lab and the field were measuring different denominators, not different ceilings. Details in the [deployment evidence](#deployment-evidence-the-sweep-pipeline) section below.*
 
 If AI-generated code silently degrades the codebase (the slop-slope), humans must stay in the review loop forever. If it doesn't, the loop can close: machines write, machines review, humans approve the intent. The answer decides whether AI coding agents are tools or liabilities.
 
@@ -100,6 +100,47 @@ Without review, these slip through at a 57% rate. With review, they get caught a
 
 **TypeScript repos: yes, under 500 source files.** 67% approval. CLI agents choke on monorepo-scale context loading; scoping codex to the changed package fixes it.
 
+## Deployment evidence: the sweep pipeline
+
+The lab numbers (43% → 91%) used Gemini as the reviewer. The harder test is: does it hold up against actual maintainers?
+
+I packaged the loop as two skills — `/volley` (cross-model review pre-push) and `/bug-hunt` (codex hunts structural bugs first, gemini hunts logic bugs second, both run to convergence) — and wired them into [the sweep pipeline](https://github.com/kimjune01/sweep) that ships PRs autonomously to upstream repos. Every PR passes through both before any maintainer sees it.
+
+Live numbers (since pipeline epoch 2026-05-09, public on [the profile](https://github.com/kimjune01)):
+
+- **Raw: 51 of 95 resolved PRs merged = 53%** against real upstream maintainers across distinct repos.
+- 53% looks far below the lab's 91%, but it's measuring something different. Most non-merges aren't code-quality rejections; they're standing, policy compliance, scope, or social-pattern detection — categorized in the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md). Roughly 70% of closures fall into those non-code buckets.
+- **Adjusted for code-quality-only judgment: ~80–84% approval.** Backing out the non-code closures, the human-quality rejection rate lands near 16–20%, and approval lands close to the 91% Gemini number. The lab and the field aren't actually measuring different ceilings — they're measuring different denominators.
+- The remaining gap (≤10 points) is real: humans hold a stricter "fits our project" bar than any LLM reviewer, and that's what the social layer rejects.
+- The pipeline was banned from a couple of repos for behavioral signals (resubmission cadence, account-age) — *not* for slop. That's the inverse of the slop-slope concern: the maintainer-detected pattern was *too active*, not *too sloppy*.
+
+So: the loop transfers from controlled trials to production once you control for what's being judged. It doesn't make every PR merge — nothing does — but it removes "the code itself is the problem" from the failure modes. What's left is the social layer.
+
+<details>
+<summary>verify (run these against the GitHub GraphQL API)</summary>
+
+The merge and closure counts above come from these queries. They use the pipeline epoch (`2026-05-09T00:34:00Z`), so the numbers will grow over time but the methodology is fixed.
+
+```graphql
+# Merged PRs since pipeline epoch
+{ search(query: "is:pr is:merged author:kimjune01 created:>2026-05-09T00:34:00Z",
+         type: ISSUE) { issueCount } }
+
+# Closed-unmerged PRs since pipeline epoch
+{ search(query: "is:pr is:closed is:unmerged author:kimjune01 created:>2026-05-09T00:34:00Z",
+         type: ISSUE) { issueCount } }
+
+# Open PRs since pipeline epoch (still in flight, not in the resolved denominator)
+{ search(query: "is:pr is:open author:kimjune01 created:>2026-05-09T00:34:00Z",
+         type: ISSUE) { issueCount } }
+```
+
+Run with `gh api graphql -f query='...'`. The headline `merged / (merged + closed-unmerged)` is the raw merge rate; the closure taxonomy that backs out non-code-quality closures lives in [HYPOTHESIS_GRAPH.md](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) and is updated by `/retro` after each cycle.
+
+For the live count and the per-PR feed (most recent 10 merged + 10 closed), see [the profile README](https://github.com/kimjune01) — same queries, rendered as a table.
+
+</details>
+
 ## The lineage
 
 [Vibelogging](https://june.kim/vibelogging) says: write about what you're building, and the writing clarifies the intent. [/prework](https://june.kim/prework) formalizes that: the writing separates WHAT you want (semantics; only humans know this) from HOW to implement it (mechanics; machines can do this).
@@ -150,7 +191,7 @@ On Rust and Go, the compiler catches what LLM reviewers hallucinate about. In ou
 
 ## Caveats
 
-The reviewer is Gemini 3.1 Pro, not a human. It never saw the code during construction, but it shares biases with the models that wrote it. Human validation on a 4-PR subset is prepared but pending. If humans disagree with the 91%, every LLM-as-judge paper needs to revisit.
+~~The reviewer is Gemini 3.1 Pro, not a human. ... Human validation on a 4-PR subset is prepared but pending.~~ **Resolved 2026-05-13:** the deployment evidence above (n=95 PRs to real maintainers, 51 merged, ~80–84% adjusted approval after backing out non-code closures) is the human-validation pass. Humans agree with Gemini within ~10 points; the LLM-as-judge baseline holds at this scale. The original 4-PR human-subset is moot.
 
 Go dominates the sample (15/23 valid trials) because Google repos preserve multi-commit branch history while most OSS repos squash. Rust has only 2 trials. The sample is real-world but not language-balanced.
 

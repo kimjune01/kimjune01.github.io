@@ -62,8 +62,14 @@ Derivative Work can be regenerated: the original prose, any modifications
 to it, and any build instructions (prompts, configuration, scripts) used
 in the compilation.
 
-Compatible License means CC BY-SA 4.0, AGPL 3.0, or any later version
-of either.
+Compatible License means CC BY-SA-NS, AGPL 3.0, or any later version of
+either, or any license at least as protective of the Network Services
+clause defined above. Compatibility is upward-only: plain CC BY-SA 4.0
+is NOT a Compatible License — it lacks the Network Services clause and
+would let a downstream relicense one hop down to escape the network
+requirement, breaking the chain. AGPL 3.0 qualifies because its own §13
+(Remote Network Interaction) provides the equivalent obligation for
+code. This mirrors how AGPL itself refuses GPL 3.0 as a downgrade path.
 
 You are free to:
   - Share: copy and redistribute the material in any medium or format

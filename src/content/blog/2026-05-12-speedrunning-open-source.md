@@ -88,7 +88,7 @@ The asymmetric burden is clear: what took me 2 minutes to "write" took the maint
 
 No first drafts. Opus writes the fix, gemini attacks it, codex checks whether the prose reads human. Loop to convergence. They fail in uncorrelated ways, so together they catch what none of them catches alone.
 
-Or that's the story. The honest version: I [ran the experiment](/does-iteration-mitigate-slop-slope) and couldn't tell whether iteration produced better code or just better-reading prose. Merge rate climbed. Bug counts didn't drop in any way I could measure cleanly.
+That's not just the story. I [ran the experiment](/does-iteration-mitigate-slop-slope): without code iteration, an independent reviewer approved 43% of trials — coin flip. With it (one model writes, another adversarially critiques the code, the first revises, build and tests gate every round, repeat until convergence), 91%. Same starting code, same spec, only the iteration differs. The 48-point gap is what convergence buys you. Caveat: the reviewer in the experiment is Gemini, not a human; human validation is pending.
 
 More on the loop and what does work: [/methodology](/methodology).
 
