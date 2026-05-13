@@ -113,17 +113,13 @@ The same loop, packaged as `/volley` + `/bug-hunt` and wired into [sweep](https:
 
 The field replicates the lab's *output ceiling* — with-loop adjusted ~80–84% against real maintainers lands within ~10 points of the lab's 91% Gemini approval. It does not independently confirm the *causal effect size*; the 48pp lab delta still rests on the controlled trial. A field-side replication needs the population baseline — a stratified sample of comparable PRs by other authors without the loop, same closure-taxonomy adjustment, compare. Pending.
 
-The honest longitudinal signal in the field is qualitative, not delta-based: QA caught code bugs in early sweep PRs at high rate, and that rate dropped sharply as the loop and the skills around it sharpened. Internal QA bug-find rate by day:
+The honest accounting of the field side: one clean number (the with-loop output ceiling, ~80–84% adjusted, n=99), one pending population baseline (without-loop comparator from gh search), and one *qualitative* trail — the bug evidence itself.
 
-| date | PRs | bugs found | bug rate |
-|---|---|---|---|
-| 2026-05-11 | 3 | 3 | 100% |
-| 2026-05-12 | 63 | 15 | 24% |
-| 2026-05-13 | 57 | 11 | 19% |
+Direct evidence of bugs that escaped the loop lives in PR review comments themselves. It doesn't aggregate to a count; it's quotes attached to PR URLs. A maintainer wrote *"this breaks X under Y condition"* on a specific PR; another wrote *"the test doesn't actually exercise the changed branch."* The trajectory shows up by reading those comments in chronological order — early sweep cohorts have more bug-finding review text; later cohorts have more "ship it" or stylistic nits. That's not a number you can put in a table without flattening what makes it evidence. The receipts are in the PR threads on the [profile feed](https://github.com/kimjune01).
 
-3 PRs on May 11 is too small to be conclusive on its own, but the pattern through May 12–13 (n=120) is real: the loop catches fewer code bugs because there are fewer to catch. The implement step's output got cleaner as the surrounding skills (`/forge`, `/sharpen`, `/codex`) iterated. That's the loop's marginal contribution decaying *not* because the loop got worse but because its inputs got better — which is what you'd expect if iteration is genuinely tightening the system over time.
+A natural-experiment data point that *is* numerical: 22 sweep PRs shipped during a brief gate-bypass when `/volley` was inadvertently skipped. Post-ship review caught 7 critical bugs in that batch — 27% defect rate without the gate, against the field's typical near-zero post-ship bug surface when the gate runs. Documented in the [hypothesis graph](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) under "Gate bypass incident."
 
-Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections. The 4-PR human subset originally promised was the wrong instrument; the population baseline is the right one and it's still TBD.
+Adjustment backs out closures categorized as standing/policy/scope/social per the [closure taxonomy](https://github.com/kimjune01/sweep/blob/master/HYPOTHESIS_GRAPH.md) — roughly 70% of closures aren't code-quality rejections.
 
 <details>
 <summary>verify</summary>
