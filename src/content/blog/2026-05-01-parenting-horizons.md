@@ -1,7 +1,7 @@
 ---
 variant: post-medium
 title: "Parenting Horizons"
-tags: cognition, reflecting
+tags: reflecting, epistemology
 ---
 
 *Follows [The Hypothesis Graph](/the-hypothesis-graph).*

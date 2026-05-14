@@ -1,7 +1,7 @@
 ---
 variant: post-wide
 title: "Modes of Reason"
-tags: cognition, methodology
+tags: cognition, methodology, epistemology
 ---
 
 *Part of the [cognition](/cognition) series.*

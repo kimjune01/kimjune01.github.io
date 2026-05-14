@@ -1,7 +1,7 @@
 ---
 variant: post-medium
 title: "The Hypothesis Graph"
-tags: cognition, methodology
+tags: methodology, epistemology
 ---
 
 *Part of the [cognition](/cognition) series. Sequel to [Evidence has a trajectory](/evidence-has-a-trajectory).*

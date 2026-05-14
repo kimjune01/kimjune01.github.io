@@ -1,7 +1,7 @@
 ---
 variant: post-medium
 title: "Evidence has a trajectory"
-tags: cognition, reflecting
+tags: reflecting, epistemology
 ---
 
 *Part of the [cognition](/cognition) series.*

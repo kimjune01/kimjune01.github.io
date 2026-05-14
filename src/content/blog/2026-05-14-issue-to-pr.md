@@ -1,6 +1,6 @@
 ---
 variant: post-medium
-title: "Pledge, turn, prestige"
+title: "(Issue) → PR"
 tags: pageleft, coding, methodology
 ---
 

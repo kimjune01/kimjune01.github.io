@@ -1,7 +1,7 @@
 ---
 variant: post-medium
 title: "Belief is the edge of knowing"
-tags: cognition, reflecting
+tags: cognition, reflecting, epistemology
 image: "/assets/minesweeper-guessing.png"
 ---
 

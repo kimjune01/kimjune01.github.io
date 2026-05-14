@@ -1,7 +1,7 @@
 ---
 variant: post-wide
 title: "Abduction"
-tags: cognition, methodology
+tags: methodology, epistemology
 ---
 
 *Part of the [cognition](/cognition) series. Sequel to [Modes of Reason](/modes-of-reason).*
