@@ -28,6 +28,8 @@ This is Karpathy's [cognitive core](https://x.com/karpathy/status/19379022057656
 
 The detector is the durable half. Models commoditize on an eighteen-month cycle; calibrated detectors trained on per-repo merge corpora don't, because every repo is its own taste, and the corpus only grows. Train the detector on today's merged corpus, it enforces today's standards on tomorrow's PRs. Tomorrow's merged corpus reflects the new floor. Next iteration enforces that. Same dynamic that gave us `-Wall` then `-Wextra` then `-Werror`. Untyped JS then TypeScript then `strict: true`. AI didn't lower the floor. It moved the floor from implicit to explicit and turned it into something every maintainer can install.
 
+Same move spam filters made for mailmerge in the late 90s. Cheap mass email broke the inbox until recipients shipped free filters; the medium recovered, and mailmerge became infrastructure. Recipients build filters, not senders.
+
 The bench is the stepping stone.
 
 ### The prestige
