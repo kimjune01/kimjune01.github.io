@@ -4,10 +4,6 @@ title: "(Issue) → PR"
 tags: pageleft, coding, methodology
 ---
 
-*Every [great magic trick](https://www.youtube.com/watch?v=5uvGJXu_Akw) consists of three parts. The pledge: the magician shows you something ordinary. The turn: the magician takes the ordinary thing and makes it do something extraordinary. The prestige: the part where you see it and refuse to believe.*
-
-### The pledge
-
 Sweep and triage work. The pipeline scans open issues across 200 OSS repos, picks ones worth fixing, opens a fork, runs a hypothesis graph against the bug, implements with TDD, sends the diff to two adversarial reviewers, ships the PR, handles pushback, and either merges or learns from the closure. End to end, no human in the orchestration loop.
 
 The receipts are public. [184 hypothesis graphs](https://github.com/kimjune01/sweep/tree/master/repo-hypotheses) committed and dated. 47 PRs merged this month. One pushback today: an [Envoy](https://www.envoyproxy.io/) maintainer flagged a clock-discontinuity concern. The pipeline tested the claim against Envoy's own JWT and OAuth2 code, found four file-line citations of the same trade-off resolved the same way, and posted a two-line response with the hypothesis graph linked. Maintainer hasn't replied. The position holds without further input from me.
@@ -16,7 +12,7 @@ Today, [scverse/pertpy](https://github.com/scverse/pertpy/pull/970) had two secu
 
 This will become the ordinary thing. Autonomous PR submission works end-to-end on bug-fix-shaped issues at 200-500 star repos. Nobody noticed because the receipts arrived without ceremony. The [skills](https://github.com/kimjune01/sweep) arrived without ceremony too.
 
-### The turn
+### The detector
 
 The pipeline is orchestration shape, not raw model power. The hypothesis-graph format does the cognitive work: claim, perturbation, classify, follow the edge. Volley discipline catches what one model misses. Patience keeps standing. Receipts can't be faked by lazy agents.
 
@@ -32,7 +28,7 @@ Same move spam filters made for mailmerge in the late 90s. Cheap mass email brok
 
 The bench is the stepping stone.
 
-### The prestige
+### Local
 
 Every dev runs the agent and detector locally.
 
