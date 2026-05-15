@@ -13,27 +13,34 @@ Scan a blog post for rhythm problems, oversized sections, weak titles, and parag
 
 ### 1. Prosody
 
-Read sentences aloud in your head. Flag where the rhythm breaks.
+Read sentences aloud in your head. Flag where the rhythm breaks. **Scope: word-shuffling only.** Reorder existing words and clauses. Add or drop function words (articles, prepositions, conjunctions) to fix stress patterns. Do not swap content words. Do not change verbs. Do not introduce em-dashes (the em-dash budget is 0 in prose; see *Cross-skill policies* below). If a fix requires substituting a different verb, that's a taste call, not a rhythm fix — leave it for /sharpen or the human.
 
 **Stress collisions.** Consecutive stressed syllables with no unstressed buffer: "big black block" → "a big dark block." A function word between downbeats fixes it.
 
-**Stress gaps.** Three or more unstressed syllables in a row: "the implementation of the" is a valley. Restructure so stress falls every 2-3 syllables.
+**Stress gaps.** Three or more unstressed syllables in a row: "the implementation of the" is a valley. Reorder so stress falls every 2-3 syllables.
 
-**Dangling prepositions.** The sentence dies on "of." Restructure so the final word carries weight.
+**Dangling prepositions.** The sentence dies on "of" or "for" or "to." Restructure so the final word carries weight. Restructure means *reorder the same words*, not *find a stronger word*.
 
-**Power verbs over copulas.** `is/are/was/were` + abstract noun + `of`/`that` usually hides a stronger active verb. *"The thesis is that languages crystallize"* → *"Languages crystallize."* *"There is a tendency for systems to drift"* → *"Systems drift."* *"The result is decreased latency"* → *"Latency drops."* The action verb shows; the copula tells. Don't blanket-swap, though: definitional sentences (*"A monad is a monoid in the category of endofunctors"*), identity statements (*"That's the shape of a cognitive architecture"*), and deliberate flat declarations (*"The slot is open."*) earn their copulas. Flag where the copula adds words without adding meaning.
+**Buried actors (cleft + passive).** Find the actor in the sentence and move it to subject position. *"It's what every framework is scrambling to bolt on"* (cleft) → *"Every framework is scrambling to bolt it on."* *"The bug was caused by a race condition"* (passive) → *"A race condition caused the bug."* Identify the doer; make it the subject. This is a reordering, not a word substitution. Keep the cleft when the topic genuinely sits in the predicate (*"It's not the algorithm that matters, it's the data"*) or when the actor is unknown or irrelevant (*"The file was deleted overnight"* — by whom doesn't matter).
 
-**Active voice.** Find the actor and put it in subject position. *"It's what every framework is scrambling to bolt on"* (cleft) → *"Every framework is scrambling to bolt it on."* *"The bug was caused by a race condition"* (passive) → *"A race condition caused the bug."* The cleft (`It's what X...`, `What X is...`) and the passive (`X was Y'd by Z`) both bury the actor. Identify the doer; make it the subject. Keep the cleft when the topic genuinely sits in the predicate (contrast: *"It's not the algorithm that matters, it's the data"*) or when the actor is unknown or irrelevant (*"The file was deleted overnight"* — by whom doesn't matter).
+**Monotonous sentence starts.** 3+ consecutive sentences starting with the same word or structure. Vary the opener: invert, use a dependent clause, start with the object. Reorder; don't substitute.
 
-**Monotonous sentence starts.** 3+ consecutive sentences starting with the same word or structure. Vary the opener: invert, use a dependent clause, start with the object.
-
-**Parallel structure mismatch.** List items that don't match meter. Fix by making items the same shape.
+**Parallel structure mismatch.** List items that don't match meter. Fix by making items the same shape using the existing words.
 
 **Contrast pairs as separate sentences.** Two consecutive sentences with the same structure that say opposite things ("X does A. Y does B.") often read stronger joined by a semicolon. The semicolon signals the contrast is intentional; the period makes it look accidental. Flag when the parallel is exact enough that a semicolon would land the opposition in one breath.
 
-**Run-on mid-register.** Sentences over 20 words where every word is mid-frequency and mid-stress. Try restructuring first: move a strong word to the end, add a colon pivot, or join with a conjunction. Split only when restructuring can't save it.
+**Run-on mid-register.** Sentences over 20 words where every word is mid-frequency and mid-stress. Try restructuring first: move a strong word to the end, add a colon pivot, or join with a conjunction. Split only when restructuring can't save it. Word substitution is off-limits.
 
 **Clause ordering for flow.** Each sentence starts where the previous one ended. Given-before-new: the known thing comes first, the new thing lands last. "The team's coverage comes from overlapping T's" flows into "Fixed hours in a release cycle mean depth costs breadth" because coverage → constraint is a natural handoff. Reversing either sentence breaks the thread. When flow and emphasis align, the sentence works on both passes. When they conflict, prefer flow — the reader who stumbles never reaches the punch. Flag sentences where reordering clauses would connect better to the surrounding context. Only flag when the last noun of sentence N-1 and the first noun of sentence N have no semantic connection — that's the gap the reader has to jump. Don't flag deliberate breaks: "but" sentences, parallel structures, or contrast pairs that intentionally start somewhere new.
+
+#### What this check is NOT
+
+- **Not power-verb-over-copula.** That's a substance change. If a sentence reads better with a different verb, leave it for /sharpen or a human pass. Readability changes *order*, not *vocabulary*.
+- **Not voice tightening.** "Sweep takes" → "Sweep eats" is a taste call, not a rhythm fix.
+- **Not introducing em-dashes.** Em-dash budget is 0 in prose throughout the pipeline.
+- **Not adding new content words** for image or impact.
+
+The skill should make the same words read better in the same order, sometimes with the order shuffled. Anything more is out of scope.
 
 ### 2. Section titles
 
@@ -85,8 +92,20 @@ Read sentences aloud in your head. Flag where the rhythm breaks.
 
 **Flag non-definition bolds.** If the bolded phrase isn't introducing a term or labeling a structural element (list item, table header), swap to italic or remove. Excessive inline bold makes everything look like a heading and nothing stands out.
 
-## Dampener
+## Cross-skill policies
 
-Apply fixes liberally, especially prosody. If the restructured version sounds better read aloud, use it. Don't be conservative — the user trusts the skill. A technically perfect sentence that loses voice is worse than an imperfect one that sounds like a person, but most prosody fixes improve both.
+- **Em-dash budget: 0 in prose.** Reference-list separators (`[link](url) — description`) are exempt because they're typographic, not rhetorical. Do not introduce em-dashes in body prose for pacing, parenthetical asides, or contrast pivots. Use commas, parens, colons, or sentence breaks instead. This policy lives in `/humanize`'s patterns section; readability must honor it because the pipeline runs solo on this skill too.
 
-A second pass should find little or nothing.
+- **Word-shuffling only.** Reorder existing words and add/drop function words. Don't swap content words. Substance changes belong to `/sharpen` or human judgment.
+
+## Aggression by check
+
+Prosody is **uncapped**. The other checks have natural ceilings; prosody does not. Read every sentence aloud. If any sentence has a stress collision, a stress gap, a dangling preposition, a buried actor, a copula where a power verb would carry, or a clause order that breaks the given-before-new flow, rewrite it. Default to restructuring. The fail mode is leaving a clunky sentence alone because "it's technically grammatical." A clunky sentence the reader has to re-read is a cost; the cost compounds across the post.
+
+A single readability pass should apply **dozens** of prosody fixes on a typical 1500-word post, not three or four. If your pass found fewer than ten prosody changes, you read too generously. Go again, this time committing to read aloud and edit on every stumble.
+
+The other five checks (titles, emoji H1s, paragraph sizing, section sizing, bold/italic) are damped. Once they land, they're settled. A second pass on those should find little.
+
+Prosody can keep finding things across multiple passes and that is fine. Restructuring sentence N often surfaces a rhythm problem in sentence N+1 that was masked by the worse sentence next to it. The pipeline's monoidal contract holds at the post level (eventually the prose stops needing fixes) but prosody's per-pass ceiling is *the rhythm of the post*, not *one and done*.
+
+A technically perfect sentence that loses voice is worse than an imperfect one that sounds like a person, but most prosody fixes improve both. When in doubt, restructure.

@@ -55,3 +55,13 @@ Move down the waterfall when higher options don't exist or feel forced. A Vickre
 - When multiple link options exist, pick the one that loads fastest and requires no login.
 - One link per reference. Don't double-link the same thing.
 - Match the link's tone to the post's tone. Technical posts can link to papers. Narrative posts should prefer articles and videos.
+
+## Dampener
+
+Default to "*probably* leave it alone." The skill should *barely* run — a typical pass finds one or two genuinely useful links, not five borderline ones. If the candidate fails any of these:
+
+- Would the reader's understanding actually change after clicking?
+- Is the reference doing argumentative work in this paragraph, or just appearing in it?
+- Does the link substantiate a claim the reader might otherwise doubt?
+
+… leave it unlinked. Per-pass yield should taper toward zero by pass two. If a second pass finds another link to add, that's a sign of drift, not of thoroughness — flavor without damping is a slow walk toward link soup. The "a bit" qualifier on /tighten and the narrow-preserving invariant on /sharpen do the same job in their respective skills; flavor needs the same brake to satisfy the monoidal contract `flavor(flavor(x)) == flavor(x)`.

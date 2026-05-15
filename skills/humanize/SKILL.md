@@ -31,7 +31,7 @@ When given a directory instead of a single file, or when running a targeted pass
 
 ## Patterns
 
-**Em dash overuse.** More than 1 per post is a tell. Replace with periods, commas, colons, or restructure. Count every `—` in the file.
+**Em dash overuse.** Em dashes in prose are a tell; the budget is 0. Reference-list separators (`[link](url) — description`) are exempt because they're typographic, not rhetorical. Workflow: replace every prose `—` with the right substitute (period for beat, colon for definition, comma for aside, parens for parenthetical), apply all replacements in one pass, then surface the batch as a numbered list with line + before/after so the user can elicit a revert on any line where the em dash earned its weight. Don't elicit one at a time; bunch them. Count every prose `—` in the file before and after.
 
 **Negative parallelisms.** "Not X but Y", "It's not just X, it's Y", "isn't X; it's Y." Define things by what they are. The negation half is almost always dead weight.
 
