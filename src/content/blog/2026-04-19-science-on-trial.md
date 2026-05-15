@@ -1,7 +1,7 @@
 ---
 variant: post-medium
 title: "Science on Trial"
-tags: reflecting, methodology
+tags: reflecting, epistemology
 ---
 
 When you ask scientists about their work, they cite their positive results. When you ask the public what makes science credible, they cite peer review. When you ask ChatGPT for its sources, it points to publications as if publication were truth. If that all sounds fine, your notion of science is broken.

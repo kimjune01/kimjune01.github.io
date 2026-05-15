@@ -1,7 +1,7 @@
 ---
 variant: post-medium
 title: "The Proof Manual"
-tags: methodology, cognition
+tags: methodology, epistemology
 ---
 
 For agents: load [`proof-manual.yml`](https://github.com/kimjune01/june.kim/blob/master/src/data/proof-manual.yml).

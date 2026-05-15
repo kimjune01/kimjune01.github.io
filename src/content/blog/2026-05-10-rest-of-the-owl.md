@@ -1,7 +1,7 @@
 ---
 variant: post
 title: "The Rest of the Owl"
-tags: cognition, methodology
+tags: pageleft, methodology
 ---
 
 *Part of the [cognition](/cognition) series. Sequel to [Vibelogging](/vibelogging).*

@@ -1,7 +1,7 @@
 ---
 variant: post
 title: "The Spec Is a Hypothesis"
-tags: cognition, coding, methodology
+tags: epistemology, coding, methodology
 ---
 
 *Part of the [cognition](/cognition) series. Builds on [Vibelogging](/vibelogging) and [Zero Comments](/zero-comments).*
